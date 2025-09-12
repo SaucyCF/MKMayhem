@@ -2,8 +2,11 @@
 #include <MarioKartWii/Kart/KartManager.hpp>
 #include <MarioKartWii/Effect/EffectMgr.hpp> 
 #include <MarioKartWii/UI/Section/SectionMgr.hpp>
+#include <MarioKartWii/Archive/ArchiveMgr.hpp>
+#include <MarioKartWii/RKNet/RKNetController.hpp>
 #include <Race/200ccParams.hpp>
 #include <PulsarSystem.hpp>
+#include <DKW.hpp>
 
 //Unoptimized code which is mostly a port of Stebler's version which itself comes from CTGP's, speed factor is in the LapSpeedModifier code
 
@@ -12,7 +15,7 @@ namespace Pulsar {
 namespace Race {
 
 static void CannonExitSpeed() {
-    const float ratio = System::sInstance->IsContext(PULSAR_200) ? cannonExit : 1.0f;
+    const float ratio = System::sInstance->IsContext(PULSAR_200) || DKW::System::Is400cc() || DKW::System::Is99999cc() ? cannonExit : 1.0f;
     register Kart::Movement* kartMovement;
     asm(mr kartMovement, r30;);
     kartMovement->engineSpeed = kartMovement->baseSpeed * ratio;
@@ -20,7 +23,16 @@ static void CannonExitSpeed() {
 kmCall(0x805850c8, CannonExitSpeed);
 
 void EnableBrakeDrifting(Input::ControllerHolder& controllerHolder) {
-    if(System::sInstance->IsContext(PULSAR_200)) {
+    bool NoBrakeDrift = Pulsar::DKWSETTING_150_BRAKEDRIFT_ON;
+    const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+    const GameMode mode = scenario.settings.gamemode;
+    const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
+    if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST) {
+       NoBrakeDrift = System::sInstance->IsContext(Pulsar::PULSAR_BDRIFTING) ? Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF : Pulsar::DKWSETTING_150_BRAKEDRIFT_ON;
+}
+
+    if(NoBrakeDrift == Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF || System::sInstance->IsContext(PULSAR_MODE_OTT) && !System::sInstance->IsContext(PULSAR_200) || System::sInstance->IsContext(PULSAR_MODE_OTT) && !DKW::System::Is400cc() || System::sInstance->IsContext(PULSAR_MODE_OTT) && !DKW::System::Is99999cc() || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200)){}
+    else if(static_cast<Pulsar::DKWSettingBrakeDrift>(Pulsar::Settings::Mgr::Get().GetUserSettingValue(static_cast<Pulsar::Settings::UserType>(Pulsar::Settings::SETTINGSTYPE_DKW1), Pulsar::SETTINGDKW_BRAKEDRIFT)) == Pulsar::DKWSETTING_BRAKEDRIFT_ENABLED || System::sInstance->IsContext(PULSAR_200) || DKW::System::Is400cc() || DKW::System::Is99999cc()) {
         const ControllerType controllerType = controllerHolder.curController->GetType();
         const u16 inputs = controllerHolder.inputStates[0].buttonRaw;
         u16 inputsMask = 0x700;
@@ -60,7 +72,15 @@ kmCall(0x80521828, FixGhostBrakeDrifting);
 
 
 bool IsBrakeDrifting(const Kart::Status& status) {
-    if(System::sInstance->IsContext(PULSAR_200)) {
+    bool NoBrakeDrift = Pulsar::DKWSETTING_150_BRAKEDRIFT_ON;
+    const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+    const GameMode mode = scenario.settings.gamemode;
+    const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
+    if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST) {
+       NoBrakeDrift = System::sInstance->IsContext(Pulsar::PULSAR_BDRIFTING) ? Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF : Pulsar::DKWSETTING_150_BRAKEDRIFT_ON;
+}
+    if(NoBrakeDrift == Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF || System::sInstance->IsContext(PULSAR_MODE_OTT) && !System::sInstance->IsContext(PULSAR_200) || System::sInstance->IsContext(PULSAR_MODE_OTT) && !DKW::System::Is400cc() || System::sInstance->IsContext(PULSAR_MODE_OTT) && !DKW::System::Is99999cc() || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200)){}
+    else if(static_cast<Pulsar::DKWSettingBrakeDrift>(Pulsar::Settings::Mgr::Get().GetUserSettingValue(static_cast<Pulsar::Settings::UserType>(Pulsar::Settings::SETTINGSTYPE_DKW1), Pulsar::SETTINGDKW_BRAKEDRIFT)) == Pulsar::DKWSETTING_BRAKEDRIFT_ENABLED || System::sInstance->IsContext(PULSAR_200) || DKW::System::Is400cc() || DKW::System::Is99999cc()) {
         u32 bitfield0 = status.bitfield0;
         const Input::ControllerHolder& controllerHolder = status.link->GetControllerHolder();
         if((bitfield0 & 0x40000) != 0 && (bitfield0 & 0x1F) == 0xF && (bitfield0 & 0x80100000) == 0
@@ -102,8 +122,16 @@ kmCall(0x806faff8, BrakeDriftingSoundWrapper);
 
 kmWrite32(0x80698f88, 0x60000000);
 static int BrakeEffectBikes(Effects::Player& effects) {
+    bool NoBrakeDrift = Pulsar::DKWSETTING_150_BRAKEDRIFT_ON;
+    const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+    const GameMode mode = scenario.settings.gamemode;
+    const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
+    if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST) {
+       NoBrakeDrift = System::sInstance->IsContext(Pulsar::PULSAR_BDRIFTING) ? Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF : Pulsar::DKWSETTING_150_BRAKEDRIFT_ON;
+}
     const Kart::Player* kartPlayer = effects.kartPlayer;
-    if(System::sInstance->IsContext(PULSAR_200)) {
+    if(NoBrakeDrift == Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF || System::sInstance->IsContext(PULSAR_MODE_OTT) && !System::sInstance->IsContext(PULSAR_200) || System::sInstance->IsContext(PULSAR_MODE_OTT) && !DKW::System::Is400cc() || System::sInstance->IsContext(PULSAR_MODE_OTT) && !DKW::System::Is99999cc() || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200)){}
+    else if(static_cast<Pulsar::DKWSettingBrakeDrift>(Pulsar::Settings::Mgr::Get().GetUserSettingValue(static_cast<Pulsar::Settings::UserType>(Pulsar::Settings::SETTINGSTYPE_DKW1), Pulsar::SETTINGDKW_BRAKEDRIFT)) == Pulsar::DKWSETTING_BRAKEDRIFT_ENABLED || System::sInstance->IsContext(PULSAR_200) || DKW::System::Is400cc() || DKW::System::Is99999cc()) {
         if(IsBrakeDrifting(*kartPlayer->pointers.kartStatus)) effects.CreateAndUpdateEffectsByIdxVelocity(effects.bikeDriftEffects, 25, 26, 1);
         else effects.FollowFadeEffectsByIdxVelocity(effects.bikeDriftEffects, 25, 26, 1);
     }
@@ -113,8 +141,16 @@ kmCall(0x80698f8c, BrakeEffectBikes);
 
 kmWrite32(0x80698048, 0x60000000);
 static int BrakeEffectKarts(Effects::Player& effects) {
+    bool NoBrakeDrift = Pulsar::DKWSETTING_150_BRAKEDRIFT_ON;
+    const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+    const GameMode mode = scenario.settings.gamemode;
+    const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
+    if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST) {
+       NoBrakeDrift = System::sInstance->IsContext(Pulsar::PULSAR_BDRIFTING) ? Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF : Pulsar::DKWSETTING_150_BRAKEDRIFT_ON;
+}
     Kart::Player* kartPlayer = effects.kartPlayer;
-    if(System::sInstance->IsContext(PULSAR_200)) {
+    if(NoBrakeDrift == Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF || System::sInstance->IsContext(PULSAR_MODE_OTT) && !System::sInstance->IsContext(PULSAR_200) || System::sInstance->IsContext(PULSAR_MODE_OTT) && !DKW::System::Is400cc() || System::sInstance->IsContext(PULSAR_MODE_OTT) && !DKW::System::Is99999cc() || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200)){}
+    else if(static_cast<Pulsar::DKWSettingBrakeDrift>(Pulsar::Settings::Mgr::Get().GetUserSettingValue(static_cast<Pulsar::Settings::UserType>(Pulsar::Settings::SETTINGSTYPE_DKW1), Pulsar::SETTINGDKW_BRAKEDRIFT)) == Pulsar::DKWSETTING_BRAKEDRIFT_ENABLED || System::sInstance->IsContext(PULSAR_200) || DKW::System::Is400cc() || DKW::System::Is99999cc()) {
         if(IsBrakeDrifting(*kartPlayer->pointers.kartStatus)) effects.CreateAndUpdateEffectsByIdxVelocity(effects.kartDriftEffects, 34, 36, 1);
         else effects.FollowFadeEffectsByIdxVelocity(effects.kartDriftEffects, 34, 36, 1);
     }
@@ -124,7 +160,15 @@ kmCall(0x8069804c, BrakeEffectKarts);
 
 
 static void FastFallingBody(Kart::Status& status, Kart::Physics& physics) { //weird thing 0x96 padding byte used
-    if(System::sInstance->IsContext(PULSAR_200)) {
+    bool NoFallFast = Pulsar::DKWSETTING_150_FALLFASTON;
+    const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+    const GameMode mode = scenario.settings.gamemode;
+    const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
+    if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST) {
+       NoFallFast = System::sInstance->IsContext(Pulsar::PULSAR_FALLFAST) ? DKWSETTING_150_FALLFASTOFF : DKWSETTING_150_FALLFASTON;
+}
+    if(NoFallFast == Pulsar::DKWSETTING_150_FALLFASTOFF || System::sInstance->IsContext(PULSAR_MODE_OTT) && !System::sInstance->IsContext(PULSAR_200) || System::sInstance->IsContext(PULSAR_MODE_OTT) && !DKW::System::Is400cc() || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200)){}
+    else if(static_cast<Pulsar::DKWSettingFallFast>(Pulsar::Settings::Mgr::Get().GetUserSettingValue(static_cast<Pulsar::Settings::UserType>(Pulsar::Settings::SETTINGSTYPE_DKW1), Pulsar::SETTINGDKW_FALLFAST)) == Pulsar::DKWSETTING_FALLFAST_ENABLED || System::sInstance->IsContext(PULSAR_200) || DKW::System::Is400cc()) {
         if((status.airtime >= 2) && (!status.bool_0x96 || (status.airtime > 19))) {
             Input::ControllerHolder& controllerHolder = status.link->GetControllerHolder();
             float input = controllerHolder.inputStates[0].stick.z <= 0.0f ? 0.0f :
@@ -139,8 +183,16 @@ kmCall(0x805967a4, FastFallingBody);
 
 kmWrite32(0x8059739c, 0x38A10014); //addi r5, sp, 0x14 to align with the Vec3 on the stack
 static Kart::WheelPhysicsHolder& FastFallingWheels(Kart::Sub& sub, u8 wheelIdx, Vec3& gravityVector) { //weird thing 0x96 status
+    bool NoFallFast = Pulsar::DKWSETTING_150_FALLFASTON;
+    const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+    const GameMode mode = scenario.settings.gamemode;
+    const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
+    if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST) {
+       NoFallFast = System::sInstance->IsContext(Pulsar::PULSAR_FALLFAST) ? Pulsar::DKWSETTING_150_FALLFASTOFF : Pulsar::DKWSETTING_150_FALLFASTON;
+}
     float gravity = -1.3f;
-    if(System::sInstance->IsContext(PULSAR_200)) {
+    if(NoFallFast == Pulsar::DKWSETTING_150_FALLFASTOFF || System::sInstance->IsContext(PULSAR_MODE_OTT) && !System::sInstance->IsContext(PULSAR_200) || System::sInstance->IsContext(PULSAR_MODE_OTT) && !DKW::System::Is400cc() || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200)){}
+    else if(static_cast<Pulsar::DKWSettingFallFast>(Pulsar::Settings::Mgr::Get().GetUserSettingValue(static_cast<Pulsar::Settings::UserType>(Pulsar::Settings::SETTINGSTYPE_DKW1), Pulsar::SETTINGDKW_FALLFAST)) == Pulsar::DKWSETTING_FALLFAST_ENABLED || System::sInstance->IsContext(PULSAR_200) || DKW::System::Is400cc()) {
         Kart::Status* status = sub.kartStatus;
         if(status->airtime == 0) status->bool_0x96 = ((status->bitfield0 & 0x80) != 0) ? true : false;
         else if((status->airtime >= 2) && (!status->bool_0x96 || (status->airtime > 19))) {

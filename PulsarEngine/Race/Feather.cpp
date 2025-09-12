@@ -5,6 +5,9 @@
 #include <MarioKartWii/Input/InputManager.hpp>
 #include <MarioKartWii/CourseMgr.hpp>
 #include <PulsarSystem.hpp>
+#include <Settings/SettingsParam.hpp>
+#include <MarioKartWii/Archive/ArchiveMgr.hpp>
+#include <MarioKartWii/RKNet/RKNetController.hpp>
 
 
 namespace Pulsar {
@@ -26,13 +29,19 @@ void UseFeather(Item::Player& itemPlayer) {
 }
 
 void UseBlooperOrFeather(Item::Player& itemPlayer) {
-    if(System::sInstance->IsContext(PULSAR_FEATHER)) UseFeather(itemPlayer);
+const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+const GameMode mode = scenario.settings.gamemode;
+const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
+    if(System::sInstance->IsContext(PULSAR_FLYINGBLOOP) == Pulsar::DKWSETTING_FLYINGBLOOP_FEATHER || mode == MODE_TIME_TRIAL || mode == MODE_GHOST_RACE) UseFeather(itemPlayer);
     else itemPlayer.UseBlooper();
 };
 kmWritePointer(0x808A5894, UseBlooperOrFeather);
 
 void ReplaceBlooperUseOtherPlayers(Item::GessoMgr& gessoMgr, u8 id) {
-    if(System::sInstance->IsContext(PULSAR_FEATHER)) {
+const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+const GameMode mode = scenario.settings.gamemode;
+const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
+    if(System::sInstance->IsContext(PULSAR_FLYINGBLOOP) == Pulsar::DKWSETTING_FLYINGBLOOP_FEATHER || mode == MODE_TIME_TRIAL || mode == MODE_GHOST_RACE) {
         UseFeather(Item::Manager::sInstance->players[id]);
     }
     else gessoMgr.DeployBlooper(id);
@@ -47,7 +56,17 @@ kmCall(0x80796d8c, ReplaceBlooperUseOtherPlayers); //replaces the small blooper 
 static bool ConditionalIgnoreInvisibleWalls(float radius, CourseMgr& mgr, const Vec3& position, const Vec3& prevPosition,
     KCLBitfield acceptedFlags, CollisionInfo* info, KCLTypeHolder& kclFlags)
 {
-    if(System::sInstance->IsContext(PULSAR_FEATHER)) {
+bool InvisWalls = System::sInstance->IsContext(PULSAR_INVISWALLS) == Pulsar::DKWSETTING_INVISWALLS_DISABLED;
+const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+const GameMode mode = scenario.settings.gamemode;
+const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
+if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST || gameMode == MODE_GRAND_PRIX || gameMode == MODE_VS_RACE || gameMode == MODE_BATTLE) {
+    InvisWalls = System::sInstance->IsContext(PULSAR_INVISWALLS) == Pulsar::DKWSETTING_INVISWALLS_DISABLED;
+}
+    if (InvisWalls == Pulsar::DKWSETTING_INVISWALLS_DISABLED) {
+        acceptedFlags = static_cast<KCLBitfield>(acceptedFlags & ~(1 << KCL_INVISIBLE_WALL));
+    }
+    else if(System::sInstance->IsContext(PULSAR_FLYINGBLOOP) == Pulsar::DKWSETTING_FLYINGBLOOP_FEATHER || mode == MODE_TIME_TRIAL || mode == MODE_GHOST_RACE) {
         register Kart::Collision* collision;
         asm(mr collision, r15;);
         Kart::Status* status = collision->pointers->kartStatus;
@@ -61,7 +80,10 @@ static bool ConditionalIgnoreInvisibleWalls(float radius, CourseMgr& mgr, const 
 kmCall(0x805b68dc, ConditionalIgnoreInvisibleWalls);
 
 u8 ConditionalFastFallingBody(const Kart::Sub& sub) {
-    if(System::sInstance->IsContext(PULSAR_FEATHER)) {
+const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+const GameMode mode = scenario.settings.gamemode;
+const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
+    if(System::sInstance->IsContext(PULSAR_FLYINGBLOOP) == Pulsar::DKWSETTING_FLYINGBLOOP_FEATHER || mode == MODE_TIME_TRIAL || mode == MODE_GHOST_RACE) {
         const Kart::PhysicsHolder& physicsHolder = sub.GetPhysicsHolder();
         const Kart::Status* status = sub.pointers->kartStatus;
         if(status->bitfield0 & 0x40000000 && status->jumpPadType == 0x7 && status->airtime >= 2 && (!status->bool_0x97 || status->airtime > 19)) {
@@ -77,7 +99,10 @@ kmCall(0x805967ac, ConditionalFastFallingBody);
 
 
 void ConditionalFastFallingWheels(float unk_float, Kart::WheelPhysicsHolder* wheelPhysicsHolder, Vec3& gravityVector, const Mtx34& wheelMat) {
-    if(System::sInstance->IsContext(PULSAR_FEATHER)) {
+const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+const GameMode mode = scenario.settings.gamemode;
+const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
+    if(System::sInstance->IsContext(PULSAR_FLYINGBLOOP) == Pulsar::DKWSETTING_FLYINGBLOOP_FEATHER || mode == MODE_TIME_TRIAL || mode == MODE_GHOST_RACE) {
         Kart::Status* status = wheelPhysicsHolder->pointers->kartStatus;
         if(status->bitfield0 & 0x40000000 && status->jumpPadType == 0x7) {
             if(status->airtime == 0) status->bool_0x97 = ((status->bitfield0 & 0x80) != 0) ? true : false;
@@ -95,17 +120,23 @@ kmCall(0x805973b4, ConditionalFastFallingWheels);
 
 
 s32 HandleGroundFeatherCollision(const Kart::Collision& collision) {
-    if(System::sInstance->IsContext(PULSAR_FEATHER)) {
+const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+const GameMode mode = scenario.settings.gamemode;
+const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
+    if(System::sInstance->IsContext(PULSAR_FLYINGBLOOP) == Pulsar::DKWSETTING_FLYINGBLOOP_FEATHER || mode == MODE_TIME_TRIAL || mode == MODE_GHOST_RACE) {
         Item::Player& itemPlayer = Item::Manager::sInstance->players[collision.GetPlayerIdx()];
         itemPlayer.inventory.currentItemCount += 1;
         UseFeather(itemPlayer);
     }
     return -1;
 }
-kmWritePointer(0x808b54e8, HandleGroundFeatherCollision);
+//kmWritePointer(0x808b54e8, HandleGroundFeatherCollision);
 
 static u32 ConditionalBlooperTimer(u32 timer) {
-    if(System::sInstance->IsContext(PULSAR_FEATHER)) timer = 0;
+const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+const GameMode mode = scenario.settings.gamemode;
+const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
+    if(System::sInstance->IsContext(PULSAR_FLYINGBLOOP) == Pulsar::DKWSETTING_FLYINGBLOOP_FEATHER || mode == MODE_TIME_TRIAL || mode == MODE_GHOST_RACE) timer = 0;
     else timer--;
     return timer;
 }
@@ -121,7 +152,10 @@ kmCall(0x807a84c8, ConditionalFeatherBRRES);
 
 void LoadCorrectFeatherBRRES(Item::ObjGesso& objKumo, const char* mdlName, const char* shadowSrc, u8 whichShadowListToUse,
     Item::Obj::AnmParam* anmParam) {
-    if(System::sInstance->IsContext(PULSAR_FEATHER)) objKumo.LoadGraphics("feather.brres", mdlName, shadowSrc, 0, 0,
+const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+const GameMode mode = scenario.settings.gamemode;
+const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
+    if(System::sInstance->IsContext(PULSAR_FLYINGBLOOP) == Pulsar::DKWSETTING_FLYINGBLOOP_FEATHER || mode == MODE_TIME_TRIAL || mode == MODE_GHOST_RACE) objKumo.LoadGraphics("feather.brres", mdlName, shadowSrc, 0, 0,
         static_cast<nw4r::g3d::ScnMdl::BufferOption>(0), nullptr, 0);
     else objKumo.LoadGraphicsImplicitBRRESNoFunc(mdlName, shadowSrc, 0, static_cast<nw4r::g3d::ScnMdl::BufferOption>(0), 0);
 }
@@ -129,7 +163,7 @@ kmBranch(0x807a8390, LoadCorrectFeatherBRRES);
 
 void ConditionalNoBlooperAnimation(ModelDirector* mdl, u32 id, g3d::ResFile& brres, const char* name, AnmType type, bool hasBlend,
     const char* brasd, ArchiveSource source, u8 kartArchiveIdx) {
-    if(!System::sInstance->IsContext(PULSAR_FEATHER)) {
+    if(System::sInstance->IsContext(PULSAR_FLYINGBLOOP) != Pulsar::DKWSETTING_FLYINGBLOOP_FEATHER) {
         mdl->LinkAnimation(id, brres, name, type, hasBlend, brasd, source, kartArchiveIdx);
     }
 }
@@ -139,14 +173,17 @@ kmCall(0x807a85ac, ConditionalNoBlooperAnimation);
 
 
 void ConditionalObjProperties(Item::ObjProperties* dest, const Item::ObjProperties& rel) {
+    const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+    const GameMode mode = scenario.settings.gamemode;
+    const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
     new (dest) Item::ObjProperties(rel);
-    if(System::sInstance->IsContext(PULSAR_FEATHER)) {
+    if(System::sInstance->IsContext(PULSAR_FLYINGBLOOP) == Pulsar::DKWSETTING_FLYINGBLOOP_FEATHER || mode == MODE_TIME_TRIAL || mode == MODE_GHOST_RACE) {
         dest->limit = 4;
         dest->canFallOnTheGround = true;
         dest->canFallOnTheGround2 = true;
     }
 }
-kmCall(0x80790bc4, ConditionalObjProperties);
+//kmCall(0x80790bc4, ConditionalObjProperties);
 
 //Kept as is because it's almost never used and that guarantees ghost sync
 kmWrite32(0x808b5c24, 0x42AA0000); //increases min, max speed of jump pad type 0x7 as well as its vertical velocity

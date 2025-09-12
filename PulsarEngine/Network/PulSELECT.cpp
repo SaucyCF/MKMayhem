@@ -195,7 +195,7 @@ static void DecideCC(ExpSELECTHandler& handler) {
             else if (result < 100 - prob100) ccClass = 2;
         }
         else if (ccSetting == HOSTSETTING_CC_150) ccClass = 2;
-        else if (ccSetting == HOSTSETTING_CC_MIRROR) ccClass = 3;
+        else if (ccSetting == HOSTSETTING_CC_50 || ccSetting == HOSTSETTING_CC_REAL100 || ccSetting == HOSTSETTING_CC_400 || ccSetting == HOSTSETTING_CC_99999 || ccSetting == HOSTSETTING_CC_100) ccClass = 1;
         handler.toSendPacket.engineClass = ccClass;
     }
 

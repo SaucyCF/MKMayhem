@@ -15,7 +15,7 @@ namespace UI {
 
 void CorrectButtonCount(Pages::SinglePlayer* page) {
     const System* system = System::sInstance;
-    const bool hasFeather = system->GetInfo().HasFeather();
+    const bool hasFeather = false;
     const bool has200cc = system->GetInfo().Has200cc();
     page->externControlCount = 4 + hasFeather + has200cc + (hasFeather && has200cc) + 1;
     new (page) Page;

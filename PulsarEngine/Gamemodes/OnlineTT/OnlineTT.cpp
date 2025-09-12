@@ -62,7 +62,7 @@ kmBranch(0x80514b2c, CondStartPos);
 bool CondAIRelatedTTCheck(bool, const Racedata& racedata) { //most notably the animation on overtake
     const GameMode mode = racedata.racesScenario.settings.gamemode;
     bool isTT = (mode == MODE_TIME_TRIAL || mode == MODE_GHOST_RACE);
-    if(System::sInstance->IsContext(PULSAR_MODE_OTT)) isTT = true;
+    if(System::sInstance->IsContext(PULSAR_MODE_OTT))  isTT = true;
     return isTT;
 }
 kmBranch(0x807396b0, CondAIRelatedTTCheck);

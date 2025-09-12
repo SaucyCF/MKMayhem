@@ -48,12 +48,20 @@ struct PulRH1 : public RKNet::RACEHEADER1Packet {
     u8 almostKOdCounter;
     u8 finalPercentageSum; //to be divided by racecount at the end of the GP
 
+    // HotPotato: host -> clients assignment announcement
+    // hotPotatoAssignedPlayerId == 0xFF => none
+    u8 hotPotatoAssignedPlayerId;
+    u8 hotPotatoAssignedOrder;
+    // When host wants clients to finalize a player's race (e.g., last player), set to playerId, else 0xFF
+    u8 hotPotatoFinalizePlayerId;
+
 };
 struct PulRH2 : public      RKNet::RACEHEADER2Packet {};
 struct PulROOM : public     RKNet::ROOMPacket {
 
     //Generic ROOM settings
-    u32 hostSystemContext; //System's context but with just gamemodes taken from the settings
+    u64 hostSystemContext; //System's context but with just gamemodes taken from the settings
+    u32 KOSystemContext;
     u8 raceCount;
 };
 

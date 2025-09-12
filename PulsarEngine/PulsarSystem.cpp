@@ -12,6 +12,10 @@
 #include <Config.hpp>
 #include <SlotExpansion/CupsConfig.hpp>
 #include <core/egg/DVD/DvdRipper.hpp>
+#include <include/c_string.h>
+
+//All Code Credits go to the WTP Team unless otherwise mentioned.
+
 namespace Pulsar {
 
 System* System::sInstance = nullptr;
@@ -57,13 +61,14 @@ void System::Init(const ConfigFile& conf) {
         }
     }
     strncpy(this->modFolderName, conf.header.modFolderName, IOS::ipcMaxFileName);
+    static char* pulMagic = reinterpret_cast<char*>(0x800017CC);
+    strcpy(pulMagic, "PUL2");
 
     //InitInstances
     CupsConfig::sInstance = new CupsConfig(conf.GetSection<CupsHolder>());
     this->info.Init(conf.GetSection<InfoHolder>().info);
     this->InitIO(type);
     this->InitSettings(&conf.GetSection<CupsHolder>().trophyCount[0]);
-
 
     //Initialize last selected cup and courses
     const PulsarCupId last = Settings::Mgr::sInstance->GetSavedSelectedCup();
@@ -131,10 +136,60 @@ void System::UpdateContext() {
 
 
     bool is200 = racedataSettings.engineClass == CC_100 && this->info.Has200cc();
+
+    bool is50 = settings.GetSettingValue(Settings::SETTINGSTYPE_HOST, HOSTSETTING_CC_50);
+    bool is100 = settings.GetSettingValue(Settings::SETTINGSTYPE_HOST, HOSTSETTING_CC_REAL100);
+    bool is400 = settings.GetSettingValue(Settings::SETTINGSTYPE_HOST, HOSTSETTING_CC_400);
+    bool is99999 = settings.GetSettingValue(Settings::SETTINGSTYPE_HOST, HOSTSETTING_CC_99999);
+    bool isRankedFrooms = settings.GetSettingValue(Settings::SETTINGSTYPE_HOST, SETTINGDKW_RANKED_FROOMS) == DKWSETTING_RANKEDFROOMS_ENABLED;
+
+    bool isKOFinal = settings.GetSettingValue(Settings::SETTINGSTYPE_KO, SETTINGKO_FINAL) == KOSETTING_FINAL_ALWAYS;
+
+    bool isOTTChangeCombo = settings.GetSettingValue(Settings::SETTINGSTYPE_OTT, SETTINGOTT_ALLOWCHANGECOMBO) == OTTSETTING_COMBO_ENABLED;
+
+    bool isMayhemCodes = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW2, SETTINGDKW_MAYHEM_CODES) == DKWSETTING_MAYHEM_ENABLED;
+    bool isSnaking = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW2, SETTINGDKW_SNAKING) == DKWSETTING_SNAKING_ENABLED;
+    bool isDisableInvisWalls = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW2, SETTINGDKW_INVIS_WALLS) == DKWSETTING_INVISWALLS_DISABLED;
+    bool isItemBoxSpawnFast = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW2, SETTINGDKW_ITEMBOXRESPAWN) == DKWSETTING_ITEMBOX_FASTRESPAWN;
+    bool isItemBoxSpawnInstant = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW2, SETTINGDKW_ITEMBOXRESPAWN) == DKWSETTING_ITEMBOX_INSTANTRESPAWN;
+    bool isRiiBalanced = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW2, SETTINGDKW_VEHICLESTATS) == DKWSETTING_STATS_RIIBALANCED;
+    bool isBumperKart = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW2, SETTINGDKW_VEHICLESTATS) == DKWSETTING_STATS_BUMPERKARTS;
+    bool isMayhemStats = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW2, SETTINGDKW_VEHICLESTATS) == DKWSETTING_STATS_MAYHEM;
+    bool isItemModeRandom = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW2, SETTINGDKW_GAMEMODE) == DKWSETTING_GAMEMODE_RANDOM;
+    bool isItemModeShellShock = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW2, SETTINGDKW_GAMEMODE) == DKWSETTING_GAMEMODE_SHELLSHOCK;
+    bool isItemModeUnknown = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW2, SETTINGDKW_GAMEMODE) == DKWSETTING_GAMEMODE_UNKNOWNITEMS;
+    bool isItemModeRain = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW2, SETTINGDKW_GAMEMODE) == DKWSETTING_GAMEMODE_ITEMRAIN;
+    bool isItemModeBattleRoyale = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW2, SETTINGDKW_GAMEMODE) == DKWSETTING_GAMEMODE_BATTLEROYALE;
+    bool isTrackSelectionRegs = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW3, SETTINGDKW_TRACKS) == DKWSETTING_TRACKSELECTION_REGS;
+    bool isTrackSelectionCts = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW3, SETTINGDKW_TRACKS) == DKWSETTING_TRACKSELECTION_CTS;
+    bool isTrackSelectionSits = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW3, SETTINGDKW_TRACKS) == DKWSETTING_TRACKSELECTION_SITS && mode != MODE_PUBLIC_VS;
+
+    bool isCharRestrictLight = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW3, SETTINGDKW_CHARRESTRICT) == DKWSETTING_CHARRESTRICT_LIGHT;
+    bool isCharRestrictMedium = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW3, SETTINGDKW_CHARRESTRICT) == DKWSETTING_CHARRESTRICT_MEDIUM;
+    bool isCharRestrictHeavy = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW3, SETTINGDKW_CHARRESTRICT) == DKWSETTING_CHARRESTRICT_HEAVY;
+    bool isKartRestrictKart = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW3, SETTINGDKW_VEHICLERESTRICT) == DKWSETTING_VEHICLERESTRICT_KARTS;
+    bool isKartRestrictBike = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW3, SETTINGDKW_VEHICLERESTRICT) == DKWSETTING_VEHICLERESTRICT_BIKES;
+    bool isTransmissionVanilla = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW3, SETTINGHOST_SCROLL_FORCETRANSMISSION) == DKWSETTING_FORCE_TRANSMISSION_VANILLA;
+    bool isTransmissionInsideAll = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW3, SETTINGHOST_SCROLL_FORCETRANSMISSION) == DKWSETTING_FORCE_TRANSMISSION_INSIDEALL;
+    bool isTransmissionOutsideAll = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW3, SETTINGHOST_SCROLL_FORCETRANSMISSION) == DKWSETTING_FORCE_TRANSMISSION_OUTSIDEALL;
+    bool isCantBrakeDrift = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW3, SETTINGDKW_ALLOW_BDRIFTING) == DKWSETTING_150_BRAKEDRIFT_OFF;
+    bool isCantFastFall = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW3, SETTINGDKW_ALLOW_FALLFAST) == DKWSETTING_150_FALLFASTOFF;
+    bool isCantAlwaysDrift = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW3, SETTINGDKW_ALLOW_ALWAYSDRIFT) == DKWSETTING_ALLOW_DANYWHEREOFF;
+    bool isUltras = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW3, SETTINGDKW_ALLOW_ULTRAS) == DKWSETTING_ULTRAS_ENABLED;
+
+    bool isThunderCloud = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW4, SETTINGDKW_THUNDERCLOUD);
+    bool isFlyingBlooper = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW4, SETTINGDKW_FLYINGBLOOP);
+    bool isRandomTC = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW4, SETTINGDKW_THUNDERCLOUD) == DKWSETTING_THUNDERCLOUD_RANDOM;
+    bool isTCToggle = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW4, SETTINGDKW_TCTOGGLE) == DKWSETTING_TCTOGGLE_ENABLED;
+    bool isItemStatus = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW4, SETTINGDKW_ITEMSTATUS) == DKWSETTING_ITEMSTATUS_ENABLED;
+    bool isAllItems = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW4, SETTINGDKW_ALLITEMS) == DKWSETTING_ALLITEMS_ENABLED;
+    bool isBulletIcon = settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW4, SETTINGDKW_BULLETICON) == DKWSETTING_BULLETICON_ENABLED;
+
     bool isFeather = this->info.HasFeather();
     bool isUMTs = this->info.HasUMTs();
     bool isMegaTC = this->info.HasMegaTC();
-    u32 newContext = 0;
+    u64 newContext = 0;
+    const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
     if(sceneId != SCENE_ID_GLOBE && controller->connectionState != RKNet::CONNECTIONSTATE_SHUTDOWN) {
         switch(controller->roomType) {
             case(RKNet::ROOMTYPE_VS_REGIONAL):
@@ -145,13 +200,55 @@ void System::UpdateContext() {
             case(RKNet::ROOMTYPE_FROOM_NONHOST):
                 isCT = mode != MODE_BATTLE && mode != MODE_PUBLIC_BATTLE && mode != MODE_PRIVATE_BATTLE;
                 newContext = netMgr.hostContext;
-                isHAW = newContext & (1 << PULSAR_HAW);
-                isKO = newContext & (1 << PULSAR_MODE_KO);
-                isOTT = newContext & (1 << PULSAR_MODE_OTT);
-                isMiiHeads = newContext & (1 << PULSAR_MIIHEADS);
+                isKOFinal = newContext & (1ULL << PULSAR_KOFINAL);
+                isKO = newContext & (1ULL << PULSAR_MODE_KO);
+                isMayhemCodes = newContext & (1ULL << PULSAR_CODES);
+                isMayhemStats = newContext & (1ULL << PULSAR_MAYHEMSTATS);
+                isRankedFrooms = newContext & (1ULL << PULSAR_RANKED);
+                isSnaking = newContext & (1ULL << PULSAR_SNAKING);
+                isTCToggle = newContext & (1ULL << PULSAR_TCTOGGLE);
+                isItemStatus = newContext & (1ULL << PULSAR_ITEMSTATUS);
+                isItemModeBattleRoyale = newContext & (1ULL << PULSAR_BATTLEROYALE);
+                isRiiBalanced = newContext & (1ULL << PULSAR_RIIBALANCEDSTATS);
+                isBumperKart = newContext & (1ULL << PULSAR_BUMPERKARTSTATS);
+                isCharRestrictLight = newContext & (1ULL << PULSAR_CHARRESTRICTLIGHT);
+                isCharRestrictMedium = newContext & (1ULL << PULSAR_CHARRESTRICTMEDIUM);
+                isCharRestrictHeavy = newContext & (1ULL << PULSAR_CHARRESTRICTHEAVY);
+                isKartRestrictKart = newContext & (1ULL << PULSAR_KARTRESTRICT);
+                isKartRestrictBike = newContext & (1ULL << PULSAR_BIKERESTRICT);
+                isItemModeRandom = newContext & (1ULL << PULSAR_GAMEMODERANDOM);
+                isItemModeShellShock = newContext & (1ULL << PULSAR_GAMEMODESHELLSHOCK);
+                isItemModeUnknown = newContext & (1ULL << PULSAR_GAMEMODEUNKNOWN);
+                isItemModeRain = newContext & (1ULL << PULSAR_GAMEMODEITEMRAIN);
+                isUltras = newContext & (1ULL << PULSAR_ULTRAS);
+                is50 = newContext & (1ULL << PULSAR_50);
+                is100 = newContext & (1ULL << PULSAR_100);
+                is400 = newContext & (1ULL << PULSAR_400);
+                is99999 = newContext & (1ULL << PULSAR_99999);
+                isHAW = newContext & (1ULL << PULSAR_HAW);
+                isOTT = newContext & (1ULL << PULSAR_MODE_OTT);
+                isMiiHeads = newContext & (1ULL << PULSAR_MIIHEADS);
+                isTrackSelectionCts = newContext & (1ULL << PULSAR_CTS);
+                isTrackSelectionSits = newContext & (1ULL << PULSAR_SITS);
+                isTrackSelectionRegs = newContext & (1ULL << PULSAR_REGS);
+                isThunderCloud = newContext & (1ULL << PULSAR_THUNDERCLOUD);
+                isFlyingBlooper = newContext & (1ULL << PULSAR_FLYINGBLOOP);
+                isAllItems = newContext & (1ULL << PULSAR_ALLITEMS);
+                isBulletIcon = newContext & (1ULL << PULSAR_BULLETICON);
+                isRandomTC = newContext & (1ULL << PULSAR_RANDOMTC);
+                isItemBoxSpawnFast = newContext & (1ULL << PULSAR_ITEMBOXFAST);
+                isItemBoxSpawnInstant = newContext & (1ULL << PULSAR_ITEMBOXINSTANT);
+                isTransmissionVanilla = newContext & (1ULL << PULSAR_TRANSMISSIONVANILLA);
+                isTransmissionInsideAll = newContext & (1ULL << PULSAR_TRANSMISSIONINSIDEALL);
+                isTransmissionOutsideAll = newContext & (1ULL << PULSAR_TRANSMISSIONOUTSIDEALL);
+                isCantBrakeDrift = newContext & (1ULL << PULSAR_BDRIFTING);
+                isCantFastFall = newContext & (1ULL << PULSAR_FALLFAST);
+                isCantAlwaysDrift = newContext & (1ULL << PULSAR_NODRIFTANYWHERE);
+                isDisableInvisWalls = newContext & (1ULL << PULSAR_INVISWALLS);
                 if(isOTT) {
-                    isUMTs &= newContext & (1 << PULSAR_UMTS);
-                    isFeather &= newContext & (1 << PULSAR_FEATHER);
+                    isUMTs = newContext & (1ULL << PULSAR_UMTS);
+                    isFeather &= newContext & (1ULL << PULSAR_FEATHER);
+                    isOTTChangeCombo = newContext & (1ULL << PULSAR_CHANGECOMBO);
                 }
                 break;
             default: isCT = false;
@@ -162,14 +259,17 @@ void System::UpdateContext() {
         isOTT = (mode == MODE_GRAND_PRIX || mode == MODE_VS_RACE) ? (ottOffline != OTTSETTING_OFFLINE_DISABLED) : false; //offlineOTT
         if(isOTT) {
             isFeather &= (ottOffline == OTTSETTING_OFFLINE_FEATHER);
-            isUMTs &= ~settings.GetSettingValue(Settings::SETTINGSTYPE_OTT, SETTINGOTT_ALLOWUMTS);
+            isUltras &= ~settings.GetUserSettingValue(Settings::SETTINGSTYPE_DKW2, SETTINGDKW_ALLOW_ULTRAS);
         }
     }
     this->netMgr.hostContext = newContext;
 
-    u32 context = (isCT << PULSAR_CT) | (isHAW << PULSAR_HAW) | (isMiiHeads << PULSAR_MIIHEADS);
+    u64 context = ((u64)isCT << PULSAR_CT) | ((u64)isHAW << PULSAR_HAW) | ((u64)isMiiHeads << PULSAR_MIIHEADS);
     if(isCT) { //contexts that should only exist when CTs are on
-        context |= (is200 << PULSAR_200) | (isFeather << PULSAR_FEATHER) | (isUMTs << PULSAR_UMTS) | (isMegaTC << PULSAR_MEGATC) | (isOTT << PULSAR_MODE_OTT) | (isKO << PULSAR_MODE_KO);
+        context |= ((u64)is200 << PULSAR_200) | ((u64)is50 << PULSAR_50) | ((u64)is100 << PULSAR_100) | ((u64)is400 << PULSAR_400) |((u64)is99999 << PULSAR_99999) | ((u64)isFeather << PULSAR_FEATHER) | ((u64)isUMTs << PULSAR_UMTS) | ((u64)isMegaTC << PULSAR_MEGATC) | ((u64)isOTT << PULSAR_MODE_OTT) | ((u64)isKO << PULSAR_MODE_KO) | ((u64)isUltras << PULSAR_ULTRAS) | ((u64)isTrackSelectionCts << PULSAR_CTS) | ((u64)isTrackSelectionSits << PULSAR_SITS) | ((u64)isTrackSelectionRegs << PULSAR_REGS) | ((u64)isCharRestrictLight << PULSAR_CHARRESTRICTLIGHT) | ((u64)isCharRestrictMedium << PULSAR_CHARRESTRICTMEDIUM) | ((u64)isCharRestrictHeavy << PULSAR_CHARRESTRICTHEAVY) | ((u64)isKartRestrictKart << PULSAR_KARTRESTRICT) | ((u64)isKartRestrictBike << PULSAR_BIKERESTRICT) | ((u64)isItemModeRandom << PULSAR_GAMEMODERANDOM) | ((u64)isBumperKart << PULSAR_BUMPERKARTSTATS) | ((u64)isRiiBalanced << PULSAR_RIIBALANCEDSTATS) | ((u64)isItemModeShellShock << PULSAR_GAMEMODESHELLSHOCK) | ((u64)isItemModeUnknown << PULSAR_GAMEMODEUNKNOWN) | ((u64)isItemModeRain << PULSAR_GAMEMODEITEMRAIN) | ((u64)isKOFinal << PULSAR_KOFINAL) | ((u64)isOTTChangeCombo << PULSAR_CHANGECOMBO) | ((u64)isThunderCloud << PULSAR_THUNDERCLOUD) | ((u64)isFlyingBlooper << PULSAR_FLYINGBLOOP) | ((u64)isRandomTC << PULSAR_RANDOMTC) | ((u64)isTransmissionVanilla << PULSAR_TRANSMISSIONVANILLA) | ((u64)isTransmissionInsideAll << PULSAR_TRANSMISSIONINSIDEALL) | ((u64)isTransmissionOutsideAll << PULSAR_TRANSMISSIONOUTSIDEALL) | ((u64)isCantBrakeDrift << PULSAR_BDRIFTING) | ((u64)isCantFastFall << PULSAR_FALLFAST) | ((u64)isCantAlwaysDrift << PULSAR_NODRIFTANYWHERE) | ((u64)isDisableInvisWalls << PULSAR_INVISWALLS) | ((u64)isAllItems << PULSAR_ALLITEMS) | ((u64)isBulletIcon << PULSAR_BULLETICON);
+    }
+    if(RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST) { //contexts that should only exist when you're in a froom
+        context |= ((u64)isMayhemStats << PULSAR_MAYHEMSTATS) | ((u64)isMayhemCodes << PULSAR_CODES) | ((u64)isRankedFrooms << PULSAR_RANKED) | ((u64)isSnaking << PULSAR_SNAKING) | ((u64)isTCToggle << PULSAR_TCTOGGLE) | ((u64)isItemStatus << PULSAR_ITEMSTATUS) | ((u64)isItemBoxSpawnFast << PULSAR_ITEMBOXFAST) | ((u64)isItemBoxSpawnInstant << PULSAR_ITEMBOXINSTANT) | ((u64)isItemModeBattleRoyale << PULSAR_BATTLEROYALE);
     }
     this->context = context;
 
@@ -192,6 +292,12 @@ void System::UpdateContext() {
         this->koMgr = nullptr;
     }
 }
+
+void System::UpdateContextWrapper() {
+    System::sInstance->UpdateContext();
+}
+
+static Pulsar::Settings::Hook UpdateContext(System::UpdateContextWrapper);
 
 s32 System::OnSceneEnter(Random& random) {
     System* self = System::sInstance;

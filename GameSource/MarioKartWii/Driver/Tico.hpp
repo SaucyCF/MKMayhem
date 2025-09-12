@@ -22,5 +22,4 @@ public:
     float unknown_0x44[5]; //0x44
 }; //0x58
 
-
 #endif

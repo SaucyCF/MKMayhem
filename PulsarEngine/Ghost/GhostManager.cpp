@@ -2,13 +2,15 @@
 #include <Settings/Settings.hpp>
 #include <IO/IO.hpp>
 #include <SlotExpansion/CupsConfig.hpp>
+#include <MarioKartWii/Kart/KartManager.hpp>
+#include <MarioKartWii/RKNet/RKNetController.hpp>
+#include <PulsarSystem.hpp>
 
+// Add near the top with other static member initializations
 namespace Pulsar {
 namespace Ghosts {
 Mgr* Mgr::sInstance = nullptr;
-
 Mgr::RKGCallback Mgr::cb = nullptr;
-
 char Mgr::folderPath[IOS::ipcMaxPath] = "";
 
 Mgr* Mgr::CreateInstance() {
@@ -216,6 +218,12 @@ void Mgr::LoadAllGhosts(u32 maxGhosts, bool isGhostRace) {
 bool Mgr::SaveGhost(const RKSYS::LicenseLdbEntry& entry, u32 ldbPosition, bool isFlap) {
     //Compare against leaderboard and save
     if(!areGhostsSaving) return false;
+    
+    // Check for invalid conditions (assuming these are the intended checks)
+    if(System::sInstance->IsContext(Pulsar::PULSAR_INVISWALLS) == Pulsar::DKWSETTING_INVISWALLS_DISABLED) {
+        return false;
+    }
+
     if(isFlap) this->leaderboard.Update(ENTRY_FLAP, this->entry, -1);
     GhostData data;
     data.Fill(0);
@@ -223,6 +231,7 @@ bool Mgr::SaveGhost(const RKSYS::LicenseLdbEntry& entry, u32 ldbPosition, bool i
     buffer.ClearBuffer();
 
     bool gotTrophy = false;
+    buffer.header.unknown_3 = reinterpret_cast<u32>(&Kart::Manager::sInstance->GetKartPlayer(0)->GetStats());
     if(data.CreateRKG(buffer) && buffer.CompressTo(this->rkg)) {
         if(this->cb != nullptr) {
             this->cb(buffer, IS_SAVING_GHOST, -1);
@@ -231,13 +240,11 @@ bool Mgr::SaveGhost(const RKSYS::LicenseLdbEntry& entry, u32 ldbPosition, bool i
         if(ldbPosition >= 0) this->leaderboard.Update(ldbPosition, entry, crc32); //in this order as save opens files too
         const System* system = System::sInstance;
         system->taskThread->Request(&Mgr::CreateAndSaveFiles, this, 0);
-
         const Timer& expert = this->GetExpert();
-        if(expert.isActive && expert > entry.timer && system->GetInfo().HasTrophies()) {
+        if(System::sInstance->IsContext(Pulsar::PULSAR_ULTRAS) != Pulsar::DKWSETTING_ULTRAS_DISABLED && System::sInstance->IsContext(Pulsar::PULSAR_INVISWALLS) != Pulsar::DKWSETTING_INVISWALLS_DISABLED && expert.isActive && expert > entry.timer && system->GetInfo().HasTrophies()) {
             gotTrophy = true;
             Settings::Mgr::sInstance->AddTrophy(CupsConfig::sInstance->GetCRC32(this->GetPulsarId()), system->ttMode);
             this->leaderboard.AddTrophy();
-
         }
     }
     return gotTrophy;

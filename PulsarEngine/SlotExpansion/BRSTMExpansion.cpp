@@ -4,15 +4,17 @@
 #include <Sound/MiscSound.hpp>
 #include <SlotExpansion/CupsConfig.hpp>
 #include <SlotExpansion/UI/ExpansionUIMisc.hpp>
+#include <DKW.hpp>
 
 
 namespace Pulsar {
 namespace Sound {
 //Custom implementation of music slot expansion; this would break with regs
 //kmWrite32(0x8009e0dc, 0x7F87E378); //mr r7, r28 to get string length
+// Code Made by Retro Rewind Team
 
 static char pulPath[0x100];
-s32 CheckBRSTM(const nw4r::snd::DVDSoundArchive* archive, PulsarId id, u8 variantIdx, bool isFinalLap) {
+s32 CheckBRSTM(const nw4r::snd::DVDSoundArchive* archive, PulsarId id, bool isFinalLap) {
 
     const char* root = archive->extFileRoot;
     const char* lapSpecifier = isFinalLap ? "_f" : "_n";
@@ -22,9 +24,7 @@ s32 CheckBRSTM(const nw4r::snd::DVDSoundArchive* archive, PulsarId id, u8 varian
     snprintf(pulPath, 0x100, "%sstrm/%s%s.brstm", root, trackName, lapSpecifier);
     ret = DVD::ConvertPathToEntryNum(pulPath);
     if(ret < 0) {
-        u32 variantIdx = CupsConfig::sInstance->GetCurVariantIdx();
-        if(variantIdx == 0) snprintf(pulPath, 0x50, "%sstrm/%d%s.brstm", root, CupsConfig::ConvertTrack_PulsarIdToRealId(id), lapSpecifier);
-        else snprintf(pulPath, 0x50, "%sstrm/%d_%d%s.brstm", root, CupsConfig::ConvertTrack_PulsarIdToRealId(id), variantIdx, lapSpecifier);
+        snprintf(pulPath, 0x50, "%sstrm/%d%s.brstm", root, CupsConfig::ConvertTrack_PulsarIdToRealId(id), lapSpecifier);
         ret = DVD::ConvertPathToEntryNum(pulPath);
     }
     return ret;
@@ -32,22 +32,20 @@ s32 CheckBRSTM(const nw4r::snd::DVDSoundArchive* archive, PulsarId id, u8 varian
 
 nw4r::ut::FileStream* MusicSlotsExpand(nw4r::snd::DVDSoundArchive* archive, void* buffer, int size,
     const char* extFilePath, u32 r7, u32 length) {
-
     const char firstChar = extFilePath[0xC];
     const CupsConfig* cupsConfig = CupsConfig::sInstance;
     const PulsarId track = cupsConfig->GetWinning();
 
-    if((firstChar == 'n' || firstChar == 'S' || firstChar == 'r')) {
+    if ((firstChar == 'n' || firstChar == 'S' || firstChar == 'r')) {
         const SectionId section = SectionMgr::sInstance->curSection->sectionId;
         register SoundIDs toPlayId;
         asm(mr toPlayId, r20;);
-        const char* customBGPath = nullptr;
-        if(toPlayId == SOUND_ID_KC) { //files are guaranteed to exist because it's been checked before
-            if(section >= SECTION_MAIN_MENU_FROM_BOOT && section <= SECTION_MAIN_MENU_FROM_LICENSE) customBGPath = titleMusicFile;
-            else if(section >= SECTION_SINGLE_P_FROM_MENU && section <= SECTION_SINGLE_P_LIST_RACE_GHOST || section == SECTION_LOCAL_MULTIPLAYER) customBGPath = offlineMusicFile;
-            else if(section >= SECTION_P1_WIFI && section <= SECTION_P2_WIFI_FROOM_COIN_VOTING) customBGPath = wifiMusicFile;
+        if(toPlayId == SOUND_ID_KC && section >= SECTION_P1_WIFI && section <= SECTION_P2_WIFI_FROOM_COIN_VOTING) {
+            extFilePath = wifiMusicFile; //guaranteed to exist because it's been checked before
         }
-        if(customBGPath != nullptr) extFilePath = customBGPath;
+        if(toPlayId == SOUND_ID_KC && (section >= SECTION_SINGLE_P_FROM_MENU && section <= SECTION_SINGLE_P_LIST_RACE_GHOST || section == SECTION_LOCAL_MULTIPLAYER)) {
+            extFilePath = offlineMusicFile; //guaranteed to exist because it's been checked before
+        }
         else if(!CupsConfig::IsReg(track)) {
             bool isFinalLap = false;
             register u32 strLength;
@@ -56,10 +54,9 @@ nw4r::ut::FileStream* MusicSlotsExpand(nw4r::snd::DVDSoundArchive* archive, void
             if(finalChar == 'f' || finalChar == 'F') isFinalLap = true;
 
             bool found = false;
-            const u8 variantIdx = cupsConfig->GetCurVariantIdx();
-            if(CheckBRSTM(archive, track, variantIdx, isFinalLap) >= 0) found = true;
+            if(CheckBRSTM(archive, track, isFinalLap) >= 0) found = true;
             else if(isFinalLap) {
-                if(CheckBRSTM(archive, track, variantIdx, false) >= 0) found = true;
+                if(CheckBRSTM(archive, track, false) >= 0) found = true;
                 if(found) Audio::Manager::sInstance->soundArchivePlayer->soundPlayerArray->soundList.GetFront().ambientParam.pitch = 1.1f;
             }
             if(found) extFilePath = pulPath;

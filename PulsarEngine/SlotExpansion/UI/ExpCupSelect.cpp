@@ -13,14 +13,11 @@ namespace Pulsar {
 namespace UI {
 
 ExpCupSelect::ExpCupSelect() {
-    internControlCount += 2;
+    internControlCount += 1;
     onRightArrowSelectHandler.subject = this;
     onRightArrowSelectHandler.ptmf = &ExpCupSelect::OnRightArrowSelect;
     onLeftArrowSelectHandler.subject = this;
     onLeftArrowSelectHandler.ptmf = &ExpCupSelect::OnLeftArrowSelect;
-    onStartPressHandler.subject = this;
-    onStartPressHandler.subject = this;
-    onStartPressHandler.ptmf = &ExpCupSelect::OnStartPress;
     onBackPressHandler.subject = this;
     onBackPressHandler.ptmf = &ExpCupSelect::OnBackPress;
     randomizedId = PULSARID_NONE;
@@ -97,15 +94,6 @@ void ExpCupSelect::OnArrowSelect(s32 direction) {
 }
 
 void ExpCupSelect::OnStartPress(u32 hudSlotId) {
-    const GameMode gamemode = Racedata::sInstance->menusScenario.settings.gamemode;
-    const bool isValid = gamemode == MODE_TIME_TRIAL || gamemode == MODE_VS_RACE;
-    if (isValid && this->randomizedId == -1) {
-        this->randomizedId = CupsConfig::sInstance->RandomizeTrack();
-        for (int i = 0; i < 8; ++i) reinterpret_cast<PushButton**>(this->ctrlMenuCupSelectCup.childrenGroup.controlArray)[i]->manipulator.inaccessible = true;
-        this->arrows.leftArrow.manipulator.inaccessible = true;
-        this->arrows.rightArrow.manipulator.inaccessible = true;
-        this->backButton.Select(0);
-    }
 }
 
 void ExpCupSelect::AfterControlUpdate() {

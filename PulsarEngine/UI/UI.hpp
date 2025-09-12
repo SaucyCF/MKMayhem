@@ -29,6 +29,7 @@ enum PulPageId {
     PULPAGE_INITIAL = 0x100,
     PULPAGE_CHOOSENEXT = PULPAGE_INITIAL,
     PULPAGE_TEAMSELECT,
+    PULPAGE_ROOMKICK,
     PULPAGE_KORACEEND,
     PULPAGE_KOWINNER,
     PULPAGE_SETTINGS,
@@ -74,6 +75,8 @@ enum BMG {
     BMG_SAVED_GHOST = 0x45b,
     BMG_FINISH = 0x4b5,
     BMG_DISPLAY_TIME = 0x578,
+    BMG_YES = 0x7d2,
+    BMG_NO = 0x7d3,
     BMG_TIME_TRIALS = 0xbb9,
 
     BMG_GP_BOTTOM_TEXT = 0xd20,
@@ -102,6 +105,8 @@ enum BMG {
     BMG_WATCH_REPLAY = 0x177c,
     BMG_NUMBER = 0x2044,
     BMG_PERCENT_MENU = 0x2048,
+    BMG_KICK_BOTTOM = 0x2179,
+    BMG_KICK_CONFIRM = 0x217A,
     BMG_REGCUPS = 0x23f0,
     BMG_REGS = 0x2454,
     BMG_BATTLE = 0x2498,
@@ -184,6 +189,7 @@ enum BMG {
     BMG_PLAY_TEAM_OTT = 0x2917,
     BMG_PLAY_TEAM_KO = 0x2918,
     BMG_PLAY_TEAM_OTTKO = 0x2919,
+    BMG_PLAY_RANKED_FROOMS = 0x2920,
 
 
     BMG_CUPS = 0x10000,
@@ -197,7 +203,7 @@ enum BMG {
     BMG_RADIO_SETTINGS = 0x3000,
     BMG_SCROLLER_SETTINGS = 0x3700,
     BMG_USERSETTINGSOFFSET = 0x60000, //user settings therefore start at 0x53000 for radi osettings, 0x53700 for scrollers
-
+    
 };
 
 const char controlFolder[] = "control";

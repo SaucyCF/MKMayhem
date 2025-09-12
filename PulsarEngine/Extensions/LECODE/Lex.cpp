@@ -9,6 +9,8 @@
 
 //https://wiki.tockdom.com/wiki/LEX_(File_Format)
 
+//DKW Dev Note: Fix by ToadetteHackFan
+
 namespace LECODE {
 
 void LexMgr::Reset() {
@@ -28,9 +30,9 @@ const KMPHeader* LexMgr::LoadLEXAndKMP(u32, const char* kmpString) {
         if(header != nullptr) {
             if(header->magic == LEXHeader::goodMagic && header->majorVersion == 1) {
 
-                LEXSectionHeader* section = reinterpret_cast<LEXSectionHeader*>(reinterpret_cast<u8*>(header) + header->offsetToFirstSection);
-                u8* data = reinterpret_cast<u8*>(section) + sizeof(LEXSectionHeader);
+                LEXSectionHeader* section = reinterpret_cast<LEXSectionHeader*>(reinterpret_cast<u8*>(header) + header->offsetToFirstSection);                
                 while(section->magic != 0) {
+                    u8* data = reinterpret_cast<u8*>(section) + sizeof(LEXSectionHeader);
                     switch(section->magic) {
                         case SET1::magic:
                             self.set1 = reinterpret_cast<SET1*>(section);
@@ -111,17 +113,9 @@ Kart::Movement::CannonParams* ApplyCANN(Kart::Movement::CannonParams* cannonPtr,
 kmCall(0x805850b8, ApplyCANN);
 kmWrite32(0x805850bc, 0x60000000);
 
-
-
 u32 ApplySET1TimeLimit(const Racedata& racedata) {
-    u32 hiTime = 0x50000; //default
-    SET1* set = Pulsar::System::sInstance->lecodeMgr.lexMgr.set1;
-    if(set != nullptr) {
-        const GameMode mode = racedata.racesScenario.settings.gamemode;
-        if(mode == MODE_PRIVATE_VS || mode == MODE_PUBLIC_VS) hiTime = set->onlineTime * 1000 + 0x93e0; //the game subtracts that after
-    }
-    asm(lwz r5, 0x0004 (r31)); //default, make this volatile if another func is called
-    return hiTime;
+    // Always return 5:40 = 340000 ms + 0x93E0 (37856) padding = 377856 total
+    return 377856;
 }
 kmCall(0x8053f3b8, ApplySET1TimeLimit);
 

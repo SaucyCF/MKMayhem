@@ -11,21 +11,31 @@
 #include <Network/PulSELECT.hpp>
 #include <Network/PacketExpansion.hpp>
 #include <AutoTrackSelect/ChooseNextTrack.hpp>
+#include <Settings/UI/SettingsPanel.hpp>
 
 namespace Pulsar {
 //For hooks which are shared by different things
 namespace UI {
 
 PageId TTSplitsGetNextPage(const Pages::TTSplits& splits) {
-    const bool isOTT = System::sInstance->IsContext(PULSAR_MODE_OTT);
+    const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+    const GameMode mode = scenario.settings.gamemode;
+    const bool isOTTF = System::sInstance->IsContext(PULSAR_MODE_OTT) &&
+    (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST) || 
+    (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST) || (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_NONE && mode != MODE_TIME_TRIAL);
+    const bool isOTTW = System::sInstance->IsContext(PULSAR_MODE_OTT) && 
+    (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_VS_REGIONAL) || 
+    (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_JOINING_REGIONAL);
 
     const SectionId sectionId = SectionMgr::sInstance->curSection->sectionId;
-    if(isOTT || sectionId == SECTION_GP) return PAGE_GPVS_LEADERBOARD_UPDATE;
+    if (isOTTW) return PAGE_WW_LEADERBOARDS_UPDATE;
+    else if (isOTTF || sectionId == SECTION_GP) return PAGE_GPVS_LEADERBOARD_UPDATE;
     else if(sectionId == SECTION_TT || sectionId == SECTION_GHOST_RACE_1 || sectionId == SECTION_GHOST_RACE_2) return PAGE_TT_LEADERBOARDS;
     else if(sectionId >= SECTION_WATCH_GHOST_FROM_CHANNEL && sectionId <= SECTION_WATCH_GHOST_FROM_MENU) return PAGE_GHOST_REPLAY_PAUSE_MENU; //Enhanced Replay
     return PAGE_NONE;
 }
 kmBranch(0x808561dc, TTSplitsGetNextPage);
+
 
 void LoadCorrectPageAfterMultiDrift(Pages::MultiDriftSelect* page, u32 animDirection, float animLength) {
     page->EndStateAnimated(animLength, animDirection);
@@ -39,6 +49,10 @@ void LoadCorrectPageAfterMultiDrift(Pages::MultiDriftSelect* page, u32 animDirec
             handler.toSendPacket.playersData[i].kart = sectionMgr->sectionParams->karts[i];
         }
         handler.toSendPacket.allowChangeComboStatus = Network::SELECT_COMBO_SELECTED;
+    }
+    else if(sectionMgr->curSection->Get<Pages::VR>() != nullptr && page->nextPageId == static_cast<PageId>(PULPAGE_SETTINGS)) {
+        ExpSection::GetSection()->CreateAndInitPage(*ExpSection::GetSection(), PULPAGE_SETTINGS);
+        return;
     }
     else if(sectionMgr->curSection->Get<Pages::VR>() != nullptr) {
         page->nextPageId = IsBattle() ? PAGE_BATTLE_CUP_SELECT : PAGE_CUP_SELECT;

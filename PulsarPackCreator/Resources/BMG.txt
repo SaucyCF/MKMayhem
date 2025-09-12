@@ -2,7 +2,7 @@
 
    3f7  = Wiimmfi (1P)
    58a  = {CC}cc
-   7dd	= Wiimmfi
+   7dd	= Online
    7de	= Riivolution Channel
    7e8	= Play via Wiimmfi!
    7e9	= Play with a friend via Wiimmfi!
@@ -211,7 +211,7 @@
   5020	= Normal
   5021	= 150 Only
   5022	= {CC} Only
-  5023	= Mirror Only
+  5023	= 400 Only
   5030  = Enabled
   5031  = Disabled
   5100	= Track voting is normal.
@@ -219,7 +219,7 @@
   5200	= Normal distribution
   5201	= 150cc only
   5202	= {CC}cc only
-  5203	= Mirror only
+  5203	= 400cc only
   5300  = Allow players to use Mii Heads.
   5301  = Disable Mii Heads irrespective of players' settings.
   5700	= Races Per GP
@@ -294,4 +294,5 @@
   7901  = KOs will occur every 2 races.
   7902  = KOs will occur every 3 races.
   7903  = KOs will occur every 4 races.
+
   

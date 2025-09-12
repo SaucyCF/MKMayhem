@@ -33,9 +33,13 @@ static void EditLdb(CtrlRaceResult* result, u8 playerId) {
                 bmgId = UI::BMG_KO_OUT;
                 color = 0xff0000c0;
             }
-            else {
+            if (koStatus == DISCONNECTED) {
                 bmgId = UI::BMG_KO_TIE;
-                color = 0x0000ffc0;
+                color = 0xff0f00c0;
+            }
+            if (koStatus == TIE) {
+                bmgId = UI::BMG_KO_TIE;
+                color = 0xff00f0c0;
             }
             result->SetTextBoxMessage("player_name", bmgId);
             result->animator.GetAnimationGroupById(4).PlayAnimationAtFrame(6, 0.0f);
@@ -101,7 +105,10 @@ kmBranch(0x80531f7c, ReturnCorrectId);
 static GameType SyncCountdown(const Racedata& raceData) {
     GameType type = raceData.racesScenario.settings.gametype;
     const System* system = System::sInstance;
-    if(system->IsContext(PULSAR_MODE_KO) && type == GAMETYPE_ONLINE_SPECTATOR) type = GAMETYPE_DEFAULT;
+    if(system->IsContext(PULSAR_MODE_KO) && type == GAMETYPE_ONLINE_SPECTATOR) {
+        type = GAMETYPE_DEFAULT;
+        Racedata::sInstance->racesScenario.settings.gametype = GAMETYPE_DEFAULT;
+    }
     return type;
 }
 kmCall(0x806537d8, SyncCountdown);
@@ -286,6 +293,22 @@ void StoreItemsForSpectating(RKNet::ITEMHandler& itemHandler) {
     }
 }
 kmCall(0x8065c69c, StoreItemsForSpectating);
+
+static void SkipConfirmationPage(Pages::SELECTStageMgr* _this, PageId id, u32 animDirection) {
+    if (System::sInstance->IsContext(PULSAR_MODE_KO)) {
+        if (System::sInstance->koMgr->isSpectating) {
+            _this->status = Pages::SELECTStageMgr::STATUS_VOTES_PAGE;
+            return _this->AddPageLayer(PAGE_VOTE, animDirection);
+        }
+    }
+
+    _this->status = Pages::SELECTStageMgr::STATUS_VR_PAGE;
+    return _this->AddPageLayer(id, animDirection);
+}
+
+kmWriteNop(0x806508f8);
+kmCall(0x806508f0, SkipConfirmationPage);
+
 
 }//namespace KO
 }//namespace Pulsar

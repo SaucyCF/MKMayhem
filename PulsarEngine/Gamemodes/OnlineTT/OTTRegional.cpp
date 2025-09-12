@@ -5,6 +5,7 @@
 #include <MarioKartWii/UI/Page/Other/Globe.hpp>
 #include <MarioKartWii/UI/Page/Other/WFCMenu.hpp>
 #include <PulsarSystem.hpp>
+#include <Settings/Settings.hpp>
 #include <UI/UI.hpp>
 
 namespace Pulsar {
@@ -15,12 +16,13 @@ static const ut::Color colors[5] = { 0xffff00ff, 0x00ff00ff, 0xffa000ff, 0x00fff
 ut::Color GetFriendColor(u32 friendIdx) {
     RKNet::SearchType type = RKNet::Controller::sInstance->GetFriendSearchType(friendIdx);
     const ut::Color* color = &colors[0];
+    bool isOTT = System::sInstance->IsContext(PULSAR_MODE_OTT) ? OTTSETTING_ONLINE_DISABLED : OTTSETTING_ONLINE_NORMAL;
     switch(type) {
         case RKNet::SEARCH_TYPE_VS_WW: return color[0];
         case RKNet::SEARCH_TYPE_BT_WW: return color[2];
         case RKNet::SEARCH_TYPE_BT_REGIONAL: return color[3];
         case RKNet::SEARCH_TYPE_VS_REGIONAL:
-            if(System::sInstance->netMgr.statusDatas[friendIdx]) return color[4];
+            if(System::sInstance->netMgr.statusDatas[friendIdx] == (isOTT == OTTSETTING_ONLINE_NORMAL)) return color[4];
             else return color[1];
         default:
             return *color;
@@ -214,7 +216,7 @@ void GlobeMsgColor(Pages::Globe::MessageWindow& msg, u32 bmgId, Text::Info* info
 kmCall(0x805e504c, GlobeMsgColor);
 
 void GlobeSearchTopMsg(CtrlMenuPageTitleText& title, u32 bmgId, Text::Info* info) {
-    if(System::sInstance->netMgr.ownStatusData == true) bmgId = UI::BMG_OTT_TITLE_TEXT;
+    if(System::sInstance->IsContext(PULSAR_MODE_OTT) == Pulsar::OTTSETTING_ONLINE_NORMAL) bmgId = UI::BMG_OTT_TITLE_TEXT;
     title.SetMessage(bmgId, info);
 }
 kmCall(0x80608658, GlobeSearchTopMsg);

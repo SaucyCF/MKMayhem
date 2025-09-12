@@ -23,7 +23,7 @@ public:
         IS_SAVING_GHOST
     };
     typedef void(*RKGCallback)(const RKG& decompressed, CBTiming timing, int index);
-
+    
     static const Mgr* GetInstance() { return sInstance; }
     static Mgr* CreateInstance();
     static void DestroyInstance();

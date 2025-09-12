@@ -5,6 +5,10 @@
 #include <MarioKartWii/GlobalFunctions.hpp>
 #include <MarioKartWii/Driver/DriverManager.hpp>
 #include <Settings/Settings.hpp>
+#include <Settings/SettingsParam.hpp>
+#include <MarioKartWii/Archive/ArchiveMgr.hpp>
+#include <PulsarSystem.hpp>
+#include <DKW.hpp>
 
 namespace Pulsar {
 namespace Race {
@@ -33,9 +37,15 @@ static void SetStartingItem(Item::PlayerInventory& inventory, ItemId id, bool is
             isFeather = (mode == TTMODE_150_FEATHER || mode == TTMODE_200_FEATHER);
         }
         else isFeather = system->IsContext(PULSAR_FEATHER);
-        if (isFeather) id = BLOOPER;
-        inventory.SetItem(id, isItemForcedDueToCapacity);
-        if (isFeather) inventory.currentItemCount = 3;
+        if (isFeather && RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_VS_REGIONAL && RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_JOINING_REGIONAL) {
+            id = BLOOPER;
+            inventory.SetItem(id, isItemForcedDueToCapacity);
+            if (isFeather) inventory.currentItemCount = 3;
+        }
+        else{
+            id = TRIPLE_MUSHROOM;
+            inventory.SetItem(id, isItemForcedDueToCapacity);
+        }
     }
 }
 kmCall(0x80799808, SetStartingItem);
@@ -43,10 +53,16 @@ kmCall(0x80799808, SetStartingItem);
 //From JoshuaMK, ported to C++ by Brawlbox and adapted as a setting
 static int MiiHeads(Racedata* racedata, u32 unused, u32 unused2, u8 id) {
     CharacterId charId = racedata->racesScenario.players[id].characterId;
-    if (System::sInstance->IsContext(PULSAR_MIIHEADS)) {
-        if (charId < MII_M) {
-            if (id == 0) charId = MII_M;
-            else if (RKNet::Controller::sInstance->connectionState != 0) charId = MII_M;
+    bool miiHeadFroom = HOSTSETTING_ALLOW_MIIHEADS_ENABLED;
+    if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST) {
+        miiHeadFroom = System::sInstance->IsContext(PULSAR_MIIHEADS) ? HOSTSETTING_ALLOW_MIIHEADS_ENABLED : HOSTSETTING_ALLOW_MIIHEADS_DISABLED;
+    }
+    if (Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_MII) == RACESETTING_MII_ENABLED) {
+        if (miiHeadFroom == HOSTSETTING_ALLOW_MIIHEADS_ENABLED) {
+            if (charId < MII_M) {
+                if (id == 0) charId = MII_M;
+                else if (RKNet::Controller::sInstance->connectionState != 0) charId = MII_M;
+            }
         }
     }
     return charId;
@@ -101,20 +117,37 @@ static void DraggableBlueShells(Item::PlayerObj& sub) {
     }
 }
 kmBranch(0x807ae8ac, DraggableBlueShells);
-
+    
 //Coloured Minimap
 kmWrite32(0x807DFC24, 0x60000000);
 
-//No Team Invincibility
-kmWrite32(0x8056fd24, 0x38000000); //KartCollision::CheckKartCollision()
-kmWrite32(0x80572618, 0x38000000); //KartCollision::CheckItemCollision()
-kmWrite32(0x80573290, 0x38000000); //KartCollision::HandleFIBCollision()
-kmWrite32(0x8068e2d0, 0x38000000); //PlayerEffects ctor
-kmWrite32(0x8068e314, 0x38000000); //PlayerEffects ctor
-kmWrite32(0x807a7f6c, 0x38c00000); //FIB are always red
-kmWrite32(0x807b0bd4, 0x38000000); //pass TC to teammate
-kmWrite32(0x807bd2bc, 0x38000000); //RaceGlobals
-kmWrite32(0x807f18c8, 0x38000000); //TC alert
+// No Team Invincibility
+kmWrite32(0x8056fd24, 0x38000000);  // KartCollision::CheckKartCollision()
+kmWrite32(0x80572618, 0x38000000);  // KartCollision::CheckItemCollision()
+kmWrite32(0x80573290, 0x38000000);  // KartCollision::HandleFIBCollision()
+kmWrite32(0x8068e2d0, 0x38000000);  // PlayerEffects ctor
+kmWrite32(0x8068e314, 0x38000000);  // PlayerEffects ctor
+kmWrite32(0x807a7f6c, 0x38c00000);  // FIB are always red
+kmWrite32(0x807b0bd4, 0x38000000);  // pass TC to teammate
+kmWrite32(0x807bd2bc, 0x38000000);  // RaceGlobals
+kmWrite32(0x807f18c8, 0x38000000);  // TC alert
+
+/// Ro's No Team Invincibility
+kmWrite32(0x80539B98, 0x60000000);
+kmWrite32(0x80538A30, 0x60000000);
+kmWrite32(0x8056FD90, 0x60000000);
+kmWrite32(0x80572634, 0x60000000);
+kmWrite32(0x80572654, 0x60000000);
+kmWrite32(0x807A3438, 0x60000000);
+kmWrite32(0x807A3454, 0x60000000);
+kmWrite32(0x807ac264, 0x60000000);
+kmWrite32(0x807AC3BC, 0x60000000);
+kmWrite32(0x807A8978, 0x60000000);
+kmWrite32(0x807A9884, 0x60000000);
+kmWrite32(0x807A97E8, 0x60000000);
+kmWrite32(0x807B0BDC, 0x60000000);
+kmWrite32(0x807B7C9C, 0x60000000);
+kmWrite32(0x807B1EA4, 0x60000000);
 
 //Accurate Explosion Damage (MrBean, CLF)
 kmWrite16(0x80572690, 0x4800);
@@ -125,14 +158,38 @@ kmWrite16(0x80569F68, 0x4800);
 kmWrite24(0x808A9C16, 'PUL'); //item_window_new -> item_window_PUL
 
 const char* ChangeItemWindowPane(ItemId id, u32 itemCount) {
-    const bool feather = System::sInstance->IsContext(PULSAR_FEATHER);
-    const bool megaTC = System::sInstance->IsContext(PULSAR_MEGATC);
+    bool UnknownItems = Pulsar::DKWSETTING_GAMEMODE_REGULAR;
+    const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+    const GameMode mode = scenario.settings.gamemode;
+    const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
+    const bool feather = System::sInstance->IsContext(PULSAR_FLYINGBLOOP) == Pulsar::DKWSETTING_FLYINGBLOOP_FEATHER;
+    const bool featherTT150 = mode == TTMODE_150_FEATHER;
+    const bool featherTT200 = mode == TTMODE_200_FEATHER;
+    const bool megaTC = System::sInstance->IsContext(PULSAR_THUNDERCLOUD) == Pulsar::DKWSETTING_THUNDERCLOUD_MEGA;
+    const bool randomTC = System::sInstance->IsContext(PULSAR_RANDOMTC) == Pulsar::DKWSETTING_THUNDERCLOUD_RANDOM;
     const char* paneName;
-    if (id == BLOOPER && feather) {
+    if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST || gameMode == MODE_GRAND_PRIX || gameMode == MODE_VS_RACE || gameMode == MODE_BATTLE) {
+        UnknownItems = System::sInstance->IsContext(Pulsar::PULSAR_GAMEMODEUNKNOWN) ? Pulsar::DKWSETTING_GAMEMODE_UNKNOWNITEMS : Pulsar::DKWSETTING_GAMEMODE_REGULAR;
+    }
+
+    if (System::sInstance->IsContext(PULSAR_BATTLEROYALE)) {
+        if (itemCount == 2) paneName = "potatoTC";
+        else if (itemCount == 3) paneName = "potatoTC";
+        else paneName = "potatoTC";
+    }
+
+    else if (UnknownItems == Pulsar::DKWSETTING_GAMEMODE_UNKNOWNITEMS) {
+        if (itemCount == 2) paneName = "unknown";
+        else if (itemCount == 3) paneName = "unknown";
+        else paneName = "unknown";
+    }
+
+    else if (id == BLOOPER && feather || id == BLOOPER && featherTT150 || id == BLOOPER && featherTT200) {
         if (itemCount == 2) paneName = "feather_2";
         else if (itemCount == 3) paneName = "feather_3";
         else paneName = "feather";
     }
+    else if (id == THUNDER_CLOUD && randomTC) paneName = "randomTC";
     else if (id == THUNDER_CLOUD && megaTC) paneName = "megaTC";
     else paneName = GetItemIconPaneName(id, itemCount);
     return paneName;

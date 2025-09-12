@@ -2,6 +2,7 @@
 #include <MarioKartWii/RKSYS/RKSYSMgr.hpp>
 #include <Settings/UI/ExpWFCMainPage.hpp>
 #include <UI/UI.hpp>
+#include <PulsarSystem.hpp>
 
 namespace Pulsar {
 namespace UI {
@@ -22,7 +23,7 @@ void ExpWFCMain::OnInit() {
     WFCMainMenu::OnInit();
     this->AddControl(5, settingsButton, 0);
 
-    this->settingsButton.Load(UI::buttonFolder, "PULiMenuSingleTop", "Settings", 1, 0, false);
+    this->settingsButton.Load(UI::buttonFolder, "FroomButton", "Settings", 1, 0, false);
     this->settingsButton.buttonId = 5;
     this->settingsButton.SetOnClickHandler(this->onSettingsClick, 0);
     this->settingsButton.SetOnSelectHandler(this->onButtonSelectHandler);

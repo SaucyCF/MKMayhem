@@ -7,7 +7,7 @@
 namespace Pulsar {
 namespace UI {
 bool ExpFroomMessages::isOnModeSelection = false;
-s32 ExpFroomMessages::clickedButtonIdx = 0;
+s32 ExpFroomMessages::clickedButtonIdx = 0; /*
 
 void ExpFroomMessages::OnModeButtonClick(PushButton& button, u32 hudSlotId) {
     this->clickedButtonIdx = button.buttonId;
@@ -107,7 +107,7 @@ u32 CorrectModeButtonsBMG(const RKNet::ROOMPacket& packet) {
     }
     else return Pages::FriendRoomManager::GetMessageBmg(packet, 0);
 }
-kmCall(0x805dcb74, CorrectModeButtonsBMG);
+kmCall(0x805dcb74, CorrectModeButtonsBMG); */
 
 void CorrectRoomStartButton(Pages::Globe::MessageWindow& control, u32 bmgId, Text::Info* info) {
     Network::SetGlobeMsgColor(control, -1);
@@ -115,9 +115,12 @@ void CorrectRoomStartButton(Pages::Globe::MessageWindow& control, u32 bmgId, Tex
         const u32 hostContext = System::sInstance->netMgr.hostContext;
         const bool isOTT = hostContext & (1 << PULSAR_MODE_OTT);
         const bool isKO = hostContext & (1 << PULSAR_MODE_KO);
+        const bool isRanked = hostContext & (1 << PULSAR_RANKED);
         if (isOTT || isKO) {
             const bool isTeam = bmgId == BMG_PLAY_TEAM_GP;
             bmgId = (BMG_PLAY_OTT - 1) + isOTT + isKO * 2 + isTeam * 3;
+        } else if (isRanked) {
+            bmgId = (BMG_PLAY_RANKED_FROOMS - 1);
         }
     }
     control.SetMessage(bmgId, info);

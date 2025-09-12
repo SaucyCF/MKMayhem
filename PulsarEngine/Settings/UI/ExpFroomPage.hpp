@@ -16,20 +16,32 @@ namespace Pulsar {
 namespace UI {
 class ExpFroom : public Pages::FriendRoom {
 public:
-    ExpFroom();
+    ExpFroom() : areControlsHidden(false) {
+        this->onSettingsClickHandler.subject = this;
+        this->onSettingsClickHandler.ptmf = &ExpFroom::OnSettingsButtonClick;
+        this->onTeamsClickHandler.subject = this;
+        this->onTeamsClickHandler.ptmf = &ExpFroom::OnTeamsButtonClick;
+        this->onKickClickHandler.subject = this;
+        this->onKickClickHandler.ptmf = &ExpFroom::OnKickButtonClick;
+        this->onButtonSelectHandler.ptmf = &ExpFroom::ExtOnButtonSelect;
+    }
     void OnInit() override;
     void AfterControlUpdate() override;
     void OnResume() override;
     void OnMessageBoxClick(Pages::MessageBoxTransparent* msgPage);
+    void OnActivate() override;
 
 private:
     void ExtOnButtonSelect(PushButton& button, u32 hudSlotId);
     void OnSettingsButtonClick(PushButton& button, u32 hudSlotId);
     void OnTeamsButtonClick(PushButton& button, u32 hudSlotId);
+    void OnKickButtonClick(PushButton& button, u32 hudSlotId);
     PtmfHolder_2A<ExpFroom, void, PushButton&, u32> onSettingsClickHandler;
     PtmfHolder_2A<ExpFroom, void, PushButton&, u32> onTeamsClickHandler;
+    PtmfHolder_2A<ExpFroom, void, PushButton&, u32> onKickClickHandler;
     PushButton settingsButton;
     PushButton teamsButton;
+    PushButton kickButton;
     bool areControlsHidden;
 public:
     PulPageId topSettingsPage;

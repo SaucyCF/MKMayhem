@@ -24,23 +24,64 @@ class ConfigFile;
 
 enum Context {
     PULSAR_CT = 0,
+    PULSAR_MODE_KO,
+    PULSAR_KOFINAL,
+    PULSAR_MODE_OTT,
+    PULSAR_CODES,
+    PULSAR_MAYHEMSTATS,
+    PULSAR_RANKED,
+    PULSAR_SNAKING,
+    PULSAR_BATTLEROYALE,
+    PULSAR_ITEMSTATUS,
+    PULSAR_BUMPERKARTSTATS,
+    PULSAR_RIIBALANCEDSTATS,
+    PULSAR_GAMEMODERANDOM,
+    PULSAR_GAMEMODESHELLSHOCK,
+    PULSAR_GAMEMODEUNKNOWN,
+    PULSAR_GAMEMODEITEMRAIN,
+    PULSAR_TRANSMISSIONVANILLA,
+    PULSAR_TRANSMISSIONINSIDEALL,
+    PULSAR_TRANSMISSIONOUTSIDEALL,
+    PULSAR_KARTRESTRICT,
+    PULSAR_BIKERESTRICT,
+    PULSAR_CHARRESTRICTLIGHT,
+    PULSAR_CHARRESTRICTMEDIUM,
+    PULSAR_CHARRESTRICTHEAVY,
+    PULSAR_CHARRESTRICTPRINCESS,
+    PULSAR_BDRIFTING,
+    PULSAR_FALLFAST,
+    PULSAR_NODRIFTANYWHERE,
+    PULSAR_INVISWALLS,
+    PULSAR_RANDOMTC,
     PULSAR_200,
+    PULSAR_50,
+    PULSAR_100,
+    PULSAR_400,
+    PULSAR_99999,
+    PULSAR_CTS,
+    PULSAR_SITS,
+    PULSAR_REGS,
     PULSAR_FEATHER,
+    PULSAR_ULTRAS,
     PULSAR_UMTS,
+    PULSAR_TCTOGGLE,
+    PULSAR_ALLITEMS,
+    PULSAR_BULLETICON,
+    PULSAR_THUNDERCLOUD,
+    PULSAR_ITEMBOXFAST,
+    PULSAR_ITEMBOXINSTANT,
     PULSAR_MEGATC,
+    PULSAR_FLYINGBLOOP,
     PULSAR_HAW,
     PULSAR_MIIHEADS,
-    PULSAR_MODE_OTT,
-    PULSAR_MODE_KO,
+    PULSAR_CHANGECOMBO,
     PULSAR_CONTEXT_COUNT,
 };
-
-
 
 class System {
 protected:
     System();
-private:
+public:
     //System functions
     void Init(const ConfigFile& conf);
     void InitInstances(const ConfigFile& conf, IOType type);
@@ -48,6 +89,7 @@ private:
     void InitCups(const ConfigFile& conf);
     void InitSettings(const u16* totalTrophyCount) const;
     void UpdateContext();
+    static void UpdateContextWrapper();
 protected:
     //Virtual
     virtual void AfterInit() {};
@@ -61,7 +103,7 @@ public:
     //virtual void ParsePackROOMMsg(u8 msg) {}  //Only called for non-hosts
     const Info& GetInfo() const { return this->info; }
 
-    bool IsContext(Context context) const { return (this->context & (1 << context)) != 0; }
+    bool IsContext(Context context) const { return (this->context & (1ULL << context)) != 0; }
     static s32 OnSceneEnter(Random& random);
 
     const char* GetModFolder() const { return modFolderName; }
@@ -90,11 +132,11 @@ public:
     EGG::TaskThread* const taskThread; //0x8
     //Constants
 
-private:
+public:
     char modFolderName[IOS::ipcMaxFileName + 1]; //0xC
     u8 padding[2];
     Info info; //0x1c
-    u32 context;
+    u64 context;
 
 public:
     //Network variables only set when reading a ROOM packet that starts the GP; they are only ever used in UpdateState; no need to clear them as ROOM will reupdat ethem

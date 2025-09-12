@@ -28,10 +28,10 @@ static PageId AfterWifiResults(PageId id) {
     const System* system = System::sInstance;
 
     if (system->IsContext(PULSAR_MODE_KO)) id = system->koMgr->KickPlayersOut(id); //return KO::RaceEndPage with the choice to spectate if the local players are out 
-    if (id != static_cast<PageId>(KO::RaceEndPage::id) && system->IsContext(PULSAR_HAW)) {
-        ChooseNextTrack* chooseNext = ExpSection::GetSection()->GetPulPage<ChooseNextTrack>();
-        if (chooseNext != nullptr) id = chooseNext->GetPageAfterWifiResults(id);
-    }
+    // if (id != static_cast<PageId>(KO::RaceEndPage::id) && system->IsContext(PULSAR_HAW)) {
+    //    ChooseNextTrack* chooseNext = ExpSection::GetSection()->GetPulPage<ChooseNextTrack>();
+    //    if (chooseNext != nullptr) id = chooseNext->GetPageAfterWifiResults(id);
+    //}
     return id;
 }
 kmBranch(0x80646754, AfterWifiResults);
@@ -85,39 +85,39 @@ static void CustomRoomDenyText(Pages::MessageBoxTransparent* msgBox, u32 bmgId, 
 }
 kmCall(0x805dd90c, CustomRoomDenyText);
 
-SectionParams& FavouriteCombo(SectionParams& params) {
-    const RKSYS::Mgr* rksysMgr = RKSYS::Mgr::sInstance;
-    s32 curLicense = rksysMgr->curLicenseId;
-    if (curLicense >= 0) {
-        const RKSYS::LicenseMgr& license = rksysMgr->licenses[curLicense];
-        CharacterId favChar = license.GetFavouriteCharacter();
-        KartId favKart = license.GetFavouriteKart();
-
-        const s32 charWeight = GetCharacterWeightClass(favChar);
-        const s32 kartWeight = GetKartWeightClass(favKart);
-        if (kartWeight != -1) {
-            if (charWeight == -1 || charWeight != kartWeight) {
-                switch (kartWeight) {
-                case 0:
-                    favChar = BABY_DAISY;
-                    break;
-                case 1:
-                    favChar = DAISY;
-                    break;
-                case 2:
-                    favChar = FUNKY_KONG;
-                }
-            }
-            params.characters[0] = favChar;
-            params.karts[0] = favKart;
-            params.combos[0].selCharacter = favChar;
-            params.combos[0].selKart = favKart;
-        }
-    }
-
-    return params;
-}
-kmBranch(0x805e4228, FavouriteCombo);
+//SectionParams& FavouriteCombo(SectionParams& params) {
+//    const RKSYS::Mgr* rksysMgr = RKSYS::Mgr::sInstance;
+//    s32 curLicense = rksysMgr->curLicenseId;
+//    if (curLicense >= 0) {
+//        const RKSYS::LicenseMgr& license = rksysMgr->licenses[curLicense];
+//        CharacterId favChar = license.GetFavouriteCharacter();
+//        KartId favKart = license.GetFavouriteKart();
+//
+//        const s32 charWeight = GetCharacterWeightClass(favChar);
+//        const s32 kartWeight = GetKartWeightClass(favKart);
+//        if (kartWeight != -1) {
+//            if (charWeight == -1 || charWeight != kartWeight) {
+//                switch (kartWeight) {
+//                case 0:
+//                    favChar = BABY_DAISY;
+//                    break;
+//                case 1:
+//                    favChar = DAISY;
+//                    break;
+//                case 2:
+//                    favChar = FUNKY_KONG;
+//                }
+//            }
+//            params.characters[0] = favChar;
+//            params.karts[0] = favKart;
+//            params.combos[0].selCharacter = favChar;
+//            params.combos[0].selKart = favKart;
+//        }
+//   }
+//
+//    return params;
+//}
+//kmBranch(0x805e4228, FavouriteCombo);
 
 u8 ModifyCheckRankings() {
     register Pages::RaceMenu* ttEnd;
