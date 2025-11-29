@@ -9,5 +9,5 @@ enum Error {
     OSERROR_FLOATING_POINT = 7,
     OSERROR_FPE = 8
 };
-}//namespace OS
+}  // namespace OS
 #endif

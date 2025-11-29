@@ -10,8 +10,8 @@ namespace ut {
 
 struct Glyph {
     const void* texture;
-    CharWidths  widths;
-    u8  height;
+    CharWidths widths;
+    u8 height;
     GX::TexFmt exFormat;
     u16 texWidth;
     u16 texHeight;
@@ -20,7 +20,7 @@ struct Glyph {
 };
 
 class Font {
-public:
+   public:
     enum Type {
         TYPE_NULL,
         TYPE_ROM,
@@ -28,32 +28,32 @@ public:
         TYPE_PAIR
     };
 
-    virtual ~Font(); //8007c670 vtable 80274e08
-    virtual int GetWidth() const = 0; //0xc
-    virtual int GetHeight() const = 0; //0x10
-    virtual int GetAscent() const = 0; //0x14
-    virtual int GetDescent() const = 0; //0x18
-    virtual int GetBaselinePos() const = 0; //0x1c
-    virtual int GetCellHeight() const = 0; //0x20
-    virtual int GetCellWidth() const = 0; //0x24
-    virtual int GetMaxCharWidth() const = 0; //0x28
-    virtual Type GetType() const = 0; //0x2c
-    virtual GX::TexFmt GetTextureFormat() const = 0; //0x30
-    virtual int GetLineFeed() const = 0; //0x34
-    virtual const CharWidths GetDefaultCharWidths() const = 0; //0x38
-    virtual void SetDefaultCharWidths(const CharWidths& widths) = 0; //0x3c
-    virtual bool SetAlternateChar(u16 code) = 0; //0x40
-    virtual void SetLineFeed(int linefeed) = 0; //0x44
-    virtual int GetCharWidth(u16 code) const = 0; //0x48
-    virtual const CharWidths GetCharWidths(u16 code) const = 0; //0x4c
-    virtual void GetGlyph(Glyph* glyphPtr, u16 code) const = 0; //0x50
-    virtual bool HasGlyph(u16 c) const = 0; //0x54
-    virtual FontEncoding GetEncoding() const = 0; //0x58
+    virtual ~Font();  // 8007c670 vtable 80274e08
+    virtual int GetWidth() const = 0;  // 0xc
+    virtual int GetHeight() const = 0;  // 0x10
+    virtual int GetAscent() const = 0;  // 0x14
+    virtual int GetDescent() const = 0;  // 0x18
+    virtual int GetBaselinePos() const = 0;  // 0x1c
+    virtual int GetCellHeight() const = 0;  // 0x20
+    virtual int GetCellWidth() const = 0;  // 0x24
+    virtual int GetMaxCharWidth() const = 0;  // 0x28
+    virtual Type GetType() const = 0;  // 0x2c
+    virtual GX::TexFmt GetTextureFormat() const = 0;  // 0x30
+    virtual int GetLineFeed() const = 0;  // 0x34
+    virtual const CharWidths GetDefaultCharWidths() const = 0;  // 0x38
+    virtual void SetDefaultCharWidths(const CharWidths& widths) = 0;  // 0x3c
+    virtual bool SetAlternateChar(u16 code) = 0;  // 0x40
+    virtual void SetLineFeed(int linefeed) = 0;  // 0x44
+    virtual int GetCharWidth(u16 code) const = 0;  // 0x48
+    virtual const CharWidths GetCharWidths(u16 code) const = 0;  // 0x4c
+    virtual void GetGlyph(Glyph* glyphPtr, u16 code) const = 0;  // 0x50
+    virtual bool HasGlyph(u16 c) const = 0;  // 0x54
+    virtual FontEncoding GetEncoding() const = 0;  // 0x58
 
-    void InitReaderFunc(FontEncoding encoding); //800b1970
-    CharStrmReader::ReadNextCharFunc readerFunc; //ptmf
-}; //0x10
+    void InitReaderFunc(FontEncoding encoding);  // 800b1970
+    CharStrmReader::ReadNextCharFunc readerFunc;  // ptmf
+};  // 0x10
 
-}//namespace ut
-}//namespace nw4r
+}  // namespace ut
+}  // namespace nw4r
 #endif

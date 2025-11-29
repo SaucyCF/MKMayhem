@@ -11,7 +11,7 @@ namespace g3d {
 
 class ResAnmScn;
 
-struct ResLightSetData { //https://wiki.tockdom.com/wiki/SCN0_(File_Format)
+struct ResLightSetData {  // https://wiki.tockdom.com/wiki/SCN0_(File_Format)
     u32 size;
     s32 offsetToResAnmScnData;
     u32 name;
@@ -26,11 +26,10 @@ struct ResLightSetData { //https://wiki.tockdom.com/wiki/SCN0_(File_Format)
 };
 
 class ResLightSet : public ResCommon<ResLightSetData> {
-    bool Bind(const ResAnmScn scene); //80055840
+    bool Bind(const ResAnmScn scene);  // 80055840
 };
 
-}//namespace g3d
-}//namespace nw4r
-
+}  // namespace g3d
+}  // namespace nw4r
 
 #endif

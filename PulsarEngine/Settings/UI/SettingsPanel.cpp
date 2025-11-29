@@ -14,8 +14,8 @@ namespace UI {
 //SETTINGS PANEL
 SettingsPanel::SettingsPanel()
 {
-    bmgOffset = BMG_USERSETTINGSOFFSET;
-    sheetIdx = Settings::Params::pulsarPageCount;
+    bmgOffset = 0;
+    sheetIdx = 0;
     catIdx = 0;
     externControlCount = 3;
     internControlCount = Settings::Params::maxRadioCount + Settings::Params::maxScrollerCount;
@@ -223,10 +223,10 @@ void SettingsPanel::OnActivate() {
     // Hide specific settings pages in voting sections
     if(isVotingSection) {
         if (this->sheetIdx == Settings::SETTINGSTYPE_KO || 
-            this->sheetIdx == Settings::SETTINGSTYPE_OTT ||
-            this->sheetIdx == Settings::SETTINGSTYPE_HOST ||
-            this->sheetIdx == Settings::SETTINGSTYPE_DKW2 ||
-            this->sheetIdx == Settings::SETTINGSTYPE_DKW3) {
+            this->sheetIdx == Settings::SETTINGSTYPE_WW ||
+            this->sheetIdx == Settings::SETTINGSTYPE_RULES ||
+            this->sheetIdx == Settings::SETTINGSTYPE_RULES2 ||
+            this->sheetIdx == Settings::SETTINGSTYPE_ITEM) {
             return;
         }
     }
@@ -321,37 +321,13 @@ void SettingsPanel::SaveSettings(bool writeFile) {
 void SettingsPanel::OnBackPress(u32 hudSlotId) {
     PushButton& okButton = *this->externControls[0];
     okButton.SelectFocus();
-    const SectionId sectionPage = SectionMgr::sInstance->curSection->sectionId;
-    if(this->prevPageId == PAGE_WFC_MAIN) {
-        this->SaveSettings(true);
-        if(sectionPage == SECTION_P1_WIFI) Pages::Menu::ChangeSectionById(SECTION_P1_WIFI, okButton);
-        if(sectionPage == SECTION_P2_WIFI) Pages::Menu::ChangeSectionById(SECTION_P2_WIFI, okButton);
-    }
-    if(this->prevPageId == PAGE_SINGLE_PLAYER_MENU) {
-        this->SaveSettings(true);
-        Pages::Menu::ChangeSectionById(SECTION_SINGLE_P_FROM_MENU, okButton);
-    }
-    else {
-        this->LoadPrevMenuAndSaveSettings(okButton);
-    }
+    this->LoadPrevMenuAndSaveSettings(okButton);
 }
 
 void SettingsPanel::OnSaveButtonClick(PushButton& button, u32 hudSlotId) {
     PushButton& okButton = *this->externControls[0];
     okButton.SelectFocus();
-    const SectionId sectionPage = SectionMgr::sInstance->curSection->sectionId;
-    if(this->prevPageId == PAGE_WFC_MAIN) {
-        this->SaveSettings(true);
-        if(sectionPage == SECTION_P1_WIFI) Pages::Menu::ChangeSectionById(SECTION_P1_WIFI, okButton);
-        if(sectionPage == SECTION_P2_WIFI) Pages::Menu::ChangeSectionById(SECTION_P2_WIFI, okButton);
-    }
-    if(this->prevPageId == PAGE_SINGLE_PLAYER_MENU) {
-        this->SaveSettings(true);
-        Pages::Menu::ChangeSectionById(SECTION_SINGLE_P_FROM_MENU, okButton);
-    }
-    else {        
-        this->LoadPrevMenuAndSaveSettings(button);
-    }
+    this->LoadPrevMenuAndSaveSettings(button);
 }
 
 void SettingsPanel::OnRightButtonClick(PushButton& button, u32 hudSlotId) {
@@ -372,10 +348,10 @@ void SettingsPanel::OnButtonClick(PushButton& button, u32 direction) {
     // Skip restricted pages in voting sections
     if(isVotingSection) {
         while (nextIdx == Settings::SETTINGSTYPE_KO || 
-               nextIdx == Settings::SETTINGSTYPE_OTT ||
-               nextIdx == Settings::SETTINGSTYPE_HOST ||
-               nextIdx == (Settings::SETTINGSTYPE_DKW2 + Settings::Params::pulsarPageCount) ||
-               nextIdx == (Settings::SETTINGSTYPE_DKW3 + Settings::Params::pulsarPageCount)) {
+               nextIdx == Settings::SETTINGSTYPE_WW ||
+               nextIdx == Settings::SETTINGSTYPE_RULES ||
+               nextIdx == Settings::SETTINGSTYPE_RULES2 ||
+               nextIdx == Settings::SETTINGSTYPE_ITEM) {
             nextIdx = (nextIdx + direction + Settings::Params::pageCount) % Settings::Params::pageCount;
         }
     }

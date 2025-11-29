@@ -70,17 +70,35 @@ Kart::Stats* ApplyStatChanges(KartId kartId, CharacterId characterId, KartType k
     }
     factor *= speedModConv.speedMod;
 
-    Item::greenShellSpeed = 105.0f * factor;
-    Item::redShellInitialSpeed = 75.0f * factor;
-    Item::redShellSpeed = 130.0f * factor;
-    Item::blueShellSpeed = 260.0f * factor;
-    Item::blueShellMinimumDiveDistance = 640000.0f * factor;
-    Item::blueShellHomingSpeed = 130.0f * factor;
+    bool isItemModeMayhem = Pulsar::DKWSETTING_GAMEMODE_REGULAR;
+    if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_NONE) {
+        isItemModeMayhem = System::sInstance->IsContext(Pulsar::PULSAR_MODE_MAYHEM) ? Pulsar::DKWSETTING_GAMEMODE_MAYHEM : Pulsar::DKWSETTING_GAMEMODE_REGULAR;
+    }
+    if (isItemModeMayhem == Pulsar::DKWSETTING_GAMEMODE_MAYHEM) {
+        Item::greenShellSpeed = 210.0f * factor;
+        Item::redShellInitialSpeed = 150.0f * factor;
+        Item::redShellSpeed = 260.0f * factor;
+        Item::blueShellSpeed = 520.0f * factor;
+        Item::blueShellMinimumDiveDistance = 640000.0f * factor;
+        Item::blueShellHomingSpeed = 260.0f * factor;
 
-    Kart::hardSpeedCap = 120.0f * factor;
-    Kart::bulletSpeed = 145.0f * factor;
-    Kart::starSpeed = 105.0f * factor;
-    Kart::megaTCSpeed = 95.0f * factor;
+        Kart::hardSpeedCap = 180.0f * factor;
+        Kart::bulletSpeed = 218.0f * factor;
+        Kart::starSpeed = 158.0f * factor;
+        Kart::megaTCSpeed = 143.0f * factor;
+    } else {
+        Item::greenShellSpeed = 105.0f * factor;
+        Item::redShellInitialSpeed = 75.0f * factor;
+        Item::redShellSpeed = 130.0f * factor;
+        Item::blueShellSpeed = 260.0f * factor;
+        Item::blueShellMinimumDiveDistance = 640000.0f * factor;
+        Item::blueShellHomingSpeed = 130.0f * factor;
+
+        Kart::hardSpeedCap = 120.0f * factor;
+        Kart::bulletSpeed = 145.0f * factor;
+        Kart::starSpeed = 105.0f * factor;
+        Kart::megaTCSpeed = 95.0f * factor;
+}
 
     stats->baseSpeed *= factor;
     stats->standard_acceleration_as[0] *= factor;
@@ -116,7 +134,7 @@ Kart::Stats* ApplyStatChanges(KartId kartId, CharacterId characterId, KartType k
         insideAll = System::sInstance->IsContext(Pulsar::PULSAR_TRANSMISSIONINSIDEALL) ? Pulsar::DKWSETTING_FORCE_TRANSMISSION_INSIDEALL : Pulsar::DKWSETTING_FORCE_TRANSMISSION_DEFAULT;
         outsideAll = System::sInstance->IsContext(Pulsar::PULSAR_TRANSMISSIONOUTSIDEALL) ? Pulsar::DKWSETTING_FORCE_TRANSMISSION_OUTSIDEALL : Pulsar::DKWSETTING_FORCE_TRANSMISSION_DEFAULT;
     }
-    u32 transmission = static_cast<Pulsar::DKWSettingTransmission>(Pulsar::Settings::Mgr::Get().GetUserSettingValue(static_cast<Pulsar::Settings::UserType>(Pulsar::Settings::SETTINGSTYPE_DKW1), Pulsar::SETTINGDKW_TRANSMISSION));
+    u32 transmission = static_cast<Pulsar::DKWSettingTransmission>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::MISC_TRANSMISSION));
     if (RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_VS_WW && RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_BT_WW && isLocalPlayer) {
          if (mode == MODE_TIME_TRIAL || mode == MODE_GHOST_RACE) {
             if (stats->type == INSIDE_BIKE) {
@@ -204,9 +222,9 @@ Kart::Stats* ApplyStatChanges(KartId kartId, CharacterId characterId, KartType k
         NoDriftAnywhere = System::sInstance->IsContext(Pulsar::PULSAR_NODRIFTANYWHERE) ? Pulsar::DKWSETTING_ALLOW_DANYWHEREOFF : Pulsar::DKWSETTING_ALLOW_DANYWHEREON;
     }
 
-    if (NoDriftAnywhere == Pulsar::DKWSETTING_ALLOW_DANYWHEREOFF || mode == MODE_TIME_TRIAL || mode == MODE_GHOST_RACE || System::sInstance->IsContext(PULSAR_MODE_OTT)){
+    if (NoDriftAnywhere == Pulsar::DKWSETTING_ALLOW_DANYWHEREOFF || mode == MODE_TIME_TRIAL || mode == MODE_GHOST_RACE || mode == MODE_PUBLIC_VS) {
     Kart::minDriftSpeedRatio = 0.55f * (factor > 1.0f ? (1.0f / factor) : 1.0f);}
-    else if (static_cast<Pulsar::DKWSettingDriftAnywhere>(Pulsar::Settings::Mgr::Get().GetUserSettingValue(static_cast<Pulsar::Settings::UserType>(Pulsar::Settings::SETTINGSTYPE_DKW1), Pulsar::SETTINGDKW_ALWAYSDRIFT)) == Pulsar::DKWSETTING_DANYWHERE_ENABLED) {
+    else if (static_cast<Pulsar::DKWSettingDriftAnywhere>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::MISC_ALWAYSDRIFT)) == Pulsar::DKWSETTING_DANYWHERE_ENABLED) {
     Kart::minDriftSpeedRatio = 0.001f * (factor > 1.0f ? (1.0f / factor) : 1.0f);}
     Kart::unknown_70 = 70.0f * factor;
     Kart::regularBoostAccel = 3.0f * factor;

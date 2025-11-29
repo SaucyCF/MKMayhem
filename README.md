@@ -25,7 +25,8 @@ Beware that **Network use is distribution**, it means that Users who interact wi
 The following features are licensed under AGPLv3:
 
 - Room kick page and feature implementation
-- UI changes, feature implementation, and all code associated
+- The specific Discord Rich Presence implementation used by Retro Rewind and code associated
+- Item Rain code found in ItemRain.cpp
 
 **NOTE:** You can ask to be fully exempted from these licensing constraints, feel free to contact the code author(s)
 

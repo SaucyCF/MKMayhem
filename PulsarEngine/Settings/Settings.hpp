@@ -9,29 +9,34 @@
 #include <Ghost/GhostManager.hpp>
 
 namespace Pulsar {
-namespace Ghosts { class Mgr; }
-namespace UI { class SettingsPanel; }
+namespace Ghosts {
+class Mgr;
+}
+namespace UI {
+class SettingsPanel;
+}
 namespace Settings {
 
 class Hook : public DoFuncsHook {
     static DoFuncsHook* settingsHooks;
-public:
+
+   public:
     Hook(Func& f) : DoFuncsHook(f, &settingsHooks) {}
     static void Exec() { DoFuncsHook::Exec(settingsHooks); }
 };
 
 class Mgr {
-private:
-
-
-
+   private:
     static Mgr* sInstance;
     static void SaveTask(void*);
-    void Init(const u16* totalTrophyCount, const char* path);
+    void Init(const u16* totalTrophyCount, const char* settingsPath, const char* trophiesPath);
     int GetSettingsBinSize(u32 trackCount) const;
+    void LoadTrophiesFromFile(bool hadLegacyData);
+    void SaveTrophiesToFile() const;
+    void ResetTrophies(TrophiesHolder& trophies, u32 trackCount) const;
     char filePath[IOS::ipcMaxPath];
+    char trophiesFilePath[IOS::ipcMaxPath];
     Binary* rawBin;
-
 
     TrackTrophy* FindTrackTrophy(u32 crc32, TTMode mode) const;
     void AdjustSections();
@@ -50,7 +55,7 @@ private:
     void AddTrophy(u32 crc32, TTMode mode);
     void SetLastSelectedCup(PulsarCupId id) { this->rawBin->GetSection<MiscParams>().lastSelectedCup = id; }
 
-public:
+   public:
     Mgr() : rawBin(nullptr) {}
     static const Mgr& Get() { return *sInstance; }
 
@@ -60,7 +65,7 @@ public:
     int GetTrophyCount(TTMode mode) const { return this->rawBin->GetSection<TrophiesHolder>().trophyCount[mode]; }
     PulsarCupId GetSavedSelectedCup() const { return this->rawBin->GetSection<MiscParams>().lastSelectedCup; }
 
-    //GP
+    // GP
     static u8 GetGPStatus(u32 idx, u32 cc) {
         Mgr* mgr = Mgr::sInstance;
         GPSection& gp = mgr->rawBin->GetSection<GPSection>();
@@ -77,21 +82,18 @@ public:
     u8 GetUserSettingValue(UserType type, u32 setting) const;
     static void Create();
 
-
-private:
+   private:
     u16 totalTrophyCount[4];
     u32 pulsarPageCount;
     u32 userPageCount;
 
     friend class System;
     friend class UI::SettingsPanel;
-    //Two ghosts functions which save the settings
+    // Two ghosts functions which save the settings
     friend bool Ghosts::Mgr::SaveGhost(const RKSYS::LicenseLdbEntry& entry, u32 ldbPosition, bool isFlap);
     friend void Ghosts::Mgr::CreateAndSaveFiles(Ghosts::Mgr* manager);
 };
-}//namespace Settings
-}//namespace Pulsar
-
-
+}  // namespace Settings
+}  // namespace Pulsar
 
 #endif

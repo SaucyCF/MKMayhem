@@ -6,6 +6,6 @@ namespace nw4r {
 namespace ut {
 template <typename CharT>
 class TagProcessorBase;
-}//namespace ut
-}//namespace nw4r
+}  // namespace ut
+}  // namespace nw4r
 #endif

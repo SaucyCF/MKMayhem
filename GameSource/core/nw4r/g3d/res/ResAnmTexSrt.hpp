@@ -13,18 +13,18 @@ namespace g3d {
 struct TexSrtAnmResult : public TexSrtTypedef {
     u32 flags;
     u32 indFlags;
-    TexMatrixMode   texMtxMode;
+    TexMatrixMode texMtxMode;
     TexSrt srt[8];
 };
 
-struct ResAnmTexSrtInfoData : TexSrtTypedef { //"SRT0 header"
+struct ResAnmTexSrtInfoData : TexSrtTypedef {  //"SRT0 header"
     u16 frameCount;
     u16 materialCount;
     TexMatrixMode texMtxMode;
     u32 isLooped;
 };
 
-struct ResAnmTexSrtData { //https://wiki.tockdom.com/wiki/SRT0_(File_Format)
+struct ResAnmTexSrtData {  // https://wiki.tockdom.com/wiki/SRT0_(File_Format)
     ResBlockHeaderData header;
     u32 version;
     s32 offsetToBRRES;
@@ -33,15 +33,14 @@ struct ResAnmTexSrtData { //https://wiki.tockdom.com/wiki/SRT0_(File_Format)
     s32 offsetToName;
     s32 offsetToPath;
     ResAnmTexSrtInfoData fileInfo;
-    //data
+    // data
 };
 
 class ResAnmTexSrt : public ResCommon<ResAnmTexSrtData>, public TexSrtTypedef {
-    void GetResult(TexSrtAnmResult* result, u32 anmId, float frame); //800538e0
+    void GetResult(TexSrtAnmResult* result, u32 anmId, float frame);  // 800538e0
 };
 
-}//namespace g3d   
-}//namespace nw4r
-
+}  // namespace g3d
+}  // namespace nw4r
 
 #endif

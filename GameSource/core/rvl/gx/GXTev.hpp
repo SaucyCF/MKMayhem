@@ -6,12 +6,11 @@
 #include <core/rvl/gx/GXStruct.hpp>
 
 namespace GX {
-void SetTevColorIn(TevStageID stage, TevColorArg a, TevColorArg b, TevColorArg c, TevColorArg d); //80171ce0
-void SetTevColorOp(TevStageID stage, TevOp op, TevBias bias, TevScale scale, BOOL clamp, TevRegID out_reg); //80171d60 how should the inputs be combined
+void SetTevColorIn(TevStageID stage, TevColorArg a, TevColorArg b, TevColorArg c, TevColorArg d);  // 80171ce0
+void SetTevColorOp(TevStageID stage, TevOp op, TevBias bias, TevScale scale, BOOL clamp, TevRegID out_reg);  // 80171d60 how should the inputs be combined
 
-void SetTevAlphaIn(TevStageID stage, TevAlphaArg a, TevAlphaArg b, TevAlphaArg c, TevAlphaArg d); //80171d20 how should the inputs be combine
-void SetTevAlphaOp(TevStageID stage, TevOp op, TevBias bias, TevScale scale, BOOL clamp, TevRegID out_reg); //80171db8 how should the inputs be combined
-
+void SetTevAlphaIn(TevStageID stage, TevAlphaArg a, TevAlphaArg b, TevAlphaArg c, TevAlphaArg d);  // 80171d20 how should the inputs be combine
+void SetTevAlphaOp(TevStageID stage, TevOp op, TevBias bias, TevScale scale, BOOL clamp, TevRegID out_reg);  // 80171db8 how should the inputs be combined
 
 /*
 outReg =[d +- (a * (1 - c) + b * c) + bias] * scale then clamped, IF TevOP is Sub or Add
@@ -29,8 +28,5 @@ leads to REGPPREV = textureColor - rasterizerColor
 
 */
 
-
-
-
-}//namespace GX
+}  // namespace GX
 #endif

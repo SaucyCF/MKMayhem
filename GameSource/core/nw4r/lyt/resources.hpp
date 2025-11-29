@@ -15,14 +15,13 @@ enum ResourceType {
     RESOURCETYPE_ARCHIVEFONT = 'fnta'
 };
 
-
 struct BinaryFileHeader {
-    char magic[4]; //rlyt
-    u16  byteOrder; //0x4 0xfeff    
-    u16  version; //0x6 always 0xa
-    u32  fileSize; //0x8
-    u16  headerSize; //0xc
-    u16  blocksCount; //0xe
+    char magic[4];  // rlyt
+    u16 byteOrder;  // 0x4 0xfeff
+    u16 version;  // 0x6 always 0xa
+    u32 fileSize;  // 0x8
+    u16 headerSize;  // 0xc
+    u16 blocksCount;  // 0xe
 };
 
 struct DataBlockHeader {
@@ -31,33 +30,33 @@ struct DataBlockHeader {
 };
 
 struct Layout {
-    DataBlockHeader blockHeader; //lyt1
-    u8              originType;
-    u8              padding[3];
-    math::VEC2      size;
+    DataBlockHeader blockHeader;  // lyt1
+    u8 originType;
+    u8 padding[3];
+    math::VEC2 size;
 };
 
 struct ExtUserDataList {
-    DataBlockHeader     blockHeader; //usd1
-    detail::ResU16      count;
-    u8                  padding[2];
+    DataBlockHeader blockHeader;  // usd1
+    detail::ResU16 count;
+    u8 padding[2];
     //  ExtUserData         extUserData[num];
 };
 
 struct TextureList {
-    DataBlockHeader blockHeader; //txl1
+    DataBlockHeader blockHeader;  // txl1
     u16 texCount;
     u8 padding[2];
 };
 
 struct FontList {
-    DataBlockHeader blockHeader; //fnl1
+    DataBlockHeader blockHeader;  // fnl1
     u16 fontCount;
     u8 padding[2];
 };
 
 struct MaterialList {
-    DataBlockHeader blockHeader; //mat1
+    DataBlockHeader blockHeader;  // mat1
     u16 matCount;
     u8 padding[2];
 };
@@ -75,17 +74,17 @@ struct Texture {
 };
 
 struct MaterialResourceNum {
-    u8   GetTexMapNum() const; //8007fd10
-    u8   GetTexSRTNum() const; //8007fd20
-    u8   GetTexCoordGenNum() const; //8007fd30
-    bool HasTevSwapTable() const; //8007fd60
-    u8   GetIndTexSRTNum() const; //8007fd90
-    u8   GetIndTexStageNum() const; //8007fda0
-    u8   GetTevStageNum() const;  //8007fdb0
-    bool HasAlphaCompare() const; //8007fd70
-    bool HasBlendMode() const;   //8007fd80
-    u8   GetChanCtrlNum() const; //8007fd40
-    u8   GetMatColNum() const; //8007fd50    
+    u8 GetTexMapNum() const;  // 8007fd10
+    u8 GetTexSRTNum() const;  // 8007fd20
+    u8 GetTexCoordGenNum() const;  // 8007fd30
+    bool HasTevSwapTable() const;  // 8007fd60
+    u8 GetIndTexSRTNum() const;  // 8007fd90
+    u8 GetIndTexStageNum() const;  // 8007fda0
+    u8 GetTevStageNum() const;  // 8007fdb0
+    bool HasAlphaCompare() const;  // 8007fd70
+    bool HasBlendMode() const;  // 8007fd80
+    u8 GetChanCtrlNum() const;  // 8007fd40
+    u8 GetMatColNum() const;  // 8007fd50
     u32 bits;
     /*
     0-3	Unknown.
@@ -105,48 +104,48 @@ struct MaterialResourceNum {
 };
 
 struct Material {
-    char name[0x14]; //0
-    GX::ColorS10 tevColors[3]; //0x14
-    GX::Color tevKColors[4]; //0x2c
+    char name[0x14];  // 0
+    GX::ColorS10 tevColors[3];  // 0x14
+    GX::Color tevKColors[4];  // 0x2c
 
-    MaterialResourceNum resNum; //0x3c
-    //followed by
-    // TexMapres TexMaps[texCount];
-    //TexSRT texSRTs[texSRTCount];
-    //TexCoordGen texCoordGen[texCoordGenCount]
-    //ChanCtrl chanCtrl;
-    //GX::Color matColors;
-    //TevSwapMode tevSwaps[GX_MAX_TEVSWAP];
-    //TexSRT indTexSRTs[indTexSRTCount];
-    //IndirectStage indirectStages[indirectStageCount];
-    //TevStage tevStages[tevStageCount];
-    //AlphaCompare alphaCompare;
-    //BlendMode blendMode;
-}; //texmap array right after
+    MaterialResourceNum resNum;  // 0x3c
+    // followed by
+    //  TexMapres TexMaps[texCount];
+    // TexSRT texSRTs[texSRTCount];
+    // TexCoordGen texCoordGen[texCoordGenCount]
+    // ChanCtrl chanCtrl;
+    // GX::Color matColors;
+    // TevSwapMode tevSwaps[GX_MAX_TEVSWAP];
+    // TexSRT indTexSRTs[indTexSRTCount];
+    // IndirectStage indirectStages[indirectStageCount];
+    // TevStage tevStages[tevStageCount];
+    // AlphaCompare alphaCompare;
+    // BlendMode blendMode;
+};  // texmap array right after
 
-struct Pane { //https://wiki.tockdom.com/wiki/BRLYT_(File_Format)#pan1
-    DataBlockHeader header; //pan1
-    u8 basePosition; //1 isVisible, 2 influenced alpha, 4 isWideScreen
+struct Pane {  // https://wiki.tockdom.com/wiki/BRLYT_(File_Format)#pan1
+    DataBlockHeader header;  // pan1
+    u8 basePosition;  // 1 isVisible, 2 influenced alpha, 4 isWideScreen
     u8 originType;
     u8 alpha;
     u8 padding;
-    char name[0x10]; //0xC
+    char name[0x10];  // 0xC
     char userInfo[0x8];
-    math::VEC3 translation; //0x24
-    math::VEC3 rotation; //0x30
-    math::VEC2 scale; //0x3c
+    math::VEC3 translation;  // 0x24
+    math::VEC3 rotation;  // 0x30
+    math::VEC2 scale;  // 0x3c
     float width;
     float height;
-}; //0x4C
+};  // 0x4C
 
-struct Picture : Pane { //pic1
-    u32 vertexColours[4]; //top left, top right, bottom left, bottom right
+struct Picture : Pane {  // pic1
+    u32 vertexColours[4];  // top left, top right, bottom left, bottom right
     u16 materialId;
-    u8 texCoordNum; //number of uv sets
+    u8 texCoordNum;  // number of uv sets
     u8 padding;
 };
 
-struct TextBox : Pane { //txt1
+struct TextBox : Pane {  // txt1
     u16 stringSize;
     u16 maxStringSize;
     u16 materialId;
@@ -162,7 +161,7 @@ struct TextBox : Pane { //txt1
     float lineSpace;
 };
 
-struct Window : Pane { //wnd1
+struct Window : Pane {  // wnd1
     float leftPos;
     float rightPos;
     float topPos;
@@ -184,51 +183,51 @@ struct WindowFrame {
     u8 padding;
 };
 
-struct Bounding : Pane {}; //bnd1
+struct Bounding : Pane {};  // bnd1
 
 struct Group {
-    DataBlockHeader blockHeader; //grp1
+    DataBlockHeader blockHeader;  // grp1
     char name[0x10];
-    u16  paneCount;
-    u8   padding[2];
-    //followed by
-    //char panes[paneCount][0x10];
+    u16 paneCount;
+    u8 padding[2];
+    // followed by
+    // char panes[paneCount][0x10];
 };
 
-//BRLAN https://wiki.tockdom.com/wiki/BRLAN_(File_Format)
+// BRLAN https://wiki.tockdom.com/wiki/BRLAN_(File_Format)
 struct AnimationBlock {
-    DataBlockHeader blockHeader; //pai1
+    DataBlockHeader blockHeader;  // pai1
     u16 frameSize;
     bool isLooped;
-    u8  padding;
+    u8 padding;
     u16 tplCount;
     u16 animCount;
     u32 animOffsetToAnimOffsetsArray;
-    //followed by
-    //u32 fileNameOffsets[fileCount];
-    //u8 namePool[];
-    //u32 animContOffsets[paneCount];
+    // followed by
+    // u32 fileNameOffsets[fileCount];
+    // u8 namePool[];
+    // u32 animContOffsets[paneCount];
 };
 
 struct AnimationContent {
     char name[20];
     u8 infoCount;
-    u8 type; //0 pane, 1material
+    u8 type;  // 0 pane, 1material
     u8 padding[2];
-    //u32 animInfoOffsets[num];
+    // u32 animInfoOffsets[num];
 };
 
 struct AnimationInfo {
-    u32 kind; //RLPA, RLTS etc...
+    u32 kind;  // RLPA, RLTS etc...
     u8 targetCount;
     u8 padding[3];
-    //u32 animTargetOffsets[num]; //0x8
+    // u32 animTargetOffsets[num]; //0x8
 };
 
 struct AnimationTarget {
     u8 id;
-    u8 target; //https://wiki.tockdom.com/wiki/BRLAN_(File_Format)/Targets depends on kind
-    u8 curveType; //hermite vs step
+    u8 target;  // https://wiki.tockdom.com/wiki/BRLAN_(File_Format)/Targets depends on kind
+    u8 curveType;  // hermite vs step
     u8 padding;
     u16 keyCount;
     u8 padding2[2];
@@ -258,7 +257,7 @@ enum AnimationType {
     ANIMATIONTYPE_RLIM = 'RLIM',
 };
 
-}//namespace res
-}//namespace lyt
-}//namespace nw4r
-#endif    
+}  // namespace res
+}  // namespace lyt
+}  // namespace nw4r
+#endif

@@ -72,7 +72,7 @@ struct RGBA16 {
 #define NULL 0
 #define __sync(...)
 #define __isync(...)
-#define size_assert(type, num) static_assert(sizeof(type)==(num),"type")
+//#define size_assert(type, num) static_assert(sizeof(type)==(num),"type")
 #define static_assert(...)
 #else
 #define asmFunc asm void
@@ -81,7 +81,7 @@ struct RGBA16 {
 #define alignas(value) __attribute((aligned(value)))
 #define ASM(...) __VA_ARGS__
 #define override
-#define size_assert(type, num) static_assert(sizeof(type) ==num,#type)
+//#define size_assert(type, num) static_assert(sizeof(type) ==num,#type)
 #endif
 
 

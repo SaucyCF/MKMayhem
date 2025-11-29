@@ -7,9 +7,9 @@
 namespace nw4r {
 namespace lyt {
 class DrawInfo {
-public:
-    DrawInfo(); //80082620
-    virtual ~DrawInfo();  //800826a0 vtable 802737b0
+   public:
+    DrawInfo();  // 80082620
+    virtual ~DrawInfo();  // 800826a0 vtable 802737b0
     math::MTX34 matrix;
     ut::Rect rect;
     math::VEC2 scale;
@@ -23,10 +23,9 @@ public:
         u8 invisiblePaneCalculateMtx : 1;
     }flag; //0x50
     */
-}; // Total size 0x54
-size_assert(DrawInfo, 0x54);
-}//namespace lyt
-}//namespace nw4r
+};  // Total size 0x54
+// size_assert(DrawInfo, 0x54);
+}  // namespace lyt
+}  // namespace nw4r
 
 #endif
-

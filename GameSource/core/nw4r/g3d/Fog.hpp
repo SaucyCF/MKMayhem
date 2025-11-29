@@ -23,16 +23,15 @@ struct FogData {
 };
 
 class Fog : public ResCommon<FogData> {
-public:
-    Fog(FogData* data); //800774d0
-    void Init(); //800774e0
-    void SetGP() const; //800775d0
+   public:
+    Fog(FogData* data);  // 800774d0
+    void Init();  // 800774e0
+    void SetGP() const;  // 800775d0
     void SetFogRangeAdjParam(u16 width, u16 center, const math::MTX44& projectionMtx);
     Fog CopyTo(void* fogData) const;
 };
 
-}//namespace g3d  
-}//namespace nw4r 
-
+}  // namespace g3d
+}  // namespace nw4r
 
 #endif

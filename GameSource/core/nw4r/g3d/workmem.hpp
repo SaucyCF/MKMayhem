@@ -10,7 +10,7 @@ namespace g3d {
 namespace detail {
 namespace workmem {
 
-struct MdlZ { //zsorting
+struct MdlZ {  // zsorting
     float Z;
     u16 priority;
     u16 nodeID;
@@ -18,11 +18,10 @@ struct MdlZ { //zsorting
     u16 shpID;
 };
 
-}//namespace workmem
-}//namespace detail
+}  // namespace workmem
+}  // namespace detail
 
-}//namespace g3d  
-}//namespace nw4r 
-
+}  // namespace g3d
+}  // namespace nw4r
 
 #endif

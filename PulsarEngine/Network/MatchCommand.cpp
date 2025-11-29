@@ -4,6 +4,7 @@
 #include <PulsarSystem.hpp>
 #include <Settings/Settings.hpp>
 #include <Network/RoomKey.hpp>
+#include <Network/SafeGuard.hpp>
 #include <UI/RoomKick/RoomKickPage.hpp>
 
 namespace Pulsar {
@@ -31,23 +32,32 @@ kmCall(0x800dc3bc, MoveSize);
 
 DWC::MatchCommand Process(DWC::MatchCommand type, const void* data, u32 dataSize, u32 pid) {
     const RKNet::RoomType roomType = RKNet::Controller::sInstance->roomType;
-    const bool isCustom = roomType == RKNet::ROOMTYPE_FROOM_NONHOST || roomType == RKNet::ROOMTYPE_FROOM_HOST
-        || roomType == RKNet::ROOMTYPE_VS_REGIONAL || roomType == RKNet::ROOMTYPE_JOINING_REGIONAL;
+    const bool isFriendHost = roomType == RKNet::ROOMTYPE_FROOM_HOST;
+    const bool isRegionalHost = roomType == RKNet::ROOMTYPE_VS_REGIONAL;
+    const bool isHostRoom = isFriendHost || isRegionalHost;
+    const bool isCustom = roomType == RKNet::ROOMTYPE_FROOM_NONHOST || isHostRoom
+        || roomType == RKNet::ROOMTYPE_JOINING_REGIONAL;
+    const bool shouldValidatePacket = isCustom
+        && (type == DWC::MATCH_COMMAND_RESV_OK
+            || (isHostRoom && type == DWC::MATCH_COMMAND_RESERVATION));
 
     Pulsar::System* system = Pulsar::System::sInstance;
     Mgr& mgr = system->netMgr;
     DenyType denyType = DENY_TYPE_NORMAL;
 
-    if (type == DWC::MATCH_COMMAND_RESV_OK && isCustom) {
+    if (shouldValidatePacket) {
         const ResvPacket* packet = reinterpret_cast<const ResvPacket*>(data);
-        if (dataSize != (sizeof(ResvPacket) / sizeof(u32)) || packet->pulInfo.roomKey != HARD_CODED_ROOM_KEY // Compare with hardcoded key
+        const bool packetMismatch = dataSize != (sizeof(ResvPacket) / sizeof(u32)) || packet->pulInfo.roomKey != HARD_CODED_ROOM_KEY
             || strcmp(packet->pulInfo.modFolderName, system->GetModFolder()) != 0
-            || !system->CheckUserInfo(packet->pulInfo.userInfo)) {
+            || !system->CheckUserInfo(packet->pulInfo.userInfo);
+        const bool safeguardMismatch = !SafeGuard::ValidateUserInfo(packet->pulInfo.userInfo);
 
-            denyType = DENY_TYPE_BAD_PACK;
-            if (roomType == RKNet::ROOMTYPE_VS_REGIONAL) mgr.deniesCount++;
+        if (packetMismatch || safeguardMismatch) {
+
+            denyType = safeguardMismatch ? DENY_TYPE_SAFEGUARD : DENY_TYPE_BAD_PACK;
+            if (isRegionalHost) mgr.deniesCount++;
             type = DWC::MATCH_COMMAND_RESV_DENY;
-        } else if (roomType == RKNet::ROOMTYPE_VS_REGIONAL) {
+        } else if (isRegionalHost) {
             if (packet->pulInfo.statusData != mgr.ownStatusData) {
                 denyType = DENY_TYPE_OTT;
                 type = DWC::MATCH_COMMAND_RESV_DENY;
@@ -120,6 +130,7 @@ void Send(DWC::MatchCommand type, u32 pid, u32 ip, u16 port, void* data, u32 dat
     if (type == DWC::MATCH_COMMAND_RESERVATION && isCustom) {
         ResvPacket packet(*reinterpret_cast<const DWC::Reservation*>(data));
         System::sInstance->SetUserInfo(packet.pulInfo.userInfo);
+        SafeGuard::StampUserInfo(packet.pulInfo.userInfo);
         data = &packet;
         dataSize = sizeof(ResvPacket) / sizeof(u32);
     }

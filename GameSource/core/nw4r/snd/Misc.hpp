@@ -6,10 +6,10 @@ namespace nw4r {
 namespace snd {
 
 enum SeqMute {
-    MUTE_OFF,       //Unmute
-    MUTE_NO_STOP,   //Mute SEQ and don't stop
-    MUTE_RELEASE,   //Mute SEQ and stop after release
-    MUTE_STOP       //Mute SEQ and stop immediately
+    MUTE_OFF,  // Unmute
+    MUTE_NO_STOP,  // Mute SEQ and don't stop
+    MUTE_RELEASE,  // Mute SEQ and stop after release
+    MUTE_STOP  // Mute SEQ and stop immediately
 };
 enum AuxBus {
     AUX_A = 0,
@@ -68,11 +68,10 @@ struct VoiceOutParam {
     float surroundPan;
     float fxSend;
     float lpf;
-}; //0x18
+};  // 0x18
 
-}//namespace detail
+}  // namespace detail
 
-}//namespace snd
-}//namespace nw4r
+}  // namespace snd
+}  // namespace nw4r
 #endif
-

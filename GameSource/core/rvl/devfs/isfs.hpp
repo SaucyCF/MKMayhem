@@ -4,7 +4,6 @@
 #include <types.hpp>
 #include <core/rvl/ipc/ipc.hpp>
 
-
 namespace ISFS {
 enum Mode {
     MODE_NONE = 0x0,
@@ -44,6 +43,5 @@ s32 ReadDir(const char* folder, void* r4, u32* num);
 s32 CreateDir(const char* filepath, u8 attributes, IOS::Mode userperms, IOS::Mode groupperms, IOS::Mode otherperms);
 s32 GetAttr(const char* filepath, u32* uid, u16* gid, u8* attributes, IOS::Mode* userperms, IOS::Mode* groupperms, IOS::Mode* otherperms);
 
-
-}//namespace ISFS
+}  // namespace ISFS
 #endif

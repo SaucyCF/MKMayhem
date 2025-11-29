@@ -8,6 +8,8 @@ const int ipcMaxFileName = 13;
 typedef char IPCFileName[ipcMaxFileName];
 typedef char IPCPath[ipcMaxPath];
 
+extern "C" s32 IOS_Open(const char* path, s32 mode);
+
 enum Error {
     ERROR_PERMISSION_DENIED = -1,
     ERROR_FILE_EXISTS = -2,
@@ -73,7 +75,7 @@ struct Attr {
     u8 groupperms;
     u8 otherperms;
     u8 attributes;
-    //paddin
+    // paddin
 };
 struct ReadDirectory {
     IOCtlvRequest requests[4];
@@ -86,12 +88,11 @@ struct Usage {
     u32 usage2;
 };
 struct FileStats {
-    u32	size;
-    u32	pos;
+    u32 size;
+    u32 pos;
     u32 unknown_0x4[5];
 };
-struct Request
-{
+struct Request {
     union {
         char path[ipcMaxPath];
         RenameFile rename;
@@ -100,22 +101,21 @@ struct Request
         Usage usage;
         FileStats stats;
     };
-}; //total size 0x80
+};  // total size 0x80
 typedef void (*AsyncCallback)(s32 ret, void* arg);
 
 s32 Open(const char* path, Mode mode);
 s32 Read(s32 fd, void* buffer, s32 length);
 s32 Write(s32 fd, const void* buffer, s32 length);
-s32 Seek(s32 fd, s32 offset, SeekType whence); //returns length until the end, best to get file length
+s32 Seek(s32 fd, s32 offset, SeekType whence);  // returns length until the end, best to get file length
 s32 Close(s32 fd);
 s32 IOCtl(s32 fd, IOCtlType ioctl, void* buffer_in, s32 len_in, void* buffer_io, s32 len_io);
 s32 IOCtlAsync(s32 fd, IOCtlType ioctl, void* buffer_in, s32 len_in, void* buffer_io, s32 len_io, AsyncCallback cb, void* ctxt);
 
-s32 IOCtlAsync(); //80194158
+s32 IOCtlAsync();  // 80194158
 s32 IOCtlv(s32 fd, IOCtlType ioctl, s32 countIv, s32 countIO, IOCtlvRequest* argv);
 s32 Open2ndInst(const char* path, Mode mode);
 extern s32 fs_fd;
 
-
-}//namespace IOS
+}  // namespace IOS
 #endif

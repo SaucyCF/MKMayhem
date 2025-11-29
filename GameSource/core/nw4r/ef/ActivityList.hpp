@@ -7,14 +7,14 @@ namespace nw4r {
 namespace ef {
 
 class ActivityList {
-public:
-    ActivityList(); //80027250
-    ut::List activeList; //0x0
-    ut::List closingList; //0xc
-    u16 linkIdx; //0x18
+   public:
+    ActivityList();  // 80027250
+    ut::List activeList;  // 0x0
+    ut::List closingList;  // 0xc
+    u16 linkIdx;  // 0x18
     u8 padding[2];
-}; //0x1c
+};  // 0x1c
 
-}//namespace ef
-}//namespace nw4r
+}  // namespace ef
+}  // namespace nw4r
 #endif

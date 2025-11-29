@@ -5,11 +5,10 @@
 #include <core/nw4r/snd/Util.hpp>
 #include <core/nw4r/snd/Misc.hpp>
 
-
 namespace nw4r {
 namespace snd {
 namespace detail {
-struct WaveFile { //RWAV
+struct WaveFile {  // RWAV
 
     enum WaveFormat {
         FORMAT_PCM8 = 0,
@@ -22,12 +21,12 @@ struct WaveFile { //RWAV
     };
 
     struct WaveInfo {
-        u8 format; // enum WaveFormat
-        u8 loopFlag; // boolean
+        u8 format;  // enum WaveFormat
+        u8 loopFlag;  // boolean
         u8 numChannels;
         u8 sampleRate24;
         u16 sampleRate;
-        u8 dataLocationType; // enum WaveDataLocationType
+        u8 dataLocationType;  // enum WaveDataLocationType
         u8 padding;
         u32 loopStart;
         u32 loopEnd;
@@ -51,14 +50,14 @@ struct WaveFile { //RWAV
         u32 reserved;
     };
 
-    struct InfoBlock { //INFO
+    struct InfoBlock {  // INFO
         ut::BinaryBlockHeader blockHeader;
         WaveInfo waveInfo;
     };
 
-    struct DataBlock { //DATA
+    struct DataBlock {  // DATA
         ut::BinaryBlockHeader blockHeader;
-        union { //based on format
+        union {  // based on format
             s8 rawPCM8[1];
             s16 rawPCM16[1];
             u8 rawADPCM[1];
@@ -75,16 +74,16 @@ struct WaveFile { //RWAV
 };
 
 class WaveFileReader {
-public:
-    WaveFileReader(const WaveFile::FileHeader* raw); //800ad1f0
-    WaveFileReader(const WaveFile::WaveInfo* rawInfo); //800ad210
-    bool ReadWaveInfo(WaveInfo* waveData, const void* waveDataOffsetOrigin) const; //800ad220
-    const void* GetWaveDataAddress(const WaveFile::WaveChannelInfo* waveChannelInfo, const void* waveDataOffsetOrigin) const; //800ad430
+   public:
+    WaveFileReader(const WaveFile::FileHeader* raw);  // 800ad1f0
+    WaveFileReader(const WaveFile::WaveInfo* rawInfo);  // 800ad210
+    bool ReadWaveInfo(WaveInfo* waveData, const void* waveDataOffsetOrigin) const;  // 800ad220
+    const void* GetWaveDataAddress(const WaveFile::WaveChannelInfo* waveChannelInfo, const void* waveDataOffsetOrigin) const;  // 800ad430
 
     const WaveFile::WaveInfo* rawWaveInfo;
 };
 
-}//namespace detail
-}//namespace snd
-}//namespace nw4r
+}  // namespace detail
+}  // namespace snd
+}  // namespace nw4r
 #endif

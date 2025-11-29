@@ -4,32 +4,32 @@
 
 namespace THP {
 struct Header {
-    char magic[4]; //''
-    u32 version; //0x11000 in mkw
-    u32 maxBufferSize; //0x8
-    u32 maxAudioSamples; //0xc
-    float framerate; //0x10
-    u32 frameCount; //0x14
+    char magic[4];  //''
+    u32 version;  // 0x11000 in mkw
+    u32 maxBufferSize;  // 0x8
+    u32 maxAudioSamples;  // 0xc
+    float framerate;  // 0x10
+    u32 frameCount;  // 0x14
     u32 firstFrameLength;
     u32 movieDataSize;
     u32 offsetToComponent;
     u32 offsetData;
     u32 offsetTo1stFrame;
     u32 offsetToLastFrame;
-}; //total size 0x30
+};  // total size 0x30
 
 struct VideoInfo {
     u32 width;
     u32 height;
     u32 format;
-}; //0xC
+};  // 0xC
 
 struct AudioInfo {
     u32 channelCount;
     u32 frequency;
     u32 sampleCount;
     u32 trackCount;
-}; //0x10
+};  // 0x10
 
 struct Params {
     VideoInfo movieParams;
@@ -48,5 +48,5 @@ struct File {
     AudioInfo audioInfo;
 };
 
-}//namespace THP
+}  // namespace THP
 #endif

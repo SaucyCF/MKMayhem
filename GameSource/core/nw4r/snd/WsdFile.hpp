@@ -18,7 +18,7 @@ struct WaveSoundInfo {
     u8 fxSendB;
     u8 fxSendC;
     u8 ainSend;
-}; //0xc
+};  // 0xc
 
 struct WaveSoundNoteInfo {
     s32 waveIndex;
@@ -32,10 +32,10 @@ struct WaveSoundNoteInfo {
     u8 surroundPan;
     u8 volume;
     float pitch;
-}; //0x14
+};  // 0x14
 
-//Links which RWAV files inside a RWAR to use; how to functionally use the file: https://imgur.com/0FDMOoZ
-struct WsdFile { //RWSD https ://wiki.tockdom.com/wiki/BRWSD_(File_Format)
+// Links which RWAV files inside a RWAR to use; how to functionally use the file: https://imgur.com/0FDMOoZ
+struct WsdFile {  // RWSD https ://wiki.tockdom.com/wiki/BRWSD_(File_Format)
     struct NoteInfo {
         s32 waveIndex;
         u8 attack;
@@ -62,9 +62,9 @@ struct WsdFile { //RWSD https ://wiki.tockdom.com/wiki/BRWSD_(File_Format)
             u32 noteIndex;
             u32 reserved;
         };
-        typedef Util::Table< Util::DataRef<NoteEvent> > NoteEventTable;
+        typedef Util::Table<Util::DataRef<NoteEvent> > NoteEventTable;
 
-        Util::DataRef< NoteEventTable > noteEventTableRef;
+        Util::DataRef<NoteEventTable> noteEventTableRef;
     };
 
     struct WsdInfo {
@@ -90,19 +90,19 @@ struct WsdFile { //RWSD https ://wiki.tockdom.com/wiki/BRWSD_(File_Format)
         Util::DataRef<NoteTable> refNoteTable;
     };
 
-    struct DataBlock { //DATA
+    struct DataBlock {  // DATA
         ut::BinaryBlockHeader blockHeader;
         u32 wsdCount;
         Util::DataRef<Wsd> refWsd[0];
     };
 
-    struct WaveBlock { //WAVE, code is present but not used in kwii?
+    struct WaveBlock {  // WAVE, code is present but not used in kwii?
         ut::BinaryBlockHeader blockHeader;
         u32 waveCount;
         u32 offsetTable[0];
     };
 
-    struct Header { //RWSD
+    struct Header {  // RWSD
         ut::BinaryFileHeader fileHeader;
         u32 dataBlockOffset;
         u32 dataBlockSize;
@@ -112,16 +112,16 @@ struct WsdFile { //RWSD https ://wiki.tockdom.com/wiki/BRWSD_(File_Format)
 };
 
 class WsdFileReader {
-public:
-    WsdFileReader(const void* rawWsd); //800ad9b0
-    bool ReadWaveSoundInfo(WaveSoundInfo* noteInfo, int index) const; //800ada40
-    bool ReadWaveSoundNoteInfo(WaveSoundNoteInfo* noteInfo, int index, int noteIndex) const; //800adb60
-    bool ReadWaveInfo(int waveIndex, WaveInfo* waveData, const void* waveDataOffsetOrigin) const; //800adc80
+   public:
+    WsdFileReader(const void* rawWsd);  // 800ad9b0
+    bool ReadWaveSoundInfo(WaveSoundInfo* noteInfo, int index) const;  // 800ada40
+    bool ReadWaveSoundNoteInfo(WaveSoundNoteInfo* noteInfo, int index, int noteIndex) const;  // 800adb60
+    bool ReadWaveInfo(int waveIndex, WaveInfo* waveData, const void* waveDataOffsetOrigin) const;  // 800adc80
     const WsdFile::Header* header;
     const WsdFile::DataBlock* dataBlock;
     const WsdFile::WaveBlock* waveBlock;
 };
-}//namespace detail
-}//namespace snd
-}//namespace nw4r
+}  // namespace detail
+}  // namespace snd
+}  // namespace nw4r
 #endif

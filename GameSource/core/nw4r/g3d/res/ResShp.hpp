@@ -8,26 +8,26 @@ namespace nw4r {
 namespace g3d {
 
 struct ShpAnmVtxSet {
-    ResVtxPos   resVtxPos;
-    ResVtxNrm   resVtxNrm;
-    ResVtxClr   resVtxClr;
+    ResVtxPos resVtxPos;
+    ResVtxNrm resVtxNrm;
+    ResVtxClr resVtxClr;
 };
 
 struct ShpAnmResult {
     struct BlendVtx {
-        ShpAnmVtxSet    vtxSet;
-        float             weight;
+        ShpAnmVtxSet vtxSet;
+        float weight;
     };
     u32 flags;
-    u32             numKeyShape;
-    ShpAnmVtxSet    baseShapeVtxSet;
-    float             baseShapeWeight;
+    u32 numKeyShape;
+    ShpAnmVtxSet baseShapeVtxSet;
+    float baseShapeWeight;
     BlendVtx keyShape[32];
 };
 
 struct ResMtxSetUsed {
-    u32 numMtxID; // Number of matrix IDs stored in vecMtxID
-    u16 vecMtxID[2]; // There are a number of these equal to numMtxID
+    u32 numMtxID;  // Number of matrix IDs stored in vecMtxID
+    u16 vecMtxID[2];  // There are a number of these equal to numMtxID
 };
 
 struct ResShpData {
@@ -54,12 +54,11 @@ struct ResShpData {
 };
 
 class ResShp : public ResCommon<ResShpData> {
-public:
-    void GetAnmResult(ShpAnmResult* result, u32 anmId, float frame, const ShpAnmVtxSet* shpArray) const; //80056da0
+   public:
+    void GetAnmResult(ShpAnmResult* result, u32 anmId, float frame, const ShpAnmVtxSet* shpArray) const;  // 80056da0
 };
 
-}//namespace g3d 
-}//namespace nw4r
-
+}  // namespace g3d
+}  // namespace nw4r
 
 #endif

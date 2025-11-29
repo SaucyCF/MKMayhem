@@ -19,26 +19,20 @@ namespace KO {
 class Mgr;
 }//namespace KO
 
+namespace LapKO {
+class Mgr;
+}  // namespace LapKO
+
 class ConfigFile;
 
 
 enum Context {
     PULSAR_CT = 0,
     PULSAR_MODE_KO,
+    PULSAR_MODE_LAPKO,
     PULSAR_KOFINAL,
     PULSAR_MODE_OTT,
-    PULSAR_CODES,
-    PULSAR_MAYHEMSTATS,
-    PULSAR_RANKED,
-    PULSAR_SNAKING,
-    PULSAR_BATTLEROYALE,
-    PULSAR_ITEMSTATUS,
-    PULSAR_BUMPERKARTSTATS,
-    PULSAR_RIIBALANCEDSTATS,
-    PULSAR_GAMEMODERANDOM,
-    PULSAR_GAMEMODESHELLSHOCK,
-    PULSAR_GAMEMODEUNKNOWN,
-    PULSAR_GAMEMODEITEMRAIN,
+    PULSAR_MAYHEM,
     PULSAR_TRANSMISSIONVANILLA,
     PULSAR_TRANSMISSIONINSIDEALL,
     PULSAR_TRANSMISSIONOUTSIDEALL,
@@ -47,35 +41,44 @@ enum Context {
     PULSAR_CHARRESTRICTLIGHT,
     PULSAR_CHARRESTRICTMEDIUM,
     PULSAR_CHARRESTRICTHEAVY,
-    PULSAR_CHARRESTRICTPRINCESS,
     PULSAR_BDRIFTING,
     PULSAR_FALLFAST,
     PULSAR_NODRIFTANYWHERE,
     PULSAR_INVISWALLS,
-    PULSAR_RANDOMTC,
-    PULSAR_200,
-    PULSAR_50,
-    PULSAR_100,
-    PULSAR_400,
-    PULSAR_99999,
-    PULSAR_CTS,
-    PULSAR_SITS,
-    PULSAR_REGS,
     PULSAR_FEATHER,
     PULSAR_ULTRAS,
     PULSAR_UMTS,
     PULSAR_TCTOGGLE,
     PULSAR_ALLITEMS,
-    PULSAR_BULLETICON,
     PULSAR_THUNDERCLOUD,
-    PULSAR_ITEMBOXFAST,
-    PULSAR_ITEMBOXINSTANT,
+    PULSAR_FASTBOX,
+    PULSAR_INSTANTBOX,
+    PULSAR_DISABLEBOX,
     PULSAR_MEGATC,
     PULSAR_FLYINGBLOOP,
     PULSAR_HAW,
     PULSAR_MIIHEADS,
     PULSAR_CHANGECOMBO,
-    PULSAR_CONTEXT_COUNT,
+};
+
+enum Context2 {
+    PULSAR_MODE_BUMPERKARTS,
+    PULSAR_MODE_RIIBALANCED,
+    PULSAR_MODE_UNKNOWN,
+    PULSAR_MODE_ITEMRAIN,
+    PULSAR_MODE_MAYHEM,
+    PULSAR_BATTLEROYALE,
+    PULSAR_50,
+    PULSAR_100,
+    PULSAR_200,
+    PULSAR_400,
+    PULSAR_99999,
+    PULSAR_WWREGULAR,
+    PULSAR_WWITEMRAIN,
+    PULSAR_WWMAYHEM,
+    PULSAR_STARTREGULAR,
+    PULSAR_STARTITEMRAIN,
+    PULSAR_STARTMAYHEM,
 };
 
 class System {
@@ -103,7 +106,8 @@ public:
     //virtual void ParsePackROOMMsg(u8 msg) {}  //Only called for non-hosts
     const Info& GetInfo() const { return this->info; }
 
-    bool IsContext(Context context) const { return (this->context & (1ULL << context)) != 0; }
+    bool IsContext(Context context) const { return (this->context & (1 << context)) != 0; }
+    bool IsContext(Context2 context2) const { return (this->context2 & (1 << context2)) != 0; }
     static s32 OnSceneEnter(Random& random);
 
     const char* GetModFolder() const { return modFolderName; }
@@ -136,7 +140,8 @@ public:
     char modFolderName[IOS::ipcMaxFileName + 1]; //0xC
     u8 padding[2];
     Info info; //0x1c
-    u64 context;
+    u32 context;
+    u32 context2;
 
 public:
     //Network variables only set when reading a ROOM packet that starts the GP; they are only ever used in UpdateState; no need to clear them as ROOM will reupdat ethem
@@ -149,6 +154,7 @@ public:
 
     //Modes
     KO::Mgr* koMgr;
+    LapKO::Mgr* lapKoMgr;
     u32 ottVoteState;
     bool ottHideNames;
     u8 nonTTGhostPlayersCount; //because a ghost can be added in vs, racedata's playercount is not reliable

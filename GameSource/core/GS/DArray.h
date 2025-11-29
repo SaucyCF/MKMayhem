@@ -2,7 +2,6 @@
 #define _DARRAY_
 #include <types.hpp>
 
-
 namespace GS {
 
 typedef void (*ArrayElementFreeFn)(void* elem);
@@ -13,10 +12,9 @@ struct DArray {
     int elemsize;
     int growby;
     ArrayElementFreeFn elemfreefn;
-    void* list; //array of elements
+    void* list;  // array of elements
 };
 
-}//namespace GS
-
+}  // namespace GS
 
 #endif

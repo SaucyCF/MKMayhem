@@ -24,11 +24,11 @@ struct NoteOnInfo {
 };
 
 class NoteOnCallback {
-public:
+   public:
     virtual ~NoteOnCallback();
     virtual Channel* NoteOn(SeqPlayer* seqPlayer, int bankNo, const NoteOnInfo& noteOnInfo) = 0;
 };
-}//namespace detail
-}//namespace snd
-}//namespace nw4r
+}  // namespace detail
+}  // namespace snd
+}  // namespace nw4r
 #endif

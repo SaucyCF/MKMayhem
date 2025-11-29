@@ -7,14 +7,14 @@
 namespace nw4r {
 namespace snd {
 class SoundStartable {
-public:
+   public:
     struct StartInfo {
         enum EnableFlagBit {
-            ENABLE_START_OFFSET      = 0x00000001,
-            ENABLE_PLAYER_ID         = 0x00000002,
-            ENABLE_PLAYER_PRIORITY   = 0x00000004,
-            ENABLE_ACTOR_PLAYER_ID   = 0x00000008,
-            ENABLE_SEQ_SOUND_INFO    = 0x00000010
+            ENABLE_START_OFFSET = 0x00000001,
+            ENABLE_PLAYER_ID = 0x00000002,
+            ENABLE_PLAYER_PRIORITY = 0x00000004,
+            ENABLE_ACTOR_PLAYER_ID = 0x00000008,
+            ENABLE_SEQ_SOUND_INFO = 0x00000010
         };
         enum StartOffsetType {
             START_OFFSET_TYPE_MILLISEC,
@@ -22,12 +22,12 @@ public:
             START_OFFSET_TYPE_SAMPLE
         };
         struct SeqSoundInfo {
-            SeqSoundInfo(): seqDataAddress(nullptr), startLocationLabel(nullptr) {}
+            SeqSoundInfo() : seqDataAddress(nullptr), startLocationLabel(nullptr) {}
             const void* seqDataAddress;
             const char* startLocationLabel;
         };
 
-        StartInfo(): enableFlag(0) {}
+        StartInfo() : enableFlag(0) {}
         u32 enableFlag;
         StartOffsetType startOffsetType;
         int startOffset;
@@ -54,25 +54,24 @@ public:
         START_ERR_UNKNOWN = 255
     };
 
-
     virtual ~SoundStartable() {};
     virtual StartResult detail_SetupSound(SoundHandle* handle, u32 soundId, bool holdFlag, SoundArchive::SoundInfo* soundInfo) = 0;
     virtual u32 ConvertLabelStringToSoundId(const char* label) = 0;
 
-    //Plays the sound with the specified sound number
-    StartResult detail_StartSound(SoundHandle* handle, u32 soundId, const StartInfo* startInfo); //800a3e80
-    StartResult detail_StartSound(SoundHandle* handle, const char* soundName, const StartInfo* startInfo); //800a3ee0
+    // Plays the sound with the specified sound number
+    StartResult detail_StartSound(SoundHandle* handle, u32 soundId, const StartInfo* startInfo);  // 800a3e80
+    StartResult detail_StartSound(SoundHandle* handle, const char* soundName, const StartInfo* startInfo);  // 800a3ee0
 
-    //Plays the sound with the specified sound number for 1 frame (then it auto stops)
-    StartResult detail_HoldSound(SoundHandle* handle, u32 soundId, const StartInfo* startInfo); //800a3f90
-    StartResult detail_HoldSound(SoundHandle* handle, const char* soundName, const StartInfo* startInfo); //800a4040
+    // Plays the sound with the specified sound number for 1 frame (then it auto stops)
+    StartResult detail_HoldSound(SoundHandle* handle, u32 soundId, const StartInfo* startInfo);  // 800a3f90
+    StartResult detail_HoldSound(SoundHandle* handle, const char* soundName, const StartInfo* startInfo);  // 800a4040
 
-    //Prepares the sound with the specified sound number, it needs to be started with SoundHandle's StartPrepared
-    StartResult detail_PrepareSound(SoundHandle* handle, u32 soundId, const StartInfo* startInfo); //800a4130
+    // Prepares the sound with the specified sound number, it needs to be started with SoundHandle's StartPrepared
+    StartResult detail_PrepareSound(SoundHandle* handle, u32 soundId, const StartInfo* startInfo);  // 800a4130
 
-}; //total size 0x4
-size_assert(SoundStartable, 0x4);
-}//namespace snd
-}//namespace nw4r
+};  // total size 0x4
+// size_assert(SoundStartable, 0x4);
+}  // namespace snd
+}  // namespace nw4r
 
 #endif

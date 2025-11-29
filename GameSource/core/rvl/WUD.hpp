@@ -2,10 +2,8 @@
 #define _WUD_
 #include <types.hpp>
 
-namespace WUD { //Wireless UI Driver
+namespace WUD {  // Wireless UI Driver
 typedef u8 BTD_ADDR[6];
-}//namespace WUD
-
-
+}  // namespace WUD
 
 #endif

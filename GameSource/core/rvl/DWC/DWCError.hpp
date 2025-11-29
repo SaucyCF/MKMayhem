@@ -2,9 +2,9 @@
 #define _DWCERROR_
 #include <types.hpp>
 
-//Credit Seeky
+// Credit Seeky
 
-namespace DWC { //this is probably C, but don't care
+namespace DWC {  // this is probably C, but don't care
 
 enum Error {
     DWC_ERROR_NONE,
@@ -32,7 +32,7 @@ enum Error {
     DWC_ERROR_NUM
 };
 
-enum ErrorType { //how to process the error
+enum ErrorType {  // how to process the error
     DWC_ERRORTYPE_NO_ERROR = 0,
     DWC_ERRORTYPE_LIGHT,
     DWC_ERRORTYPE_SHOW_ERROR,
@@ -44,11 +44,10 @@ enum ErrorType { //how to process the error
     DWC_ERRORTYPE_NUM
 };
 
-extern int lastErrorCode; //803862AC
-extern Error lastError; //803862a8
-Error GetLastErrorEx(u32* errorCode, ErrorType* errorType); //800ccb64
+extern int lastErrorCode;  // 803862AC
+extern Error lastError;  // 803862a8
+Error GetLastErrorEx(u32* errorCode, ErrorType* errorType);  // 800ccb64
 
-}//namespace DWC
-
+}  // namespace DWC
 
 #endif

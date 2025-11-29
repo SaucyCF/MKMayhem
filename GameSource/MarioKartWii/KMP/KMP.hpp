@@ -35,16 +35,15 @@ enum Sections {
     KMP_SECTION_STGI
 };
 
-struct KMPHeader {  //https://wiki.tockdom.com/wiki/KMP_(File_Format)
-    static const u32 kmpMagic = 'RKMD'; //'RKMD'
-    char magic[4]; //RKMD
-    u32 fileSize; //0x4
-    u16 sectionCount; //0x8 15 in mkwii
-    u16 headerSize; //0xa
-    u32 versionNumber; //0xc
-    u32 offsetToSections[1]; //0x10 use enum
-    //Sections
-}; //total size 0x4c
-
+struct KMPHeader {  // https://wiki.tockdom.com/wiki/KMP_(File_Format)
+    static const u32 kmpMagic = 'RKMD';  //'RKMD'
+    char magic[4];  // RKMD
+    u32 fileSize;  // 0x4
+    u16 sectionCount;  // 0x8 15 in mkwii
+    u16 headerSize;  // 0xa
+    u32 versionNumber;  // 0xc
+    u32 offsetToSections[1];  // 0x10 use enum
+    // Sections
+};  // total size 0x4c
 
 #endif

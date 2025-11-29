@@ -15,10 +15,10 @@ struct TexPatAnmResult {
     u8 bTexExist;
     u8 bPlttExist;
     u8 padding[2];
-    ResTex  tex[GX::GX_MAX_TEXMAP];
+    ResTex tex[GX::GX_MAX_TEXMAP];
 };
 
-struct ResAnmTexPatInfoData { //"PAT0 header"
+struct ResAnmTexPatInfoData {  //"PAT0 header"
     u16 frameCount;
     u16 materialCount;
     u16 textureCount;
@@ -26,9 +26,9 @@ struct ResAnmTexPatInfoData { //"PAT0 header"
     u32 isLooped;
 };
 
-struct ResAnmTexPatData { //https://wiki.tockdom.com/wiki/PAT0_(File_Format)
+struct ResAnmTexPatData {  // https://wiki.tockdom.com/wiki/PAT0_(File_Format)
     ResBlockHeaderData header;
-    u32 version; //v4    
+    u32 version;  // v4
     s32 offsetToBRRES;
     s32 offsetToTexPatDataDic;
     s32 offsetToTexNameArray;
@@ -39,13 +39,12 @@ struct ResAnmTexPatData { //https://wiki.tockdom.com/wiki/PAT0_(File_Format)
     s32 offsetToName;
     s32 offsetToPath;
     ResAnmTexPatInfoData fileInfo;
-    //data
+    // data
 };
 
 class ResAnmTexPat : public ResCommon<ResAnmTexPatData> {};
 
-}//namespace g3d 
-}//namespace nw4r
-
+}  // namespace g3d
+}  // namespace nw4r
 
 #endif

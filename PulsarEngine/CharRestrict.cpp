@@ -55,7 +55,6 @@ namespace UI {
             charRestrictLight = System::sInstance->IsContext(Pulsar::PULSAR_CHARRESTRICTLIGHT) ? Pulsar::DKWSETTING_CHARRESTRICT_LIGHT : Pulsar::DKWSETTING_CHARRESTRICT_DEFAULT;
             charRestrictMedium = System::sInstance->IsContext(Pulsar::PULSAR_CHARRESTRICTMEDIUM) ? Pulsar::DKWSETTING_CHARRESTRICT_MEDIUM : Pulsar::DKWSETTING_CHARRESTRICT_DEFAULT;
             charRestrictHeavy = System::sInstance->IsContext(Pulsar::PULSAR_CHARRESTRICTHEAVY) ? Pulsar::DKWSETTING_CHARRESTRICT_HEAVY : Pulsar::DKWSETTING_CHARRESTRICT_DEFAULT;
-            charRestrictPrincess = System::sInstance->IsContext(Pulsar::PULSAR_CHARRESTRICTPRINCESS) ? Pulsar::DKWSETTING_CHARRESTRICT_PRINCESS : Pulsar::DKWSETTING_CHARRESTRICT_DEFAULT;
         }
         CtrlMenuCharacterSelect::ButtonDriver *driverButtons = charSelect.driverButtonsArray;
         System::WeightClass miiWeight = GetMiiWeightClass(page->localPlayerMiis[0]);
@@ -75,11 +74,6 @@ namespace UI {
                 if(charRestrictHeavy == Pulsar::DKWSETTING_CHARRESTRICT_HEAVY){
                     restrictButton = (i >= System::BUTTON_BABY_MARIO && i < System::BUTTON_WARIO);
                 }
-                if(charRestrictPrincess == Pulsar::DKWSETTING_CHARRESTRICT_PRINCESS){
-                    restrictButton = (i >= System::BUTTON_BABY_MARIO && i < System::BUTTON_BABY_DAISY) || (i >= System::BUTTON_DRY_BONES && i < System::BUTTON_DAISY) || (i >= System::BUTTON_BOWSER_JR && i < System::BUTTON_MII_B);
-                    driverButtons[System::BUTTON_MII_B].manipulator.inaccessible = false;
-                    DisableButton(&driverButtons[System::BUTTON_MII_B]);
-                }
 
                 if (restrictButton){
                     DisableButton(&driverButtons[i]);
@@ -87,7 +81,7 @@ namespace UI {
             }
         }
 
-        if (curSection == SECTION_P2_WIFI || curSection == SECTION_P2_WIFI_FROOM_VS_VOTING || curSection == SECTION_P2_WIFI_FROOM_TEAMVS_VOTING || curSection == SECTION_P2_WIFI_FROOM_BALLOON_VOTING || curSection == SECTION_P2_WIFI_FROOM_COIN_VOTING || (charRestrictLight == Pulsar::DKWSETTING_CHARRESTRICT_LIGHT && miiWeight != System::LIGHTWEIGHT) || (charRestrictMedium == Pulsar::DKWSETTING_CHARRESTRICT_MEDIUM && miiWeight != System::MEDIUMWEIGHT) || (charRestrictHeavy == Pulsar::DKWSETTING_CHARRESTRICT_HEAVY && miiWeight != System::HEAVYWEIGHT) ||(charRestrictPrincess == Pulsar::DKWSETTING_CHARRESTRICT_PRINCESS)){
+        if (curSection == SECTION_P2_WIFI || curSection == SECTION_P2_WIFI_FROOM_VS_VOTING || curSection == SECTION_P2_WIFI_FROOM_TEAMVS_VOTING || curSection == SECTION_P2_WIFI_FROOM_BALLOON_VOTING || curSection == SECTION_P2_WIFI_FROOM_COIN_VOTING || (charRestrictLight == Pulsar::DKWSETTING_CHARRESTRICT_LIGHT && miiWeight != System::LIGHTWEIGHT) || (charRestrictMedium == Pulsar::DKWSETTING_CHARRESTRICT_MEDIUM && miiWeight != System::MEDIUMWEIGHT) || (charRestrictHeavy == Pulsar::DKWSETTING_CHARRESTRICT_HEAVY && miiWeight != System::HEAVYWEIGHT)){
             DisableButton(&driverButtons[System::BUTTON_MII_A]);
             DisableButton(&driverButtons[System::BUTTON_MII_B]);
         }

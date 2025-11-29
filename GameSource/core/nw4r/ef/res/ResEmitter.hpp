@@ -24,7 +24,7 @@ struct EmitterInheritSetting {
     u8 flag;
     u8 alphaFuncPri;
     u8 alphaFuncSec;
-}; //0x12
+};  // 0x12
 
 struct EmitterDrawSetting {
     struct TevStageColor {
@@ -105,7 +105,6 @@ struct EmitterDrawSetting {
     float zOffset;
 };
 
-
 struct ParticleParameterDesc {
     GX::Color color[2][2];
     nw4r::math::VEC2 size;
@@ -126,7 +125,6 @@ struct ParticleParameterDesc {
     u8 rotateOffsetRandom[3];
     float rotateOffset[3];
 
-
     u8 textureNames[1];
 };
 
@@ -134,15 +132,15 @@ struct EmitterResource {
     char* name;
     u32 headersize;
 
-    //lwzu 8 + 4 + lwz 4 = GetPtclTrack(i), which is a animCurveData used for ResAnimCurve
+    // lwzu 8 + 4 + lwz 4 = GetPtclTrack(i), which is a animCurveData used for ResAnimCurve
 };
 
 class ResEmitter {
-public:
-    ResAnimCurve GetEmitTrack(u16 num); //8004bc80 often inlinted in egg
+   public:
+    ResAnimCurve GetEmitTrack(u16 num);  // 8004bc80 often inlinted in egg
     EmitterResource* data;
 };
 
-}
-}
+}  // namespace ef
+}  // namespace nw4r
 #endif

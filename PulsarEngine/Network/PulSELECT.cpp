@@ -79,7 +79,7 @@ void ExpSELECTHandler::DecideTrack(ExpSELECTHandler& self) {
 
     if (mode == RKNet::ONLINEMODE_PRIVATE_VS && system->IsContext(PULSAR_MODE_KO)) system->koMgr->PatchAids(sub);
 
-    if (mode == RKNet::ONLINEMODE_PRIVATE_VS && Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_HOST, SETTINGHOST_RADIO_HOSTWINS) && !system->IsContext(PULSAR_MODE_KO)) {
+    if (mode == RKNet::ONLINEMODE_PRIVATE_VS && Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES, RULES_RADIO_HOSTWINS) && !system->IsContext(PULSAR_MODE_KO)) {
 
         self.toSendPacket.winningVoterAid = hostAid;
         u16 hostVote = self.toSendPacket.pulVote;
@@ -180,7 +180,7 @@ static void DecideCC(ExpSELECTHandler& handler) {
     System* system = System::sInstance;
     if (!system->IsContext(PULSAR_CT)) reinterpret_cast<RKNet::SELECTHandler&>(handler).DecideEngineClass();
     else {
-        const u8 ccSetting = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_HOST, SETTINGHOST_RADIO_CC);
+        const u8 ccSetting = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES, RULES_RADIO_CC);
         RKNet::Controller* controller = RKNet::Controller::sInstance;
         const RKNet::RoomType roomType = controller->roomType;
         u8 ccClass = 1; //1 100, 2 150, 3 mirror
@@ -308,10 +308,10 @@ void InitPatch() {
     bool allowChangeCombo;
     const RKNet::Controller* controller = RKNet::Controller::sInstance;
     if (controller->roomType == RKNet::ROOMTYPE_VS_REGIONAL) allowChangeCombo = true;
-    else allowChangeCombo = settings.GetSettingValue(Settings::SETTINGSTYPE_OTT, SETTINGOTT_ALLOWCHANGECOMBO);
+    else allowChangeCombo = settings.GetSettingValue(Settings::SETTINGSTYPE_OTT, OTT_ALLOWCHANGECOMBO);
     select->toSendPacket.allowChangeComboStatus = allowChangeCombo;
-    select->toSendPacket.koPerRace = settings.GetSettingValue(Settings::SETTINGSTYPE_KO, SETTINGKO_KOPERRACE) + 1;
-    select->toSendPacket.racesPerKO = settings.GetSettingValue(Settings::SETTINGSTYPE_KO, SETTINGKO_RACESPERKO) + 1;
+    select->toSendPacket.koPerRace = settings.GetSettingValue(Settings::SETTINGSTYPE_KO, KO_KOPERRACE) + 1;
+    select->toSendPacket.racesPerKO = settings.GetSettingValue(Settings::SETTINGSTYPE_KO, KO_RACESPERKO) + 1;
     for (int aid = 0; aid < 12; ++aid) {
         PulSELECT& cur = select->receivedPackets[aid];
         cur.pulVote = 0x43;

@@ -2,6 +2,8 @@
 #include <MarioKartWii/UI/Ctrl/CtrlRace/CtrlRaceWifi.hpp>
 #include <MarioKartWii/UI/Page/Other/Title.hpp>
 #include <MarioKartWii/UI/Page/Other/Message.hpp>
+#include <MarioKartWii/Kart/KartLink.hpp>
+#include <Settings/Settings.hpp>
 #include <MarioKartWii/RKSYS/RKSYSMgr.hpp>
 #include <MarioKartWii/GlobalFunctions.hpp>
 #include <PulsarSystem.hpp>
@@ -9,6 +11,7 @@
 #include <Gamemodes/KO/KOMgr.hpp>
 #include <Gamemodes/KO/KORaceEndPage.hpp>
 #include <Debug/Debug.hpp>
+#include <Gamemodes/LapKO/LapKOMgr.hpp>
 #include <UI/UI.hpp>
 
 
@@ -45,12 +48,11 @@ static void LaunchRiivolutionButton(SectionMgr* sectionMgr) {
 }
 kmCall(0x80553a60, LaunchRiivolutionButton);
 
-//Top left message when a race is about to start in a froom
+// Top left message when a race is about to start in a froom
 static void FixStartMessageFroom(CtrlRaceWifiStartMessage* startMsg, u32 bmgId, Text::Info* info) {
     const SectionMgr* sectionMgr = SectionMgr::sInstance;
     const SectionId id = sectionMgr->curSection->sectionId;
-    if (id == SECTION_P1_WIFI_FRIEND_VS || id == SECTION_P1_WIFI_FRIEND_TEAMVS
-        || id == SECTION_P2_WIFI_FRIEND_VS || id == SECTION_P2_WIFI_FRIEND_TEAMVS) {
+    if (id == SECTION_P1_WIFI_FRIEND_VS || id == SECTION_P1_WIFI_FRIEND_TEAMVS || id == SECTION_P2_WIFI_FRIEND_VS || id == SECTION_P2_WIFI_FRIEND_TEAMVS) {
         const System* system = System::sInstance;
         const u32 raceNumber = sectionMgr->sectionParams->onlineParams.currentRaceNumber + 1;
         bmgId = BMG_GP_RACE;
@@ -58,12 +60,27 @@ static void FixStartMessageFroom(CtrlRaceWifiStartMessage* startMsg, u32 bmgId, 
             const KO::Mgr* koMgr = system->koMgr;
             const u32 playerCount = system->nonTTGhostPlayersCount;
             u32 koCount = 0;
-            if (playerCount == 2) koCount = 1;
+            if (playerCount == 2)
+                koCount = 1;
             else if (raceNumber % koMgr->racesPerKO == 0) {
                 const u32 koPerRace = koMgr->koPerRace;
-                if (playerCount - koPerRace > 1) koCount = koPerRace; //eliminating the setting's amount of players, does not lead in a potential final
-                else koCount = playerCount - (1 + koMgr->alwaysFinal); //check if the setting is on, if it is, leave 2 players, otherwise, leave 1 player/the ko count is the complement
+                if (playerCount - koPerRace > 1)
+                    koCount = koPerRace;  // eliminating the setting's amount of players, does not lead in a potential final
+                else
+                    koCount = playerCount - (1 + koMgr->alwaysFinal);  // check if the setting is on, if it is, leave 2 players, otherwise, leave 1 player/the ko count is the complement
             }
+            bmgId = BMG_KO_ELIM_START_NONE + koCount;
+        } else if (system->IsContext(PULSAR_MODE_LAPKO)) {
+            const LapKO::Mgr* lapKoMgr = system->lapKoMgr;
+            const u32 playerCount = system->nonTTGhostPlayersCount;
+            u32 koCount = 0;
+            if (playerCount == 2)
+                koCount = 1;
+            const u32 koPerRace = lapKoMgr->koPerRaceSetting;
+            if (playerCount - koPerRace > 1)
+                koCount = koPerRace;  // eliminating the setting's amount of players, does not lead in a potential final
+            else
+                koCount = playerCount - 1;  // check if the setting is on, if it is, leave 2 players, otherwise, leave 1 player/the ko count is the complement
             bmgId = BMG_KO_ELIM_START_NONE + koCount;
         }
         info->intToPass[0] = raceNumber;
@@ -80,44 +97,45 @@ static void DisplayDate(CtrlMenuPressStart* start) {
 kmCall(0x8063ac58, DisplayDate);
 
 static void CustomRoomDenyText(Pages::MessageBoxTransparent* msgBox, u32 bmgId, const Text::Info* info) {
-    if (Pulsar::System::sInstance->netMgr.denyType == Network::DENY_TYPE_BAD_PACK) bmgId = BMG_ROOM_DENY;
+    const Network::DenyType denyType = Pulsar::System::sInstance->netMgr.denyType;
+    if (denyType == Network::DENY_TYPE_BAD_PACK || denyType == Network::DENY_TYPE_SAFEGUARD) bmgId = BMG_ROOM_DENY;
     msgBox->SetMessageWindowText(bmgId, info);
 }
 kmCall(0x805dd90c, CustomRoomDenyText);
 
-//SectionParams& FavouriteCombo(SectionParams& params) {
-//    const RKSYS::Mgr* rksysMgr = RKSYS::Mgr::sInstance;
-//    s32 curLicense = rksysMgr->curLicenseId;
-//    if (curLicense >= 0) {
-//        const RKSYS::LicenseMgr& license = rksysMgr->licenses[curLicense];
-//        CharacterId favChar = license.GetFavouriteCharacter();
-//        KartId favKart = license.GetFavouriteKart();
-//
-//        const s32 charWeight = GetCharacterWeightClass(favChar);
-//        const s32 kartWeight = GetKartWeightClass(favKart);
-//        if (kartWeight != -1) {
-//            if (charWeight == -1 || charWeight != kartWeight) {
-//                switch (kartWeight) {
-//                case 0:
-//                    favChar = BABY_DAISY;
-//                    break;
-//                case 1:
-//                    favChar = DAISY;
-//                    break;
-//                case 2:
-//                    favChar = FUNKY_KONG;
-//                }
-//            }
-//            params.characters[0] = favChar;
-//            params.karts[0] = favKart;
-//            params.combos[0].selCharacter = favChar;
-//            params.combos[0].selKart = favKart;
-//        }
-//   }
-//
-//    return params;
-//}
-//kmBranch(0x805e4228, FavouriteCombo);
+/*SectionParams& FavouriteCombo(SectionParams& params) {
+    const RKSYS::Mgr* rksysMgr = RKSYS::Mgr::sInstance;
+    s32 curLicense = rksysMgr->curLicenseId;
+    if (curLicense >= 0) {
+        const RKSYS::LicenseMgr& license = rksysMgr->licenses[curLicense];
+        CharacterId favChar = license.GetFavouriteCharacter();
+        KartId favKart = license.GetFavouriteKart();
+
+        const s32 charWeight = GetCharacterWeightClass(favChar);
+        const s32 kartWeight = GetKartWeightClass(favKart);
+        if (kartWeight != -1) {
+            if (charWeight == -1 || charWeight != kartWeight) {
+                switch (kartWeight) {
+                case 0:
+                    favChar = BABY_DAISY;
+                    break;
+                case 1:
+                    favChar = DAISY;
+                    break;
+                case 2:
+                    favChar = FUNKY_KONG;
+                }
+            }
+            params.characters[0] = favChar;
+            params.karts[0] = favKart;
+            params.combos[0].selCharacter = favChar;
+           params.combos[0].selKart = favKart;
+       }
+   }
+
+    return params;
+}
+kmBranch(0x805e4228, FavouriteCombo); */
 
 u8 ModifyCheckRankings() {
     register Pages::RaceMenu* ttEnd;
@@ -131,6 +149,40 @@ u8 ModifyCheckRankings() {
 }
 kmCall(0x8085b4bc, ModifyCheckRankings);
 kmPatchExitPoint(ModifyCheckRankings, 0x8085bbe0);
+
+static bool s_hasSavedCameraParams = false;
+static CameraParamBin s_savedCameraParams;
+CameraParamBin* GetKartParamCamera(u32 weight, u32 screenCount) {
+    CameraParamBin* cameraParam = Kart::Link::GetCameraParamBin(weight, screenCount);
+    if (cameraParam != nullptr && !s_hasSavedCameraParams) {
+        s_savedCameraParams = *cameraParam;
+        s_hasSavedCameraParams = true;
+    }
+
+    DKWSettingFOVScale fovChange = static_cast<DKWSettingFOVScale>(Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_MISC2, MISC_FOVSCALE));
+    if (fovChange != DKWSETTING_FOV_DEFAULT) {
+        if (fovChange == DKWSETTING_FOV_16_9) {
+            for (int i = 0; i < 9; ++i) {
+                s_savedCameraParams.camerasParam[i][0] = cameraParam->camerasParam[i][1];
+                s_savedCameraParams.camerasParam[i][1] = cameraParam->camerasParam[i][1];
+                s_savedCameraParams.camerasParam[i][2] = cameraParam->camerasParam[i][3];
+                s_savedCameraParams.camerasParam[i][3] = cameraParam->camerasParam[i][3];
+            }
+        } else if (fovChange == DKWSETTING_FOV_4_3) {
+            for (int i = 0; i < 9; ++i) {
+                s_savedCameraParams.camerasParam[i][0] = cameraParam->camerasParam[i][0];
+                s_savedCameraParams.camerasParam[i][1] = cameraParam->camerasParam[i][0];
+                s_savedCameraParams.camerasParam[i][2] = cameraParam->camerasParam[i][2];
+                s_savedCameraParams.camerasParam[i][3] = cameraParam->camerasParam[i][2];
+            }
+        }
+
+        return &s_savedCameraParams;
+    }
+
+    return cameraParam;
+}
+kmCall(0x805a20d4, GetKartParamCamera);
 
 
 }//namespace UI

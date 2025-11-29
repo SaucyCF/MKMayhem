@@ -22,11 +22,9 @@ struct ResAnmFogData {
     s32 offsetTocolor;
 };
 
-
 class ResAnmFog : public ResCommon<ResAnmFogData> {};
 
-}//namespace g3d
-}//namespace nw4r
-
+}  // namespace g3d
+}  // namespace nw4r
 
 #endif

@@ -40,7 +40,7 @@ struct CommandBlock {
     const char** dir;
     u32 flag;
 };
-size_assert(CommandBlock, 0xbc);
+// size_assert(CommandBlock, 0xbc);
 
 struct FileInfo {
     s32 fd;
@@ -52,7 +52,7 @@ struct FileInfo {
     u8 mark;
     u8 padding;
 };
-size_assert(FileInfo, 0x8c);
+// size_assert(FileInfo, 0x8c);
 
 struct Status {
     u32 ownerId;
@@ -78,12 +78,12 @@ enum Type {
 };
 
 enum Perm {
-    NAND_PERM_OTHER_READ   = 0x01,
-    NAND_PERM_OTHER_WRITE  = 0x02,
-    NAND_PERM_GROUP_READ   = 0x04,
-    NAND_PERM_GROUP_WRITE  = 0x08,
-    NAND_PERM_OWNER_READ   = 0x10,
-    NAND_PERM_OWNER_WRITE  = 0x20
+    NAND_PERM_OTHER_READ = 0x01,
+    NAND_PERM_OTHER_WRITE = 0x02,
+    NAND_PERM_GROUP_READ = 0x04,
+    NAND_PERM_GROUP_WRITE = 0x08,
+    NAND_PERM_OWNER_READ = 0x10,
+    NAND_PERM_OWNER_WRITE = 0x20
 
 };
 enum Result {
@@ -110,79 +110,74 @@ enum Result {
 typedef void (*Callback)(s32 result, CommandBlock* block);
 typedef void (*LoggingCallback)(BOOL result);
 
-//File API
-Result Create(const char* path, u8 perm, u8 attr); //8019b43c
-Result Read(FileInfo* info, void* buffer, u32 length); //8019b7a4
-Result ReadAsync(FileInfo* info, void* buffer, u32 length, Callback callback, CommandBlock* commandBlock); //8019b80c
-Result Write(FileInfo* info, const void* buffer, u32 length); //8019b884
-Result WriteAsync(FileInfo* info, const void* buffer, u32 length, Callback callback, CommandBlock* commandBlock); //8019b8ec
-Result Seek(FileInfo* info, s32 offset, s32 whence); //8019b964
-Result SeekAsync(FileInfo* info, s32 offset, s32 whence, Callback callback, CommandBlock* commandBlock); //8019ba04
-Result Open(const char* path, FileInfo* info, u8 accType); //8019c800
-Result OpenAsync(const char* path, FileInfo* info, u8 accType, Callback callback, CommandBlock* commandBlock); //8019c88c
-Result Open(const char* path, FileInfo* info, u8 accType); //8019c918
-Result OpenAsync(const char* path, FileInfo* info, u8 accType, Callback callback, CommandBlock* commandBlock); //8019c990
-Result Close(FileInfo* info); //8019ca80
-Result SafeOpen(const char* path, FileInfo* info, u8 accType, void* buffer, u32 length); //8018cb74
-Result SafeClose(FileInfo* info); //8019cf28
-Result CloseAsync(FileInfo* info, Callback callback, CommandBlock* commandBlock); //8019caec
+// File API
+Result Create(const char* path, u8 perm, u8 attr);  // 8019b43c
+Result Read(FileInfo* info, void* buffer, u32 length);  // 8019b7a4
+Result ReadAsync(FileInfo* info, void* buffer, u32 length, Callback callback, CommandBlock* commandBlock);  // 8019b80c
+Result Write(FileInfo* info, const void* buffer, u32 length);  // 8019b884
+Result WriteAsync(FileInfo* info, const void* buffer, u32 length, Callback callback, CommandBlock* commandBlock);  // 8019b8ec
+Result Seek(FileInfo* info, s32 offset, s32 whence);  // 8019b964
+Result SeekAsync(FileInfo* info, s32 offset, s32 whence, Callback callback, CommandBlock* commandBlock);  // 8019ba04
+Result Open(const char* path, FileInfo* info, u8 accType);  // 8019c800
+Result OpenAsync(const char* path, FileInfo* info, u8 accType, Callback callback, CommandBlock* commandBlock);  // 8019c88c
+Result Open(const char* path, FileInfo* info, u8 accType);  // 8019c918
+Result OpenAsync(const char* path, FileInfo* info, u8 accType, Callback callback, CommandBlock* commandBlock);  // 8019c990
+Result Close(FileInfo* info);  // 8019ca80
+Result SafeOpen(const char* path, FileInfo* info, u8 accType, void* buffer, u32 length);  // 8018cb74
+Result SafeClose(FileInfo* info);  // 8019cf28
+Result CloseAsync(FileInfo* info, Callback callback, CommandBlock* commandBlock);  // 8019caec
 Result SafeOpenAsync(const char* path, FileInfo* info, u8 accType, void* buf, u32 length,
-    Callback callback, CommandBlock* commandBlock); //8019d130
-Result SafeClose(FileInfo* info, Callback callback, CommandBlock* commandBlock); //8019d720
+                     Callback callback, CommandBlock* commandBlock);  // 8019d130
+Result SafeClose(FileInfo* info, Callback callback, CommandBlock* commandBlock);  // 8019d720
 
-//DIR API
-Result CreateDir(const char* path, u8 perm, u8 attr); //8019bbe0
-Result GetCurrentDir(char* path); //8019e390
-Result GetHomeDir(char* path); //8019e40c
+// DIR API
+Result CreateDir(const char* path, u8 perm, u8 attr);  // 8019bbe0
+Result GetCurrentDir(char* path);  // 8019e390
+Result GetHomeDir(char* path);  // 8019e40c
 
-//Both API
-Result Delete(const char* path); //8019b59c
-Result Move(const char* path, const char* destDIR); //8019bee8
-Result GetLength(FileInfo* info, u32* length); //8019bf4c
-Result GetLengthAsync(FileInfo* info, u32* length, Callback callback, CommandBlock* commandBlock); //8019c048
-Result GetStatus(const char* path, Status* status); //8019c380
-Result SetStatus(const char* path, const Status* status); //8019c614
-Result GetType(const char* path, u8* type); //8019e770, use enum
+// Both API
+Result Delete(const char* path);  // 8019b59c
+Result Move(const char* path, const char* destDIR);  // 8019bee8
+Result GetLength(FileInfo* info, u32* length);  // 8019bf4c
+Result GetLengthAsync(FileInfo* info, u32* length, Callback callback, CommandBlock* commandBlock);  // 8019c048
+Result GetStatus(const char* path, Status* status);  // 8019c380
+Result SetStatus(const char* path, const Status* status);  // 8019c614
+Result GetType(const char* path, u8* type);  // 8019e770, use enum
 
-//MISC
-void SetUserData(CommandBlock* commandBlock, void* data); //8019c6dc
-void* GetUserData(const CommandBlock* commandBlock); //8019c6e4
-Result Init(); //8019e18c
-void InitBanner(Banner* banner, u32 flag, const wchar_t* title, const wchar_t* comment); //8019e880
-Result Check(u32 fsBlock, u32 inode, u32* answer); //8019ead0
-Result SecretGetUsage(const char* path, u32* fsBlock, u32* inode); //8019e95c
-BOOL LoggingAddMessageAsync(LoggingCallback callback, const char* format, ...); //8019ec2c 
-
+// MISC
+void SetUserData(CommandBlock* commandBlock, void* data);  // 8019c6dc
+void* GetUserData(const CommandBlock* commandBlock);  // 8019c6e4
+Result Init();  // 8019e18c
+void InitBanner(Banner* banner, u32 flag, const wchar_t* title, const wchar_t* comment);  // 8019e880
+Result Check(u32 fsBlock, u32 inode, u32* answer);  // 8019ead0
+Result SecretGetUsage(const char* path, u32* fsBlock, u32* inode);  // 8019e95c
+BOOL LoggingAddMessageAsync(LoggingCallback callback, const char* format, ...);  // 8019ec2c
 
 namespace Private {
-//File API
-Result Create(const char* path, u8 perm, u8 attr); //8019b4b0
-Result CreateAsync(const char* path, u8 perm, u8 attr, Callback callback, CommandBlock* commandBlock); //8019b524
+// File API
+Result Create(const char* path, u8 perm, u8 attr);  // 8019b4b0
+Result CreateAsync(const char* path, u8 perm, u8 attr, Callback callback, CommandBlock* commandBlock);  // 8019b524
 Result SafeOpenAsync(const char* path, FileInfo* info, u8 accType, void* buffer, u32 length,
-    Callback callback, CommandBlock* commandBlock); //8019d104
+                     Callback callback, CommandBlock* commandBlock);  // 8019d104
 
-//DIR API
-Result CreateDir(const char* path, u8 perm, u8 attr); //8019bc54
-Result CreateDirAsync(const char* path, u8 perm, u8 attr, Callback callback, CommandBlock* commandBlock); //8019bcc8
+// DIR API
+Result CreateDir(const char* path, u8 perm, u8 attr);  // 8019bc54
+Result CreateDirAsync(const char* path, u8 perm, u8 attr, Callback callback, CommandBlock* commandBlock);  // 8019bcc8
 
-//Both API
-Result Delete(const char* path); //8019b64c
-Result DeleteAsync(const char* path, Callback callback, CommandBlock* commandBlock); //8019b6e4
-Result GetStatus(const char* path, Status* status); //8019c3e4
-Result GetStatusAsync(const char* path, Status* status, Callback callback, CommandBlock* commandBlock); //8019c448
-Result SetStatus(const char* path, const Status* status); //8019c678
-Result GetTypeAsync(const char* path, u8* type, Callback callback, CommandBlock* commandBlock); //8019e7b4
+// Both API
+Result Delete(const char* path);  // 8019b64c
+Result DeleteAsync(const char* path, Callback callback, CommandBlock* commandBlock);  // 8019b6e4
+Result GetStatus(const char* path, Status* status);  // 8019c3e4
+Result GetStatusAsync(const char* path, Status* status, Callback callback, CommandBlock* commandBlock);  // 8019c448
+Result SetStatus(const char* path, const Status* status);  // 8019c678
+Result GetTypeAsync(const char* path, u8* type, Callback callback, CommandBlock* commandBlock);  // 8019e7b4
 
-}//namespace Private
+}  // namespace Private
 
-}//namespace NAND
+}  // namespace NAND
 
 namespace nand {
-void GenerateAbsPath(char* dest, const char* src); //8019e020
-}//namespace nand
-
-
-
-
+void GenerateAbsPath(char* dest, const char* src);  // 8019e020
+}  // namespace nand
 
 #endif

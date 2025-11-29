@@ -7,9 +7,9 @@ namespace nw4r {
 namespace ef {
 
 class Copy {
-public:
+   public:
 };
 
-}//namespace ef
-}//namespace nw4r
+}  // namespace ef
+}  // namespace nw4r
 #endif

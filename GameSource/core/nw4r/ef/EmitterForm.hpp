@@ -21,16 +21,16 @@ enum EmitFormType {
 };
 
 class EmitterForm {
-public:
+   public:
     virtual void Emission(Emitter* emitter, ParticleManager* particleMgr, int count, u32 flags, float* params, u16 particleSLifetime,
-        float particleLifetimesRandomness, const nw4r::math::MTX34* space) = 0;
+                          float particleLifetimesRandomness, const nw4r::math::MTX34* space) = 0;
 };
 
 class EmitFormBuilder {
-public:
+   public:
     virtual EmitterForm* Create(EmitFormType type);
 };
 
-}//namespace ef
-}//namespace nw4r
+}  // namespace ef
+}  // namespace nw4r
 #endif

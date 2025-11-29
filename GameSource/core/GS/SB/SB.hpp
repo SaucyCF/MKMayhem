@@ -2,9 +2,9 @@
 #define _SB_
 #include <types.hpp>
 
-//Server Browsing
+// Server Browsing
 namespace SB {
-extern const char masterServerNameFmt[]; //8027DE28
-}//namespace SB
+extern const char masterServerNameFmt[];  // 8027DE28
+}  // namespace SB
 
 #endif

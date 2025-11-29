@@ -14,7 +14,7 @@ struct Color : public GX::Color {
         return *this;
     }
     operator GX::ColorS10() const {
-        GX::ColorS10 color10 = { this->r, this->g, this->b, this->a };
+        GX::ColorS10 color10 = {this->r, this->g, this->b, this->a};
         return color10;
     }
     u32& ToU32ref() {
@@ -28,11 +28,10 @@ struct Color : public GX::Color {
         return ToU32ref();
     }
 
-    //bool operator ==(const Color& rhs) const { return u32(this) == u32(rhs); }
+    // bool operator ==(const Color& rhs) const { return u32(this) == u32(rhs); }
 
-
-}; // Total size 0x4
-size_assert(Color, 0x4);
-}//namespace ut
-}//namespace nw4r
+};  // Total size 0x4
+// size_assert(Color, 0x4);
+}  // namespace ut
+}  // namespace nw4r
 #endif

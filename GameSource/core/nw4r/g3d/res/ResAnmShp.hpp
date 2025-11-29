@@ -10,16 +10,15 @@
 namespace nw4r {
 namespace g3d {
 
-
-struct ResAnmShpInfoData { //"SHP0 header"
+struct ResAnmShpInfoData {  //"SHP0 header"
     u16 frameCount;
     u16 vertexCount;
     u32 isLooped;
 };
 
-struct ResAnmShpData { //https://wiki.tockdom.com/wiki/SHP0_(File_Format)
+struct ResAnmShpData {  // https://wiki.tockdom.com/wiki/SHP0_(File_Format)
     ResBlockHeaderData header;
-    u32 version; //v4    
+    u32 version;  // v4
     s32 offsetToBRRES;
     s32 offsetToShpDataDic;
     s32 offsetToVertexNameArray;
@@ -27,13 +26,12 @@ struct ResAnmShpData { //https://wiki.tockdom.com/wiki/SHP0_(File_Format)
     s32 offsetToName;
     s32 offsetToPath;
     ResAnmShpInfoData fileInfo;
-    //data
+    // data
 };
 
-class ResAnmShp: public ResCommon<ResAnmShpData> {};
+class ResAnmShp : public ResCommon<ResAnmShpData> {};
 
-}//namespace g3d   
-}//namespace nw4r
-
+}  // namespace g3d
+}  // namespace nw4r
 
 #endif

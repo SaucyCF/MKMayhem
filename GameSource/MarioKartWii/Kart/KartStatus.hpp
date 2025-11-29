@@ -1,7 +1,7 @@
 #ifndef _KARTSTATUS_
 #define _KARTSTATUS_
 
-//Formerly PlayerSub1c
+// Formerly PlayerSub1c
 #include <kamek.hpp>
 #include <MarioKartWii/Kart/KartLink.hpp>
 #include <MarioKartWii/Kart/KartValues.hpp>
@@ -9,18 +9,18 @@
 namespace Kart {
 
 class Status {
-public:
-    explicit Status(const Values& values); //805943b4
-    void Reset(); //8059455c
-    void Init(); //80594594
+   public:
+    explicit Status(const Values& values);  // 805943b4
+    void Reset();  // 8059455c
+    void Init();  // 80594594
 
-    void UpdateFromInput(); //8059487c
-    UnkType ComputeStartBoost(); //805959d4
-    UnkType ApplyStartBoost(int startBoostIdx); //80595af8
-    UnkType UpdateCollisions(); //80594bd4
-    void StartOobWipe(u32 state); //805946f4
-    virtual ~Status(); //80595cc4 vtable 808b6534
-    u32 bitfield0; //bit flags: //0x4
+    void UpdateFromInput();  // 8059487c
+    UnkType ComputeStartBoost();  // 805959d4
+    UnkType ApplyStartBoost(int startBoostIdx);  // 80595af8
+    UnkType UpdateCollisions();  // 80594bd4
+    void StartOobWipe(u32 state);  // 805946f4
+    virtual ~Status();  // 80595cc4 vtable 808b6534
+    u32 bitfield0;  // bit flags: //0x4
     /*
     0x1         0 accelerate
     0x2         1 brake
@@ -50,7 +50,7 @@ public:
     0x40000000  30 jump pad enabled
     0x80000000  31 ramp boost
     */
-    u32 bitfield1; //0x8 bit flags: 
+    u32 bitfield1;  // 0x8 bit flags:
     /*
     0x1         0 hit by an item or an object
     0x2         1 first frame of respawn
@@ -69,7 +69,7 @@ public:
     0x40000000  30 on a trickable surface
     0x80000000  31 in a star
     */
-    u32 bitfield2; //0xC bit flags:
+    u32 bitfield2;  // 0xC bit flags:
     /*
     0x1         0 charging a slipstream
     0x2         1 in a slipstream
@@ -87,13 +87,13 @@ public:
     0x10000000  28 ink applied
     0x20000000  29 has a tc
     */
-    u32 bitfield3; //0x10 bit flags:
+    u32 bitfield3;  // 0x10 bit flags:
     /*
     0x8         3 wall collision thing
     0x20        5 hwg (horizontal wall glitch)
     0x100       8 start boost charge
     */
-    u32 bitfield4; //0x14 bit flags:
+    u32 bitfield4;  // 0x14 bit flags:
     /*
        0x1      0 cpu-controlled
        0x2      1 real local
@@ -103,7 +103,7 @@ public:
        0x40     6 ghost
        0x1000   12 has stopped
     */
-    Link* link; //0x18
+    Link* link;  // 0x18
     u32 airtime;
     u8 unknown_0x20[0x28 - 0x20];
     Vec3 floorNor;
@@ -112,24 +112,24 @@ public:
     s32 hwgTimer;
     u8 unknown_0x70[0x74 - 0x70];
     u32 boostRampType;
-    u32 jumpPadType; //essentially used to access jump pad properties array
+    u32 jumpPadType;  // essentially used to access jump pad properties array
     u8 unknown_0x7c[0x7f - 0x7c];
     u32 cnptId;
     u8 unknown_0x84[0x88 - 0x84];
-    float stickX; //0x88
-    float stickY; //0x8c
-    u32 oobWipeState; //0x90
-    s16 oobWipeFrame; //0x94
+    float stickX;  // 0x88
+    float stickY;  // 0x8c
+    u32 oobWipeState;  // 0x90
+    s16 oobWipeFrame;  // 0x94
     bool bool_0x96;
     bool bool_0x97;
     u8 unknown_0x98[0x9c - 0x98];
-    float startBoostCharge; //0x9c
-    s32 startBoostIdx; //-1 when burning out
+    float startBoostCharge;  // 0x9c
+    s32 startBoostIdx;  //-1 when burning out
     u8 unknown_0xa4[2];
     s16 trickableTimer;
     u8 unknown_0xa8[0xc0 - 0xa8];
-}; //Total size 0xc0
+};  // Total size 0xc0
 
-}//namespace kart
+}  // namespace Kart
 
 #endif

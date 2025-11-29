@@ -28,10 +28,10 @@ struct FxReverbHiParam {
     float preDelayTimeMax;
     float earlyGain;
     float fusedGain;
-}; //0x28
+};  // 0x28
 
-}//namespace detail
-}//namespace snd
-}//namespace nw4r
+}  // namespace detail
+}  // namespace snd
+}  // namespace nw4r
 
 #endif

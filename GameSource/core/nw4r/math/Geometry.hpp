@@ -20,41 +20,48 @@ enum IntersectionResult {
     INTERSECTION_INTERSECT = 2
 };
 
-struct SEGMENT3 { VEC3 a, b; };
-struct LINE3 { VEC3 point, direction; };
-struct SPHERE { VEC3 point; float radius; };
+struct SEGMENT3 {
+    VEC3 a, b;
+};
+struct LINE3 {
+    VEC3 point, direction;
+};
+struct SPHERE {
+    VEC3 point;
+    float radius;
+};
 
 struct PLANE {
     VEC3 vector;
     float constant;
 
     void Set(const VEC3* a, const VEC3* b, const VEC3* c);
-}; // Total size 0x10
+};  // Total size 0x10
 
-struct AABB { //axis-aligned bounding boxes, box of minimum volume within which point array is within AND whose edges are parallel to xyz
+struct AABB {  // axis-aligned bounding boxes, box of minimum volume within which point array is within AND whose edges are parallel to xyz
     VEC3 minPoint, maxPoint;
 
     void Set(const VEC3* pointArray, u32 pointCount);
     void Set(const AABB* otherAABB, const MTX34* matrix);
-}; // Total size 0x18
+};  // Total size 0x18
 
 class FRUSTUM {
-public:
-    FRUSTUM(); //empty
-    void Set(float fovy, float aspect, float near, float far, const MTX34& camera); //80085e70
-    void Set(float top, float bottom, float left, float right, float near, float far, const MTX34& camera); //80085f30
+   public:
+    FRUSTUM();  // empty
+    void Set(float fovy, float aspect, float near, float far, const MTX34& camera);  // 80085e70
+    void Set(float top, float bottom, float left, float right, float near, float far, const MTX34& camera);  // 80085f30
     // AABB is in world coordinate system
-    IntersectionResult IntersectAABB_Ex(const AABB* B) const; //80086610
+    IntersectionResult IntersectAABB_Ex(const AABB* B) const;  // 80086610
 
-    //view
+    // view
     MTX34 camera;
     PLANE left, right, top, bottom;
     float near;
     float far;
 
-    //world
+    // world
     AABB box;
-    PLANE planes[6]; //left right near far up down
+    PLANE planes[6];  // left right near far up down
 };
 
 float DistSqSegment3ToSegment3(const SEGMENT3* a, const SEGMENT3* b, float* pOut1, float* pOut2);
@@ -62,7 +69,7 @@ int IntersectionLine3Sphere(const LINE3* a, const SPHERE* b, float* pOut1, float
 int IntersectionSegment3Sphere(const SEGMENT3* a, const SPHERE* b, float* pOut1, float* pOut2);
 bool IntersectionAABB(const AABB* a, const AABB* b);
 
-}//namespace math
-}//namespace nw4r
+}  // namespace math
+}  // namespace nw4r
 
 #endif

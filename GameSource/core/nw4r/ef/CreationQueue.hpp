@@ -10,7 +10,7 @@ namespace ef {
 class Particle;
 
 class CreationQueue {
-public:
+   public:
     enum CreationType {
         TYPE_PARTICLE,
         TYPE_EMITTER
@@ -26,20 +26,19 @@ public:
         math::VEC3 velocity;
     };
 
-    CreationQueue(); //80037be0
-    void Execute(); //80037ef0
+    CreationQueue();  // 80037be0
+    void Execute();  // 80037ef0
     void AddParticleCreation(const EmitterInheritSetting* setting, Particle* caller, EmitterResource* eh, u16 calcRemain,
-        const nw4r::math::VEC3* position = nullptr, const nw4r::math::VEC3* velocity = nullptr); //80037d70
+                             const nw4r::math::VEC3* position = nullptr, const nw4r::math::VEC3* velocity = nullptr);  // 80037d70
     void AddEmitterCreation(const EmitterInheritSetting* setting, Particle* caller, EmitterResource* eh, u16 calcRemain,
-        const nw4r::math::VEC3* position = nullptr, const nw4r::math::VEC3* velocity = nullptr); //80037bf0
+                            const nw4r::math::VEC3* position = nullptr, const nw4r::math::VEC3* velocity = nullptr);  // 80037bf0
 
     int itemCount;
     CreationQueueData queueData[1024];
 
-public:
-
+   public:
 };
 
-}//namespace ef
-}//namespace nw4r
+}  // namespace ef
+}  // namespace nw4r
 #endif

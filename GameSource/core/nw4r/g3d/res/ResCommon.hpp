@@ -8,31 +8,30 @@ namespace g3d {
 struct ResBlockHeaderData {
     char kind[4];
     u32 size;
-}; //0x8
+};  // 0x8
 
 struct ResNameData {
     u32 len;
-    char name[4]; //actually of size len
+    char name[4];  // actually of size len
 };
 
 struct ResTagDLData {
-    u32 bufSize; // Maximum display list size
-    u32 cmdSize; // Current display list command size (this for DL calls)
-    s32 offsetToDL;    // Offset to the display list (ResTagDL is the starting point)
+    u32 bufSize;  // Maximum display list size
+    u32 cmdSize;  // Current display list command size (this for DL calls)
+    s32 offsetToDL;  // Offset to the display list (ResTagDL is the starting point)
 };
 
-template<class T>
+template <class T>
 class ResCommon {
-public:
+   public:
     T* data;
 };
 
 class ResName : public ResCommon<const ResNameData> {
-public:
+   public:
     bool operator==(const ResName rhs) const;
 };
-}//namespace g3d   
-}//namespace nw4r
-
+}  // namespace g3d
+}  // namespace nw4r
 
 #endif

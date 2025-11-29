@@ -23,9 +23,9 @@ struct ResAnmLightData {
     s32 offsetToPosY;
     s32 offsetToPosZ;
     s32 offsetToColor;
-    s32 offsetToAimX; //Viewpoint position x
-    s32 offsetToAimY; //Viewpoint position y
-    s32 offsetToAimZ; //Viewpoint position z
+    s32 offsetToAimX;  // Viewpoint position x
+    s32 offsetToAimY;  // Viewpoint position y
+    s32 offsetToAimZ;  // Viewpoint position z
     GX::DistAttnFn distFunc;
     s32 offsetToRefDistance;
     s32 offsetToRefBrightness;
@@ -35,11 +35,9 @@ struct ResAnmLightData {
     s32 offsetToShininess;
 };
 
-
 class ResAnmLight : public ResCommon<ResAnmLightData> {};
 
-}//namespace g3d
-}//namespace nw4r
-
+}  // namespace g3d
+}  // namespace nw4r
 
 #endif

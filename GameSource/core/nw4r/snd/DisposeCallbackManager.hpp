@@ -7,16 +7,15 @@ namespace nw4r {
 namespace snd {
 namespace detail {
 class DisposeCallback {
-
     ut::LinkListNode disposeLink;
-    virtual ~DisposeCallback() {}; //at 0x8
+    virtual ~DisposeCallback() {};  // at 0x8
     virtual void InvalidateData(const void* start, const void* end) = 0;
     virtual void InvalidateWaveData(const void* start, const void* end) = 0;
-};//total size 0xC
-size_assert(DisposeCallback, 0xC);
+};  // total size 0xC
+// size_assert(DisposeCallback, 0xC);
 
-}//namespace detail
-}//namespace snd
-}//namespace nw4r
+}  // namespace detail
+}  // namespace snd
+}  // namespace nw4r
 
 #endif

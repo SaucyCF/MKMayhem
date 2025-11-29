@@ -7,6 +7,6 @@ struct TableBinaryHeader {
 };
 
 struct IndexToIDTable {
-    u16 indexToObjId; //an array, size 0x2F4 in mkwii
+    u16 indexToObjId;  // an array, size 0x2F4 in mkwii
 };
 #endif

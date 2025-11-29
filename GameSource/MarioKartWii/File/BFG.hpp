@@ -3,15 +3,14 @@
 #include <core/rvl/gx/GXStruct.hpp>
 #include <core/rvl/gx/GXEnum.hpp>
 
-
 struct BFGEntry {
     GX::FogType type;
-    float startZ; //0x4
-    float endZ; //0x8
-    GX::Color color; //0xC
-    u16 hasRangeCorrection; //0x10
+    float startZ;  // 0x4
+    float endZ;  // 0x8
+    GX::Color color;  // 0xC
+    u16 hasRangeCorrection;  // 0x10
     u16 rangeCorrectionCenter;
-    float entriesTransitionSpeed; //0x14
+    float entriesTransitionSpeed;  // 0x14
     u8 unknown_0x18[2];
 };
 

@@ -189,7 +189,7 @@ enum BMG {
     BMG_PLAY_TEAM_OTT = 0x2917,
     BMG_PLAY_TEAM_KO = 0x2918,
     BMG_PLAY_TEAM_OTTKO = 0x2919,
-    BMG_PLAY_RANKED_FROOMS = 0x2920,
+    BMG_PLAY_LAPKO = 0x2920,
 
 
     BMG_CUPS = 0x10000,
@@ -203,6 +203,11 @@ enum BMG {
     BMG_RADIO_SETTINGS = 0x3000,
     BMG_SCROLLER_SETTINGS = 0x3700,
     BMG_USERSETTINGSOFFSET = 0x60000, //user settings therefore start at 0x53000 for radi osettings, 0x53700 for scrollers
+
+    // Start Worldwide Message
+    BMG_REGULAR_START_MESSAGE = 0x6920,
+    BMG_ITEMRAIN_START_MESSAGE = 0x6921,
+    BMG_MAYHEM_START_MESSAGE = 0x6922,
     
 };
 

@@ -6,7 +6,7 @@ namespace nw4r {
 namespace snd {
 namespace detail {
 class Task {
-public:
+   public:
     virtual ~Task() = 0;
     virtual void Execute() = 0;
     virtual void Cancel() = 0;
@@ -14,8 +14,8 @@ public:
     ut::LinkListNode taskLink;
     volatile bool isBusy;
     u8 padding[3];
-}; //0x10
-}//namespace detail
-}//namespace snd
-}//namespace nw4r
+};  // 0x10
+}  // namespace detail
+}  // namespace snd
+}  // namespace nw4r
 #endif

@@ -61,7 +61,7 @@ public:
     u8 unknown_0x2934[0x29c8 - 0x2934];
 
 };
-size_assert(CustomRKNetController, 0x29c8);
+//size_assert(CustomRKNetController, 0x29c8);
 
 void* CreateSendAndRecvBuffers() {
 

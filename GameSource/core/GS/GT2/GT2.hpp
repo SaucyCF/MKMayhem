@@ -6,5 +6,5 @@
 #include <core/GS/GT2/GT2Socket.hpp>
 #include <core/GS/GT2/GT2Message.hpp>
 
-//GameSpy Transport 2
+// GameSpy Transport 2
 #endif

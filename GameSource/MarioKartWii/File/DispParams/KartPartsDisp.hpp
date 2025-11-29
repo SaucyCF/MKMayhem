@@ -2,8 +2,8 @@
 #define _KARTPARTSDISPPARAM_
 #include <kamek.hpp>
 
-class KartPartsDispParam { //https://wiki.tockdom.com/wiki/KartPartsDispParam.bin
-public:
+class KartPartsDispParam {  // https://wiki.tockdom.com/wiki/KartPartsDispParam.bin
+   public:
     struct Entry {
         float cameraYDist;
         float tiresFwRotSpeed;
@@ -25,7 +25,7 @@ public:
         Vec3 icePos;
         Vec2 balloonsYZPos;
         float unknown_0x148[2];
-    }; //0x150
+    };  // 0x150
 
     u32 kartsCount;
     Entry entries[1];

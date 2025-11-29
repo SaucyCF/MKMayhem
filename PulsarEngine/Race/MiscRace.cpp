@@ -57,7 +57,7 @@ static int MiiHeads(Racedata* racedata, u32 unused, u32 unused2, u8 id) {
     if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST) {
         miiHeadFroom = System::sInstance->IsContext(PULSAR_MIIHEADS) ? HOSTSETTING_ALLOW_MIIHEADS_ENABLED : HOSTSETTING_ALLOW_MIIHEADS_DISABLED;
     }
-    if (Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_MII) == RACESETTING_MII_ENABLED) {
+    if (Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_MISC3, MISC_RADIO_MII) == RACESETTING_MII_ENABLED) {
         if (miiHeadFroom == HOSTSETTING_ALLOW_MIIHEADS_ENABLED) {
             if (charId < MII_M) {
                 if (id == 0) charId = MII_M;
@@ -73,7 +73,7 @@ kmWrite32(0x807eb160, 0x88de01b4);
 
 //credit to XeR for finding the float address
 static void BattleGlitchEnable() {
-    const u8 val = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_BATTLE);
+    const u8 val = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_MISC3, MISC_RADIO_BATTLE);
     float maxDistance = 7500.0f;
     if (val == RACESETTING_BATTLE_GLITCH_ENABLED) maxDistance = 75000.0f;
     System* system = System::sInstance;
@@ -112,7 +112,7 @@ kmWrite32(0x807F4DB8, 0x38000001);
 
 //Draggable blue shells
 static void DraggableBlueShells(Item::PlayerObj& sub) {
-    if (Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_BLUES) == RACESETTING_DRAGGABLE_BLUES_DISABLED) {
+    if (Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_MISC3, MISC_RADIO_BLUES) == RACESETTING_DRAGGABLE_BLUES_DISABLED) {
         sub.isNotDragged = true;
     }
 }
@@ -166,10 +166,10 @@ const char* ChangeItemWindowPane(ItemId id, u32 itemCount) {
     const bool featherTT150 = mode == TTMODE_150_FEATHER;
     const bool featherTT200 = mode == TTMODE_200_FEATHER;
     const bool megaTC = System::sInstance->IsContext(PULSAR_THUNDERCLOUD) == Pulsar::DKWSETTING_THUNDERCLOUD_MEGA;
-    const bool randomTC = System::sInstance->IsContext(PULSAR_RANDOMTC) == Pulsar::DKWSETTING_THUNDERCLOUD_RANDOM;
+    const bool randomTC = System::sInstance->IsContext(PULSAR_MODE_MAYHEM) == Pulsar::DKWSETTING_GAMEMODE_MAYHEM;
     const char* paneName;
     if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST || gameMode == MODE_GRAND_PRIX || gameMode == MODE_VS_RACE || gameMode == MODE_BATTLE) {
-        UnknownItems = System::sInstance->IsContext(Pulsar::PULSAR_GAMEMODEUNKNOWN) ? Pulsar::DKWSETTING_GAMEMODE_UNKNOWNITEMS : Pulsar::DKWSETTING_GAMEMODE_REGULAR;
+        UnknownItems = System::sInstance->IsContext(Pulsar::PULSAR_MODE_UNKNOWN) ? Pulsar::DKWSETTING_GAMEMODE_UNKNOWNITEMS : Pulsar::DKWSETTING_GAMEMODE_REGULAR;
     }
 
     if (System::sInstance->IsContext(PULSAR_BATTLEROYALE)) {

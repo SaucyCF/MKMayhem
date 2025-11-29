@@ -19,7 +19,7 @@ using namespace nw4r;
 static void MusicSpeedup(Audio::RaceRSARPlayer* rsarSoundPlayer, u32 jingle, u8 hudSlotId) {
     //static u8 hudSlotIdFinalLap;
 
-    u8 isSpeedUp = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RACE, SETTINGRACE_RADIO_SPEEDUP);
+    u8 isSpeedUp = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_MISC3, MISC_RADIO_SPEEDUP);
     Audio::RaceMgr* raceAudioMgr = Audio::RaceMgr::sInstance;
     const u8 maxLap = raceAudioMgr->maxLap;
     const u8 curLap = raceAudioMgr->lap;

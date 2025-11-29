@@ -1,7 +1,16 @@
 #include <runtimeWrite.hpp>
+#include <core/rvl/OS/OSBootInfo.hpp>
 #include <core/rvl/OS/OSCache.hpp>
 
 namespace KamekRuntimeWrite {
+namespace {
+inline char GetDiscRegion() {
+    return OS::BootInfo::mInstance.diskID.gameName[3];
+}
+inline bool MatchesRegion(char region) {
+    return region == 0 || GetDiscRegion() == region;
+}
+}
 static inline void FlushAddress(void* addr) {
     OS::DCFlushRange(addr, 4);
     register u32 a = (u32)addr;

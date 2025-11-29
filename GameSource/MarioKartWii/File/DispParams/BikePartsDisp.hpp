@@ -3,8 +3,8 @@
 #include <kamek.hpp>
 #include <MarioKartWii/File/DispParams/CommonDisp.hpp>
 
-class BikePartsDispParam { //https://wiki.tockdom.com/wiki/BikePartsDispParam.bin
-public:
+class BikePartsDispParam {  // https://wiki.tockdom.com/wiki/BikePartsDispParam.bin
+   public:
     struct Entry {
         float cameraYDist;
         float tiresFwRotSpeed;
@@ -17,7 +17,7 @@ public:
         Vec3 icePos;
         Vec2 balloonsYZPos;
         float unknown_0xA8[2];
-    }; //0xB0
+    };  // 0xB0
 
     u32 bikesCount;
     Entry entries[1];

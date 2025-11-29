@@ -18,7 +18,7 @@ static int MAX_ITEM_LIFETIME = 1200;
 static int DESPAWN_CHECK_INTERVAL = 2;
 
 static int GetSpawnInterval(u8 playerCount) {
-    return 4;
+    return 6;
 }
 
 static u32 GetRandom() {
@@ -40,35 +40,42 @@ static ItemObjId GetRandomItem() {
 
     const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
     const GameMode mode = scenario.settings.gamemode;
+
+    
     static const ItemWeight weightsVS[] = {
-        {OBJ_MUSHROOM, 75},
-        {OBJ_GREEN_SHELL, 300},
-        {OBJ_BANANA, 300},
-        {OBJ_RED_SHELL, 300},
-        {OBJ_FAKE_ITEM_BOX, 175},
-        {OBJ_BOBOMB, 15},
-        {OBJ_STAR, 25},
-        {OBJ_BLUE_SHELL, 50},
-        {OBJ_GOLDEN_MUSHROOM, 25},
-        {OBJ_MEGA_MUSHROOM, 175},
-        {OBJ_POW_BLOCK, 25},
-        {OBJ_BULLET_BILL, 25},
-        {OBJ_LIGHTNING, 25},
+        {OBJ_MUSHROOM, 45},
+        {OBJ_GREEN_SHELL, 260},
+        {OBJ_BANANA, 260},
+        {OBJ_RED_SHELL, 260},
+        {OBJ_FAKE_ITEM_BOX, 80},
+        {OBJ_BOBOMB, 5},
+        {OBJ_STAR, 20},
+        {OBJ_BLUE_SHELL, 30},
+        {OBJ_GOLDEN_MUSHROOM, 5},
+        {OBJ_MEGA_MUSHROOM, 20},
+        {OBJ_POW_BLOCK, 7},
+        {OBJ_BULLET_BILL, 4},
+        {OBJ_LIGHTNING, 4},
     };
     static const ItemWeight weightsBattle[] = {
-        {OBJ_MUSHROOM, 75},
-        {OBJ_GREEN_SHELL, 300},
-        {OBJ_BANANA, 300},
-        {OBJ_RED_SHELL, 300},
-        {OBJ_FAKE_ITEM_BOX, 175},
-        {OBJ_BOBOMB, 15},
-        {OBJ_STAR, 25},
-        {OBJ_BLUE_SHELL, 50},
-        {OBJ_GOLDEN_MUSHROOM, 25},
-        {OBJ_MEGA_MUSHROOM, 175},
-        {OBJ_POW_BLOCK, 25},
-        {OBJ_BULLET_BILL, 0},
-        {OBJ_LIGHTNING, 25},
+        {OBJ_MUSHROOM, 45},
+        {OBJ_GREEN_SHELL, 261},
+        {OBJ_BANANA, 261},
+        {OBJ_RED_SHELL, 261},
+        {OBJ_FAKE_ITEM_BOX, 81},
+        {OBJ_BOBOMB, 5},
+        {OBJ_STAR, 20},
+        {OBJ_BLUE_SHELL, 30},
+        {OBJ_GOLDEN_MUSHROOM, 5},
+        {OBJ_MEGA_MUSHROOM, 20},
+        {OBJ_POW_BLOCK, 7},
+        {OBJ_LIGHTNING, 4},
+    };
+    static const ItemWeight weightsMayhem[] = {
+        {OBJ_NONE, 900},
+        {OBJ_GREEN_SHELL, 25},
+        {OBJ_RED_SHELL, 25},
+        {OBJ_BANANA, 50},
     };
 
     const ItemWeight* weights = weightsVS;
@@ -76,6 +83,14 @@ static ItemObjId GetRandomItem() {
     if (mode == MODE_BATTLE || mode == MODE_PRIVATE_BATTLE) {
         weights = weightsBattle;
         count = sizeof(weightsBattle) / sizeof(weightsBattle[0]);
+    } else if ((RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST ||
+        RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST ||
+        RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_NONE ||
+        RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_VS_REGIONAL ||
+        RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_JOINING_REGIONAL) && 
+        System::sInstance->IsContext(Pulsar::PULSAR_MODE_MAYHEM)) {
+        weights = weightsMayhem;
+        count = sizeof(weightsMayhem) / sizeof(weightsMayhem[0]);
     }
 
     u32 totalWeight = 0;
@@ -131,10 +146,11 @@ void DespawnItems(bool checkDistance = false) {
 void SpawnItemRain() {
     const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
     const GameMode mode = scenario.settings.gamemode;
-    if (!Pulsar::System::sInstance->IsContext(PULSAR_GAMEMODEITEMRAIN)) return;
+    if (!Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN) && !Pulsar::System::sInstance->IsContext(PULSAR_MODE_MAYHEM)) return;
     if (Pulsar::System::sInstance->IsContext(PULSAR_MODE_OTT)) return;
     if (RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_FROOM_HOST && RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_FROOM_NONHOST &&
-        RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_NONE && RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_VS_REGIONAL) return;
+        RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_NONE && RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_VS_REGIONAL &&
+        RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_JOINING_REGIONAL) return;
     if (mode == MODE_TIME_TRIAL) return;
     if (!Racedata::sInstance || !Raceinfo::sInstance || !Item::Manager::sInstance) return;
     if (!Raceinfo::sInstance->IsAtLeastStage(RACESTAGE_RACE)) return;

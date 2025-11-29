@@ -36,7 +36,7 @@ kmWrite32(0x8064a61c, 0x60000000); //nop initControlGroup
 kmWrite24(0x808998b3, 'PUL'); //WifiMemberConfirmButton -> PULiMemberConfirmButton
 void ExpVR::OnInit() {
     const System* system = System::sInstance;
-    if(system->IsContext(PULSAR_BUMPERKARTSTATS)) {
+    if(system->IsContext(PULSAR_MODE_BUMPERKARTS)) {
         this->onButtonClickHandler.ptmf = &ExpVR::RandomizeComboVR;
         this->bumperKartCounter = ExpVR::bumperKartDuration;
     }
@@ -53,10 +53,10 @@ void ExpVR::OnInit() {
     if(system->IsContext(PULSAR_MODE_KO) && system->koMgr->isSpectating) isKOd = true;
     if(system->IsContext(PULSAR_MODE_OTT) && system->IsContext(PULSAR_CHANGECOMBO) == OTTSETTING_COMBO_ENABLED) isKOd = true;
     if(System::sInstance->IsContext(PULSAR_MODE_OTT) && ((RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_VS_REGIONAL) || (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_JOINING_REGIONAL))) isKOd = true;
-    if(system->IsContext(PULSAR_BUMPERKARTSTATS)) isKOd = true;
+    if(system->IsContext(PULSAR_MODE_BUMPERKARTS)) isKOd = true;
 
     bool hideSettings = false;
-    if(system->IsContext(PULSAR_BUMPERKARTSTATS)) hideSettings = true;
+    if(system->IsContext(PULSAR_MODE_BUMPERKARTS)) hideSettings = true;
  
     this->AddControl(0xF, this->randomComboButton, 0);
     this->randomComboButton.isHidden = isKOd;
@@ -211,7 +211,7 @@ void ExpVR::ExtOnButtonSelect(PushButton& button, u32 hudSlotId) {
 
 void ExpVR::BeforeControlUpdate() {
     const System* system = System::sInstance;
-    if (!system->IsContext(PULSAR_BUMPERKARTSTATS)) return;
+    if (!system->IsContext(PULSAR_MODE_BUMPERKARTS)) return;
 
     if (this->bumperKartCounter > 0) {
         this->bumperKartCounter--;

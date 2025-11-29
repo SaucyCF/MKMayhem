@@ -113,14 +113,25 @@ void CorrectRoomStartButton(Pages::Globe::MessageWindow& control, u32 bmgId, Tex
     Network::SetGlobeMsgColor(control, -1);
     if (bmgId == BMG_PLAY_GP || bmgId == BMG_PLAY_TEAM_GP) {
         const u32 hostContext = System::sInstance->netMgr.hostContext;
+        const u32 hostContext2 = System::sInstance->netMgr.hostContext2;
         const bool isOTT = hostContext & (1 << PULSAR_MODE_OTT);
         const bool isKO = hostContext & (1 << PULSAR_MODE_KO);
-        const bool isRanked = hostContext & (1 << PULSAR_RANKED);
+        const bool isStartRegular = hostContext2 & (1 << PULSAR_STARTREGULAR);
+        const bool isStartItemRain = hostContext2 & (1 << PULSAR_STARTITEMRAIN);
+        const bool isStartMayhem = hostContext2 & (1 << PULSAR_STARTMAYHEM);
         if (isOTT || isKO) {
             const bool isTeam = bmgId == BMG_PLAY_TEAM_GP;
             bmgId = (BMG_PLAY_OTT - 1) + isOTT + isKO * 2 + isTeam * 3;
-        } else if (isRanked) {
-            bmgId = (BMG_PLAY_RANKED_FROOMS - 1);
+        }
+
+        if (isStartRegular) {
+            bmgId = BMG_REGULAR_START_MESSAGE;
+        }
+        else if (isStartItemRain) {
+            bmgId = BMG_ITEMRAIN_START_MESSAGE;
+        }
+        else if (isStartMayhem) {
+            bmgId = BMG_MAYHEM_START_MESSAGE;
         }
     }
     control.SetMessage(bmgId, info);

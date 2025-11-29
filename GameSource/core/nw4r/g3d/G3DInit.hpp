@@ -7,10 +7,9 @@
 namespace nw4r {
 namespace g3d {
 
-void G3dInit(bool bLCEnable = true); //800770d0
-void G3dReset(); //800771c0 called at the start of every frame
-}//namespace g3d
-}//namespace nw4r
-
+void G3dInit(bool bLCEnable = true);  // 800770d0
+void G3dReset();  // 800771c0 called at the start of every frame
+}  // namespace g3d
+}  // namespace nw4r
 
 #endif

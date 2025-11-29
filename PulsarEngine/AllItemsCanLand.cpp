@@ -18,39 +18,46 @@ int UseItem(Kart::Collision *kartCollision, ItemId id){
 }
 
 int AllShocksCanLand(Kart::Collision *kartCollision){
-    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_GAMEMODEITEMRAIN)) return UseItem(kartCollision, LIGHTNING);
+    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) return UseItem(kartCollision, LIGHTNING);
     return -1;
 }
 
 int AllMegasCanLand(Kart::Collision *kartCollision){
-    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_GAMEMODEITEMRAIN)) return UseItem(kartCollision, MEGA_MUSHROOM);
+    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) return UseItem(kartCollision, MEGA_MUSHROOM);
     return -1;
 }
 
 int AllFeathersCanLand(Kart::Collision *kartCollision){
-    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_GAMEMODEITEMRAIN)) return UseItem(kartCollision, BLOOPER);
+    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) return UseItem(kartCollision, BLOOPER);
     return -1;
 }
 
 int AllPOWsCanLand(Kart::Collision *kartCollision){
-    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_GAMEMODEITEMRAIN)) return UseItem(kartCollision, POW_BLOCK);
+    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) return UseItem(kartCollision, POW_BLOCK);
     return -1;
 }
 
 int AllGoldensCanLand(Kart::Collision *kartCollision){
-    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_GAMEMODEITEMRAIN)) return UseItem(kartCollision, MUSHROOM);
+    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) return UseItem(kartCollision, MUSHROOM);
     return -1;
 }
 
 int AllBulletsCanLand(Kart::Collision *kartCollision){
-    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_GAMEMODEITEMRAIN)) return UseItem(kartCollision, BULLET_BILL);
+    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) return UseItem(kartCollision, BULLET_BILL);
     return -1;
 }
 
 void AllowDroppedItems() {
-    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_GAMEMODEITEMRAIN)) {
-        if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST || 
-            RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_NONE) {
+const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
+const GameMode mode = scenario.settings.gamemode;
+    if (mode == MODE_TIME_TRIAL || mode == MODE_GHOST_RACE) {
+        for (int i = 0; i < 15; i++) {
+                Item::ObjProperties::objProperties[i].canFallOnTheGround = false;
+            }
+    } else if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) {
+        if ((RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST || 
+            RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_NONE) || (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_VS_REGIONAL ||
+            RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_JOINING_REGIONAL) && Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) {
             for (int i = 0; i < 15; i++) {
                 Item::ObjProperties::objProperties[i].canFallOnTheGround = true;
             }

@@ -11,9 +11,9 @@ class MmlSeqTrackAllocator {
     virtual void func_vtable();
     UnkType* ptr;
     PoolImpl trackPool;
-}; //total size 0xC	
-}//namespace detail
-}//namespace snd
-}//namespace nw4r
+};  // total size 0xC
+}  // namespace detail
+}  // namespace snd
+}  // namespace nw4r
 
 #endif

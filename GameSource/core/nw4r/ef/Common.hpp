@@ -21,6 +21,6 @@ enum EvaluateStatus {
     NW4R_EF_ES_SKIP
 };
 
-}//namespace ef
-}//namespace nw4r
+}  // namespace ef
+}  // namespace nw4r
 #endif

@@ -6,10 +6,10 @@
 namespace nw4r {
 namespace ef {
 class LinkedObject {
-public:
+   public:
     ut::Link memoryLink;
     u32 id;
 };
-}//namespace ef
-}//namespace nw4r
+}  // namespace ef
+}  // namespace nw4r
 #endif

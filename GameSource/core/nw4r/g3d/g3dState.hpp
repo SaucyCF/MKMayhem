@@ -6,12 +6,11 @@
 namespace nw4r {
 namespace g3d {
 namespace G3DState {
-void Invalidate(u32 flag); //80064450
-GX::RenderModeObj* GetRenderModeObj(); //80064440
+void Invalidate(u32 flag);  // 80064450
+GX::RenderModeObj* GetRenderModeObj();  // 80064440
 
-}//namespace G3DState
-}//namespace g3d   
-}//namespace nw4r
-
+}  // namespace G3DState
+}  // namespace g3d
+}  // namespace nw4r
 
 #endif

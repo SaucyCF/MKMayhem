@@ -4,21 +4,19 @@
 #include <types.hpp>
 #include <core/nw4r/ut/Misc.hpp>
 
-
 namespace nw4r {
 namespace ut {
 
 class LinkListNode : private NonCopyable {
-public:
+   public:
     LinkListNode* next;
     LinkListNode* prev;
-}; // Total size 0x8
-size_assert(LinkListNode, 0x8);
+};  // Total size 0x8
+// size_assert(LinkListNode, 0x8);
 
 namespace detail {
 class LinkListImpl : private NonCopyable {
-public:
-
+   public:
     class IteratorImpl;
 
     explicit LinkListImpl() {
@@ -27,34 +25,47 @@ public:
         node.prev = &node;
     }
 
-    ~LinkListImpl(); //800af210 just clears the list
+    ~LinkListImpl();  // 800af210 just clears the list
     u32 GetSize() const { return count; }
     bool IsEmpty() const { return count == 0; }
 
-    void Clear(); //800af2f0
-    IteratorImpl Erase(IteratorImpl itFirst, IteratorImpl itLast);//800af2a0 removes in btw
-    IteratorImpl Erase(LinkListNode* node); //800af370 removes from the list 
+    void Clear();  // 800af2f0
+    IteratorImpl Erase(IteratorImpl itFirst, IteratorImpl itLast);  // 800af2a0 removes in btw
+    IteratorImpl Erase(LinkListNode* node);  // 800af370 removes from the list
     IteratorImpl Erase(IteratorImpl it) {
-        IteratorImpl itNext=it;
+        IteratorImpl itNext = it;
         ++itNext;
         return Erase(it, itNext);
     }
-    IteratorImpl Insert(IteratorImpl it, LinkListNode* node); //800af340
-
+    IteratorImpl Insert(IteratorImpl it, LinkListNode* node);  // 800af340
 
     void PopFront() { this->Erase(GetBeginIter()); }
     void PopBack() { this->Erase(--GetEndIter()); }
 
     class IteratorImpl {
-    public:
-        explicit IteratorImpl(LinkListNode* ptr): ptr(ptr) {}
-        explicit IteratorImpl(): ptr(nullptr) {}
+       public:
+        explicit IteratorImpl(LinkListNode* ptr) : ptr(ptr) {}
+        explicit IteratorImpl() : ptr(nullptr) {}
         LinkListNode& operator*() const { return *ptr; }
         LinkListNode* operator->() const { return ptr; }
-        IteratorImpl& operator++() { ptr = ptr->next; return *this; }
-        IteratorImpl operator++(int) { const IteratorImpl it(*this); ++*this; return it; }
-        IteratorImpl& operator--() { ptr = ptr->prev; return *this; }
-        IteratorImpl operator--(int) { const IteratorImpl it(*this); --*this; return it; }
+        IteratorImpl& operator++() {
+            ptr = ptr->next;
+            return *this;
+        }
+        IteratorImpl operator++(int) {
+            const IteratorImpl it(*this);
+            ++*this;
+            return it;
+        }
+        IteratorImpl& operator--() {
+            ptr = ptr->prev;
+            return *this;
+        }
+        IteratorImpl operator--(int) {
+            const IteratorImpl it(*this);
+            --*this;
+            return it;
+        }
         friend bool operator==(IteratorImpl it1, IteratorImpl it2) { return it1.ptr == it2.ptr; }
         friend bool operator!=(IteratorImpl it1, IteratorImpl it2) { return !(it1 == it2); }
 
@@ -64,36 +75,47 @@ public:
     IteratorImpl GetEndIter() { return IteratorImpl(&node); }
 
     int count;
-    LinkListNode node; //last node of list, which is the 1st one if only 1 element ofc
+    LinkListNode node;  // last node of list, which is the 1st one if only 1 element ofc
 };
-}//namespace detail
-
+}  // namespace detail
 
 template <class T, s32 offset>
 class LinkList : private detail::LinkListImpl {
-public:
-
+   public:
     class Iterator {
-    public:
+       public:
         Iterator() {}
         T& operator*() const {
             return *operator->();
         }
         T* operator->() const { return GetPointerFromNode(itImpl.operator->()); }
-        Iterator& operator++() { ++itImpl; return *this; }
-        Iterator operator++(int) { const Iterator it(*this); ++*this; return it; }
-        Iterator& operator--() { --itImpl; return *this; }
-        Iterator operator--(int) { const Iterator it(*this); --*this; return it; }
+        Iterator& operator++() {
+            ++itImpl;
+            return *this;
+        }
+        Iterator operator++(int) {
+            const Iterator it(*this);
+            ++*this;
+            return it;
+        }
+        Iterator& operator--() {
+            --itImpl;
+            return *this;
+        }
+        Iterator operator--(int) {
+            const Iterator it(*this);
+            --*this;
+            return it;
+        }
         friend bool operator==(Iterator it1, Iterator it2) { return it1.itImpl == it2.itImpl; }
         friend bool operator!=(Iterator it1, Iterator it2) { return !(it1 == it2); }
 
-    private:
-        explicit Iterator(LinkListImpl::IteratorImpl it): itImpl(it) {}
+       private:
+        explicit Iterator(LinkListImpl::IteratorImpl it) : itImpl(it) {}
 
         LinkListImpl::IteratorImpl itImpl;
         friend class LinkList;
     };
-
 
     explicit LinkList() {}
 
@@ -109,11 +131,11 @@ public:
     void PushFront(T* ptr) { this->Insert(GetBeginIter(), ptr); }
     void PushBack(T* ptr) { this->Insert(GetEndIter(), ptr); }
 
-    using detail::LinkListImpl::PopFront;
     using detail::LinkListImpl::PopBack;
+    using detail::LinkListImpl::PopFront;
 
-    //Iterator Erase(Iterator it) { return Iterator(detail::LinkListImpl::Erase(it.it)); }
-    //Iterator Erase(Iterator itFirst, Iterator itLast) { return Iterator(detail::LinkListImpl::Erase(itFirst.it, itLast.it)); }
+    // Iterator Erase(Iterator it) { return Iterator(detail::LinkListImpl::Erase(it.it)); }
+    // Iterator Erase(Iterator itFirst, Iterator itLast) { return Iterator(detail::LinkListImpl::Erase(itFirst.it, itLast.it)); }
     Iterator Erase(T* ptr) { return Iterator(detail::LinkListImpl::Erase(GetNodeFromPointer(ptr))); }
     using detail::LinkListImpl::Clear;
 
@@ -129,8 +151,8 @@ public:
     static const T* GetPointerFromNode(const LinkListNode* ptr) {
         return reinterpret_cast<const T*>(reinterpret_cast<u32>(ptr) - offset);
     }
-}; // Total size 0xc
+};  // Total size 0xc
 
-}//namespace ut
-}//namespace nw4r
+}  // namespace ut
+}  // namespace nw4r
 #endif

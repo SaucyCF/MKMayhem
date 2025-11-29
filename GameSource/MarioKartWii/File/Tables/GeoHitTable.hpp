@@ -2,10 +2,10 @@
 #define _GEOHITTABLEITEM_
 #include <MarioKartWii/File/Tables/Table.hpp>
 
-//https://wiki.tockdom.com/wiki/Filesystem/Race/Common.szs/GeoHitTableItem.bin
-//how objects interact with items
-//https://wiki.tockdom.com/wiki/Filesystem/Race/Common.szs/GeoHitTableItemObj.bin
-//how items interact with objects
+// https://wiki.tockdom.com/wiki/Filesystem/Race/Common.szs/GeoHitTableItem.bin
+// how objects interact with items
+// https://wiki.tockdom.com/wiki/Filesystem/Race/Common.szs/GeoHitTableItemObj.bin
+// how items interact with objects
 
 enum GeoHitItemId {
     GEO_HIT_GREEN_SHELL,
@@ -32,18 +32,18 @@ enum ObjToItemInteraction {
 };
 
 enum ItemToObjInteraction {
-    //idk
+    // idk
 };
 
 enum ObjToKartHit {
     OBJ_KART_WALL_ALL_SPEED = 0x8,
-    OBJ_KART_SPIN_ALL_SPEED = 0x9, //unused
+    OBJ_KART_SPIN_ALL_SPEED = 0x9,  // unused
     OBJ_KART_SPIN_SOME_SPEED = 0xA,
     OBJ_KART_FIRE_SPIN = 0xB,
     OBJ_KART_CLIP_THROUGH_SOME_SPEED = 0xC,
     OBJ_KART_SMALL_LAUNCH = 0xD,
     OBJ_KART_KNOCKBACK_SOME_SPEED_LOSE_ITEM = 0xE,
-    OBJ_KART_LAUNCH_SPIN_LOSE_ITEM = 0xF, //unused
+    OBJ_KART_LAUNCH_SPIN_LOSE_ITEM = 0xF,  // unused
     OBJ_KART_KNOCKBACK_BUMP_LOSE_ITEM = 0x10,
     OBJ_KART_LONG_CRUSH_LOSE_ITEM = 0x11,
     OBJ_KART_SMALL_BUMP = 0x12,
@@ -66,21 +66,20 @@ enum ObjToKartHit {
 
 enum KartToObjHit {
     KART_NORMAL = 0,
-    KART_IMPERVIOUS = 0x5, //the kart is invincible to /unaffected to the object, star/mega/bill/being a ghost, depends on the object
-    KART_OBJ_STATE_2 = 0x6, //unused
+    KART_IMPERVIOUS = 0x5,  // the kart is invincible to /unaffected to the object, star/mega/bill/being a ghost, depends on the object
+    KART_OBJ_STATE_2 = 0x6,  // unused
 };
 
 struct GeoHitTableEntry {
     u16 objId;
-    u16 interactions; //use enums for types, entry count for amount
+    u16 interactions;  // use enums for types, entry count for amount
 };
-
 
 struct GeoHitTable {
     TableBinaryHeader header;
     u16 entryCount;
     GeoHitTableEntry entries;
-    //IndexToIDTable idxToID;
+    // IndexToIDTable idxToID;
 };
 
 #endif

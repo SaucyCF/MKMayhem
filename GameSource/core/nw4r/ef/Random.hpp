@@ -7,10 +7,10 @@ namespace nw4r {
 namespace ef {
 
 class Random {
-public:
+   public:
     u32 seed;
 };
 
-}//namespace ef
-}//namespace nw4r
+}  // namespace ef
+}  // namespace nw4r
 #endif

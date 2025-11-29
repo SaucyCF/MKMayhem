@@ -37,33 +37,32 @@ struct ResAnmCameraData {
 
 struct CameraAnmResult {
     u32 flags;
-    GX::ProjectionType projType; //0x4
-    math::VEC3 pos; //0x8 pos: Camera position
-    float aspect; //0x14 aspect: aspect ratio width/height
-    float near; //0x18 near: Distance to the near clipping plane
-    float far; //0x1c far: Distance to the far clipping plane
+    GX::ProjectionType projType;  // 0x4
+    math::VEC3 pos;  // 0x8 pos: Camera position
+    float aspect;  // 0x14 aspect: aspect ratio width/height
+    float near;  // 0x18 near: Distance to the near clipping plane
+    float far;  // 0x1c far: Distance to the far clipping plane
 
     union {
         struct {
-            Vec rot; //rot: Rotation angle around the xyz axis of the camera (in degrees)
+            Vec rot;  // rot: Rotation angle around the xyz axis of the camera (in degrees)
         } rotate;
         struct {
-            Vec aim; //0x20
-            float twist; //0x2c twist: Rotation angle around the line of sight axis of the camera (in degrees)
+            Vec aim;  // 0x20
+            float twist;  // 0x2c twist: Rotation angle around the line of sight axis of the camera (in degrees)
         } aim;
     };
     union {
-        float fovy; //0x30 fovy: Vertical direction field of view
+        float fovy;  // 0x30 fovy: Vertical direction field of view
         float orthoHeight;
     };
 };
 
 class ResAnmCamera : public ResCommon<ResAnmCameraData> {
-    void GetAnmResult(CameraAnmResult* result, float frame) const; //80055fd0
+    void GetAnmResult(CameraAnmResult* result, float frame) const;  // 80055fd0
 };
 
-}//namespace g3d
-}//namespace nw4r
-
+}  // namespace g3d
+}  // namespace nw4r
 
 #endif

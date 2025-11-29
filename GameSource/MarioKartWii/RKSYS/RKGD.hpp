@@ -9,7 +9,7 @@ namespace RKSYS {
 struct RecordEntry {
     u32 finishTime;
     RFL::StoreData miiData;
-}; //0x50
+};  // 0x50
 
 struct TrackRecords {
     RecordEntry cr;
@@ -20,17 +20,15 @@ struct CompetitionRecordEntry {
     u32 finishTime;
     u32 unknown_0x4;
     RFL::StoreData miiData;
-}; //0x54
+};  // 0x54
 
 struct CompetitionRecords {
     CompetitionRecordEntry cr;
     CompetitionRecordEntry wr;
 };
 
-
-
-struct RKGD { //+0x23308 to all offsets for rksys
-    u32 magic; //RKGD
+struct RKGD {  //+0x23308 to all offsets for rksys
+    u32 magic;  // RKGD
     u32 settings;
     /*
     0x1         0 GCN Rumble
@@ -43,14 +41,14 @@ struct RKGD { //+0x23308 to all offsets for rksys
     0x80        7 unknown
     */
     u8 unknown_0x8[10][0x384];
-    TrackRecords trackRecords[32]; //0x2330
-    CompetitionRecords currentCompetition; //0x3730
+    TrackRecords trackRecords[32];  // 0x2330
+    CompetitionRecords currentCompetition;  // 0x3730
     u32 unknown_0x37d8[2][5];
-    u16 lastGhostRaceTime; //0x3800 d/m/y
-    u16 regionId; //0x3802
-}; //0x3804
-size_assert(RKGD, 0x3804);
+    u16 lastGhostRaceTime;  // 0x3800 d/m/y
+    u16 regionId;  // 0x3802
+};  // 0x3804
+// size_assert(RKGD, 0x3804);
 #pragma pack(pop)
-}//namespace RKSYS
+}  // namespace RKSYS
 
 #endif

@@ -9,31 +9,38 @@ namespace math {
 
 struct VEC2 : Vec2D {
     VEC2() {}
-    VEC2(float x, float z) { this->x = x; this->z = z; }
+    VEC2(float x, float z) {
+        this->x = x;
+        this->z = z;
+    }
 };
 
 struct VEC3 : Vec {
     VEC3() {}
-    VEC3(float x, float y, float z) { this->x = x; this->y = y; this->z = z; }
+    VEC3(float x, float y, float z) {
+        this->x = x;
+        this->y = y;
+        this->z = z;
+    }
     void Report(bool addNewLine, const char* prefixText = 0);
 };
 
-VEC2* VEC2Maximize(VEC2* dest, const VEC2* src1, const VEC2* src2); //80085580
-VEC2* VEC2Minimize(VEC2* dest, const VEC2* src1, const VEC2* src2); //800855c0
+VEC2* VEC2Maximize(VEC2* dest, const VEC2* src1, const VEC2* src2);  // 80085580
+VEC2* VEC2Minimize(VEC2* dest, const VEC2* src1, const VEC2* src2);  // 800855c0
 VEC3* VEC3Maximize(VEC3* dest, const VEC3* src1, const VEC3* src2);
 VEC3* VEC3Minimize(VEC3* dest, const VEC3* src1, const VEC3* src2);
 
 struct QUAT {
     float x, y, z, w;
-}; // total size 0x10
+};  // total size 0x10
 
-struct S16Vec3 { s16 x, y, z; };
+struct S16Vec3 {
+    s16 x, y, z;
+};
 typedef float Mat[3][4];
 typedef Mat Mat34;
 typedef float Mat44[4][4];
 typedef float Mat43[4][3];
-
-
 
 struct MTX33 {
     union {
@@ -96,11 +103,11 @@ void MTX34Scale(MTX34* dest, const MTX34* sourceMatrix, const VEC3* sourceVector
 void MTX34Trans(MTX34* dest, const MTX34* sourceMatrix, const VEC3* sourceVector);
 void MTX34RotAxisFIdx(MTX34* dest, const VEC3* vector, float fidx);
 void MTX34RotXYZFIdx(MTX34* dest, float x, float y, float z);
-void VEC3TransformNormal(VEC3* dest, const MTX34* sourceMatrix, const VEC3* sourceVector); //transforms a vector from a space to another using the transMtx
+void VEC3TransformNormal(VEC3* dest, const MTX34* sourceMatrix, const VEC3* sourceVector);  // transforms a vector from a space to another using the transMtx
 void MTX44Identity(MTX44* mtx);
 void MTX44Copy(MTX44* dest, const MTX44* source);
 
-}//namespace math
-}//namespace nw4r
+}  // namespace math
+}  // namespace nw4r
 
 #endif

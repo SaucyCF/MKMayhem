@@ -4,8 +4,8 @@
 
 namespace AI {
 typedef void (*DCallback)();
-DCallback RegisterDMACallback(DCallback callback); //80123f88
+DCallback RegisterDMACallback(DCallback callback);  // 80123f88
 
-}//namespace AI
+}  // namespace AI
 
 #endif

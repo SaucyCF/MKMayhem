@@ -2,9 +2,7 @@
 #define _GHTTP_
 #include <types.hpp>
 
-
-
-namespace GHTTP { //this is C, but don't care
+namespace GHTTP {  // this is C, but don't care
 
 enum GHTTPState {
     GHTTPHostLookup,
@@ -44,7 +42,6 @@ typedef struct GHIPost* Post;
 bool PostAddXML(Post* post, void* xml);
 bool PostAddFileFromMemoryA(Post* post, const char* attachedName, const void* file, int bufferLength, const char* reportFilename, const char* contentType);
 
-}//namespace GHTTP
-
+}  // namespace GHTTP
 
 #endif

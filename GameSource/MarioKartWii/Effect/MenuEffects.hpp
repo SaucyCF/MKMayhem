@@ -8,20 +8,18 @@
 #include <core/egg/Effect/EffectResource.hpp>
 #include <core/egg/mem/Heap.hpp>
 
-//duplicated effects are for each side/wheels
-//https://wiki.tockdom.com/wiki/BREFF_(File_Format)
+// duplicated effects are for each side/wheels
+// https://wiki.tockdom.com/wiki/BREFF_(File_Format)
 
 namespace Effects {
 class Menus {
-    Menus(); //806ec7c8
-    virtual ~Menus(); //806ec914 vtable 808c7668
-    EGG::Effect* GetEffectByIdx(u32 idx); //806ec994
-    EGG::EffectResource* menuEffects; //0x4
-    EGG::Effect* rk_cursors[4]; //0x8 has RKMenu BREFF and BREFT, EGG::Effects for all the relevant rk_ emitters
+    Menus();  // 806ec7c8
+    virtual ~Menus();  // 806ec914 vtable 808c7668
+    EGG::Effect* GetEffectByIdx(u32 idx);  // 806ec994
+    EGG::EffectResource* menuEffects;  // 0x4
+    EGG::Effect* rk_cursors[4];  // 0x8 has RKMenu BREFF and BREFT, EGG::Effects for all the relevant rk_ emitters
     EGG::Effect* effects[10];
-}; //total size 0x58
-}//namespace Effects
-
-
+};  // total size 0x58
+}  // namespace Effects
 
 #endif

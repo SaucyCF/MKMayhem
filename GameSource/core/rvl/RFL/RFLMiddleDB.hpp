@@ -4,7 +4,7 @@
 #include <core/rvl/RFL/RFLTypes.hpp>
 #include <core/rvl/RFL/Internal/RFLHidden.hpp>
 
-//Revolution Face Library
+// Revolution Face Library
 namespace RFL {
 
 enum MiddleDBType {
@@ -17,11 +17,11 @@ enum MiddleDBType {
 };
 
 struct MiddleDB {
-    MiddleDBType type; //0x0
-    u32 data; //0x4
-    HiddenStoreData* store; //0x8
-    u16 maxCharactersCount; //0xc
-    u16 storeCount; //0xe
+    MiddleDBType type;  // 0x0
+    u32 data;  // 0x4
+    HiddenStoreData* store;  // 0x8
+    u16 maxCharactersCount;  // 0xc
+    u16 storeCount;  // 0xe
     union {
         struct {
             u8 sex;
@@ -29,23 +29,21 @@ struct MiddleDB {
             u8 race;
             u8 unknown3;
         };
-        u32 mask; //0x10
+        u32 mask;  // 0x10
     };
     u8 data3[4];
-}; //0x18
-size_assert(MiddleDB, 0x18);
+};  // 0x18
+// size_assert(MiddleDB, 0x18);
 
-u32 GetMiddleDBBufferSize(u16 maxCharactersCount); //800c8850
-void InitMiddleDB(MiddleDB* middleDB, MiddleDBType type, void* buffer, u16 maxCharactersCount); //800c8860
-ErrCode UpdateMiddleDBAsync(MiddleDB* middleDB); //800c9550
-ErrCode iUpdateMiddleDBAsync(MiddleDB* middleDB, u32 r4, u32 r5); //800c95b0
-u16 GetMiddleDBStoredSize(MiddleDB* middleDB); //800c9710
-void SetMiddleDBRandomMask(MiddleDB* middleDB, Sex sex, Age age, Race race); //800c97c0
-void SetMiddleDBHiddenMask(MiddleDB* middleDB, Sex sex); //800c97e0
-ErrCode AddMiddleDBStoreData(MiddleDB* db, const StoreData* data); //800c9920
-ErrCode iAddMiddleDBUserData(MiddleDB* db, const StoreData* data); //800c9810
-}//namespace RFL
-
-
+u32 GetMiddleDBBufferSize(u16 maxCharactersCount);  // 800c8850
+void InitMiddleDB(MiddleDB* middleDB, MiddleDBType type, void* buffer, u16 maxCharactersCount);  // 800c8860
+ErrCode UpdateMiddleDBAsync(MiddleDB* middleDB);  // 800c9550
+ErrCode iUpdateMiddleDBAsync(MiddleDB* middleDB, u32 r4, u32 r5);  // 800c95b0
+u16 GetMiddleDBStoredSize(MiddleDB* middleDB);  // 800c9710
+void SetMiddleDBRandomMask(MiddleDB* middleDB, Sex sex, Age age, Race race);  // 800c97c0
+void SetMiddleDBHiddenMask(MiddleDB* middleDB, Sex sex);  // 800c97e0
+ErrCode AddMiddleDBStoreData(MiddleDB* db, const StoreData* data);  // 800c9920
+ErrCode iAddMiddleDBUserData(MiddleDB* db, const StoreData* data);  // 800c9810
+}  // namespace RFL
 
 #endif

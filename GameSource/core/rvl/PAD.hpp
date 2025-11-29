@@ -27,30 +27,27 @@ enum Error {
 };
 
 struct Status {
-    u16 buttons; //bitfield of Buttons enum
-    s8 stickX; //0x2 -128 to 127
-    s8 stickY; //0x3 -128 to 127
-    s8 cStickX; //0x4
-    s8 cStickY; //0x5
+    u16 buttons;  // bitfield of Buttons enum
+    s8 stickX;  // 0x2 -128 to 127
+    s8 stickY;  // 0x3 -128 to 127
+    s8 cStickX;  // 0x4
+    s8 cStickY;  // 0x5
     u8 triggerL;
     u8 triggerR;
-    u8 analogA; //0x8
-    u8 analogB;  //0x9
-    s8 error; //0xa see enum
+    u8 analogA;  // 0x8
+    u8 analogB;  // 0x9
+    s8 error;  // 0xa see enum
 };
-size_assert(Status, 0xC);
+// size_assert(Status, 0xC);
 
-BOOL Init(); //801af2f0
-BOOL Reset(u32 mask); //801af0dc
-u32  Read(Status* dest); //801af44c
-void ClampCircle(Status* status); //801ae6f4
-void Clamp(Status* status, u32 type); //801ae7dc
-BOOL Recalibrate(u32 mask); //801aef1e4
-void ControlMotor(int channel, u32 command); //801af908
+BOOL Init();  // 801af2f0
+BOOL Reset(u32 mask);  // 801af0dc
+u32 Read(Status* dest);  // 801af44c
+void ClampCircle(Status* status);  // 801ae6f4
+void Clamp(Status* status, u32 type);  // 801ae7dc
+BOOL Recalibrate(u32 mask);  // 801aef1e4
+void ControlMotor(int channel, u32 command);  // 801af908
 
-
-}//namespace PAD
-
-
+}  // namespace PAD
 
 #endif

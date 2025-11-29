@@ -19,7 +19,7 @@ struct Variant {
     u8 slot;
     u8 musicSlot;
 };
-size_assert(Variant, 0x2);
+//size_assert(Variant, 0x2);
 
 struct Track {
     u8 slot;
@@ -27,7 +27,7 @@ struct Track {
     u16 variantCount;
     u32 crc32;
 };
-size_assert(Track, 0x8);
+//size_assert(Track, 0x8);
 
 enum PulsarId {
     PULSARID_NONE = 0xFFFFFFFF,

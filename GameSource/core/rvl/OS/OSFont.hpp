@@ -25,6 +25,6 @@ struct FontHeader {
     u32 sheetFullSize;
     u8 unknown[4];
 };
-} //namespace OS
+}  // namespace OS
 
 #endif

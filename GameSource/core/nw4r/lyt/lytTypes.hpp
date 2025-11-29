@@ -10,7 +10,7 @@ typedef s16 ResS16;
 typedef u16 ResU16;
 typedef s32 ResS32;
 typedef u32 ResU32;
-}
+}  // namespace detail
 struct TexSRT {
     math::VEC2 translate;
     float rotate;
@@ -40,13 +40,13 @@ struct IndirectStage {
 class AnimTransform;
 
 class AnimationLink {
-public:
+   public:
     ut::LinkListNode link;
     AnimTransform* animTrans;
     u16 idx;
     bool disable;
 };
 
-}//namespace lyt
-}//namespace nw4r
+}  // namespace lyt
+}  // namespace nw4r
 #endif

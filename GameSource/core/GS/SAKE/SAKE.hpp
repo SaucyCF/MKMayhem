@@ -2,9 +2,9 @@
 #define _SAKE_
 #include <types.hpp>
 
-//SAKE
+// SAKE
 namespace SAKE {
-extern const char sakeDomainName[]; //8027DEB4
-}//namespace SAKE
+extern const char sakeDomainName[];  // 8027DEB4
+}  // namespace SAKE
 
 #endif

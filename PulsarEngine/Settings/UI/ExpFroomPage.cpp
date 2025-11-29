@@ -7,6 +7,8 @@
 #include <UI/UI.hpp>
 #include <Settings/UI/ExpWFCMainPage.hpp>
 #include <UI/RoomKick/RoomKickPage.hpp>
+// Use DWC::Printf for logging instead of printf (printf may be unavailable at runtime)
+#include <core/rvl/DWC/DWCCore.hpp>
 
 namespace Pulsar {
 namespace UI {
@@ -44,20 +46,19 @@ void ExpFroom::OnResume() {
 }
 
 void ExpFroom::ExtOnButtonSelect(PushButton& button, u32 hudSlotId) {
-    if(button.buttonId == 5) {
+    if (button.buttonId == 5) {
         u32 bmgId = BMG_SETTINGS_BOTTOM + 1;
-        if(this->topSettingsPage == PAGE_VS_TEAMS_VIEW) bmgId += 1;
-        else if(this->topSettingsPage == PAGE_BATTLE_MODE_SELECT) bmgId += 2;
+        if (this->topSettingsPage == PAGE_VS_TEAMS_VIEW)
+            bmgId += 1;
+        else if (this->topSettingsPage == PAGE_BATTLE_MODE_SELECT)
+            bmgId += 2;
         this->bottomText.SetMessage(bmgId, 0);
-    }
-    else if(button.buttonId == 6) this->bottomText.SetMessage(BMG_TEAMS_BOTTOM, 0);
-    else if (button.buttonId == 7) this->bottomText.SetMessage(BMG_KICK_BOTTOM, 0);
-    else this->OnButtonSelect(button, hudSlotId);
-}
-
-void ExpFroom::OnKickButtonClick(PushButton& button, u32 hudSlotId) {
-    this->areControlsHidden = true;
-    this->AddPageLayer(static_cast<PageId>(PULPAGE_ROOMKICK), 0);
+    } else if (button.buttonId == 6)
+        this->bottomText.SetMessage(BMG_TEAMS_BOTTOM, 0);
+    else if (button.buttonId == 7)
+        this->bottomText.SetMessage(BMG_KICK_BOTTOM, 0);
+    else
+        this->OnButtonSelect(button, hudSlotId);
 }
 
 void ExpFroom::OnActivate() {
@@ -75,6 +76,11 @@ void ExpFroom::OnSettingsButtonClick(PushButton& button, u32 hudSlotId) {
 void ExpFroom::OnTeamsButtonClick(PushButton& button, u32 hudSlotId) {
     this->areControlsHidden = true;
     this->AddPageLayer(static_cast<PageId>(PULPAGE_TEAMSELECT), 0);
+}
+
+void ExpFroom::OnKickButtonClick(PushButton& button, u32 hudSlotId) {
+    this->areControlsHidden = true;
+    this->AddPageLayer(static_cast<PageId>(PULPAGE_ROOMKICK), 0);
 }
 
 void ExpFroom::AfterControlUpdate() {

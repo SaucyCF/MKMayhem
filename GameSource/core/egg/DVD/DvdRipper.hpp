@@ -14,18 +14,18 @@ enum EAllocDirection {
 };
 
 void* LoadToMainRAM(const char* path, void* buffer, Heap* heap,
-    EAllocDirection allocDirection, u32 offset, u32* readBytes, u32* size); //802226d8 calls the 2nd one
+                    EAllocDirection allocDirection, u32 offset, u32* readBytes, u32* size);  // 802226d8 calls the 2nd one
 
 void* LoadToMainRAM(DvdFile* file, void* buffer, Heap* heap,
-    EAllocDirection allocDirection, u32 offset, u32* readBytes, u32* size); //8022277c
+                    EAllocDirection allocDirection, u32 offset, u32* readBytes, u32* size);  // 8022277c
 
-//non-official
+// non-official
 void* LoadToMainRAMLZDecomp(const char* path, StreamDecompLZ* streamDecompLZ, void* buffer, Heap* heap,
-    EAllocDirection allocDirection, u32 offset, u32 lengthToDecompress, u32 r10); //8022293c
+                            EAllocDirection allocDirection, u32 offset, u32 lengthToDecompress, u32 r10);  // 8022293c
 
 void* LoadToMainRAMLZDecomp(DvdFile* file, StreamDecompLZ* streamDecompLZ, void* buffer, Heap* heap,
-    EAllocDirection allocDirection, u32 offset, u32 lengthToDecompress, u32 r10); //802229e8
+                            EAllocDirection allocDirection, u32 offset, u32 lengthToDecompress, u32 r10);  // 802229e8
 
-}//namespace DvdRipper
-}//namespace EGG
+}  // namespace DvdRipper
+}  // namespace EGG
 #endif
