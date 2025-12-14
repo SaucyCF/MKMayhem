@@ -7,6 +7,7 @@
 #include <SlotExpansion/CupsConfig.hpp>
 #include <Network/PacketExpansion.hpp>
 #include <MarioKartWii/UI/Ctrl/CountDown.hpp>
+#include <MarioKartWii/UI/Page/Other/SELECTStageMgr.hpp>
 
 namespace Pulsar {
 namespace UI {
@@ -223,7 +224,6 @@ void SettingsPanel::OnActivate() {
     // Hide specific settings pages in voting sections
     if(isVotingSection) {
         if (this->sheetIdx == Settings::SETTINGSTYPE_KO || 
-            this->sheetIdx == Settings::SETTINGSTYPE_WW ||
             this->sheetIdx == Settings::SETTINGSTYPE_RULES ||
             this->sheetIdx == Settings::SETTINGSTYPE_RULES2 ||
             this->sheetIdx == Settings::SETTINGSTYPE_ITEM) {
@@ -284,15 +284,23 @@ ManipulatorManager& SettingsPanel::GetManipulatorManager() {
 }
 
 void SettingsPanel::LoadPrevMenuAndSaveSettings(PushButton& button) {
-    this->LoadPrevPage(button);
     const Section* section = SectionMgr::sInstance->curSection;
-    /*if(this->prevPageId == PAGE_OPTIONS) section->Get<ExpOptions>()->topSettingsPage = static_cast<PulPageId>(this->pageId);*/
-    if(this->prevPageId == PAGE_WFC_MAIN) section->Get<ExpWFCMain>()->topSettingsPage = static_cast<PulPageId>(this->pageId);
-    else if(this->prevPageId == PAGE_FRIEND_ROOM) {
+    if (this->prevPageId == PAGE_FRIEND_ROOM) {
         section->Get<ExpFroom>()->topSettingsPage = static_cast<PulPageId>(this->pageId);
-        this->nextPageId = PAGE_NONE; //FriendRoom's OnResume is important
+        this->nextPageId = PAGE_NONE;
+        this->EndStateAnimated(0, button.GetAnimationFrameSize());
     }
-    //else if(this->prevPageId == PAGE_SINGLE_PLAYER_MENU) ExpSinglePlayer::topSettingsPage = static_cast<PulPageId>(this->pageId);
+    else if (this->prevPageId == PAGE_VR) {
+        this->nextPageId = PAGE_NONE;
+        this->EndStateAnimated(0, button.GetAnimationFrameSize());
+    }
+    else {
+        this->LoadPrevPage(button);
+        if (this->prevPageId == PAGE_WFC_MAIN) {
+            section->Get<ExpWFCMain>()->topSettingsPage = static_cast<PulPageId>(this->pageId);
+        }
+    }
+
     this->SaveSettings(true);
 }
 
@@ -348,7 +356,6 @@ void SettingsPanel::OnButtonClick(PushButton& button, u32 direction) {
     // Skip restricted pages in voting sections
     if(isVotingSection) {
         while (nextIdx == Settings::SETTINGSTYPE_KO || 
-               nextIdx == Settings::SETTINGSTYPE_WW ||
                nextIdx == Settings::SETTINGSTYPE_RULES ||
                nextIdx == Settings::SETTINGSTYPE_RULES2 ||
                nextIdx == Settings::SETTINGSTYPE_ITEM) {

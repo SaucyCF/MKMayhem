@@ -21,6 +21,30 @@ static void ConvertROOMPacketToData(const PulROOM& packet) {
     system->netMgr.racesPerGP = packet.raceCount;
 }
 
+static bool ApplyHostContextLocally(u32 hostContext) {
+    System* system = System::sInstance;
+    
+    const bool isCharRestrictLight = hostContext & (1 << PULSAR_CHARRESTRICTLIGHT);
+    const bool isCharRestrictMedium = hostContext & (1 << PULSAR_CHARRESTRICTMEDIUM);
+    const bool isCharRestrictHeavy = hostContext & (1 << PULSAR_CHARRESTRICTHEAVY);
+    const bool isKartRestrictKart = hostContext & (1 << PULSAR_KARTRESTRICT);
+    const bool isKartRestrictBike = hostContext & (1 << PULSAR_BIKERESTRICT);
+    const bool isStartMKDS = hostContext & (1 << PULSAR_STARTMKDS);
+    const bool isStartItemRain = hostContext & (1 << PULSAR_STARTITEMRAIN);
+    const bool isStartMayhem = hostContext & (1 << PULSAR_STARTMAYHEM);
+
+    u32 context = (isCharRestrictLight << PULSAR_CHARRESTRICTLIGHT) | (isCharRestrictMedium << PULSAR_CHARRESTRICTMEDIUM) | (isCharRestrictHeavy << PULSAR_CHARRESTRICTHEAVY) | (isKartRestrictKart << PULSAR_KARTRESTRICT) | (isKartRestrictBike << PULSAR_BIKERESTRICT) | (isStartMKDS << PULSAR_STARTMKDS) | (isStartItemRain << PULSAR_STARTITEMRAIN) | (isStartMayhem << PULSAR_STARTMAYHEM);
+    Pulsar::System::sInstance->context = context;
+
+    if (isStartMKDS || isStartItemRain || isStartMayhem) {
+            Pulsar::System::sInstance->context &= ~(1 << PULSAR_CHARRESTRICTHEAVY);
+            Pulsar::System::sInstance->context &= ~(1 << PULSAR_CHARRESTRICTMEDIUM);
+            Pulsar::System::sInstance->context &= ~(1 << PULSAR_CHARRESTRICTLIGHT);
+            Pulsar::System::sInstance->context &= ~(1 << PULSAR_KARTRESTRICT);
+            Pulsar::System::sInstance->context &= ~(1 << PULSAR_BIKERESTRICT);
+    }
+}
+
 static void BeforeROOMSend(RKNet::PacketHolder<PulROOM>* packetHolder, PulROOM* src, u32 len) {
     packetHolder->Copy(src, len); //default
 
@@ -30,6 +54,13 @@ static void BeforeROOMSend(RKNet::PacketHolder<PulROOM>* packetHolder, PulROOM* 
     PulROOM* destPacket = packetHolder->packet;
     if (destPacket->messageType == 1 && sub.localAid == sub.hostAid) {
         packetHolder->packetSize = sizeof(PulROOM); //this has been changed by copy so it's safe to do this
+
+        // Store original message index for worldwide option detection
+        const u8 originalMessage = destPacket->message;
+        if (originalMessage >= 4 && originalMessage <= 6) {
+            destPacket->message = 0;
+        }
+
         const Settings::Mgr& settings = Settings::Mgr::Get();
         const RacedataSettings& racedataSettings = Racedata::sInstance->menusScenario.settings;
         const GameMode mode = racedataSettings.gamemode;
@@ -44,6 +75,13 @@ static void BeforeROOMSend(RKNet::PacketHolder<PulROOM>* packetHolder, PulROOM* 
         u8 koSetting = settings.GetSettingValue(Settings::SETTINGSTYPE_KO, KO_ENABLED) == KOSETTING_ENABLED;
         u8 lapKoSetting = settings.GetSettingValue(Settings::SETTINGSTYPE_KO, KO_ENABLED) == KOSETTING_LAP_ENABLED && isNotPublic && !isBattle && !isTimeTrial;
         const u8 koFinal = settings.GetSettingValue(Settings::SETTINGSTYPE_KO, KO_FINAL) == KOSETTING_FINAL_ALWAYS;
+
+        const u8 worldwideMKDS = settings.GetSettingValue(Settings::SETTINGSTYPE_MISC2, WW_GAMEMODE) == DKWSETTING_WWGAMEMODE_MKDS;
+        const u8 worldwideItemRain = settings.GetSettingValue(Settings::SETTINGSTYPE_MISC2, WW_GAMEMODE) == DKWSETTING_WWGAMEMODE_ITEMRAIN;
+        const u8 worldwideMayhem = settings.GetSettingValue(Settings::SETTINGSTYPE_MISC2, WW_GAMEMODE) == DKWSETTING_WWGAMEMODE_MAYHEM;
+        const u8 startMKDS = (originalMessage == 4);
+        const u8 startItemRain = (originalMessage == 5);
+        const u8 startMayhem = (originalMessage == 6);
 
         const u8 fiftyCC = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES, RULES_RADIO_CC) == HOSTSETTING_CC_50;
         const u8 hundredCC = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES, RULES_RADIO_CC) == HOSTSETTING_CC_REAL100;
@@ -76,31 +114,12 @@ static void BeforeROOMSend(RKNet::PacketHolder<PulROOM>* packetHolder, PulROOM* 
         const u8 tcToggle = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_TCTOGGLE) == DKWSETTING_TCTOGGLE_ENABLED;
         const u8 allItems = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_ALLITEMS) == DKWSETTING_ALLITEMS_ENABLED;
 
-        const u8 worldwideRegular = settings.GetSettingValue(Settings::SETTINGSTYPE_WW, WW_GAMEMODE) == DKWSETTING_WWGAMEMODE_REGULAR;
-        const u8 worldwideItemRain = settings.GetSettingValue(Settings::SETTINGSTYPE_WW, WW_GAMEMODE) == DKWSETTING_WWGAMEMODE_ITEMRAIN;
-        const u8 worldwideMayhem = settings.GetSettingValue(Settings::SETTINGSTYPE_WW, WW_GAMEMODE) == DKWSETTING_WWGAMEMODE_MAYHEM;
-        const u8 startRegular = settings.GetSettingValue(Settings::SETTINGSTYPE_WW, WW_FROOMSTART) == DKWSETTING_FROOMSTART_REGULAR;
-        const u8 startItemRain = settings.GetSettingValue(Settings::SETTINGSTYPE_WW, WW_FROOMSTART) == DKWSETTING_FROOMSTART_ITEMRAIN;
-        const u8 startMayhem = settings.GetSettingValue(Settings::SETTINGSTYPE_WW, WW_FROOMSTART) == DKWSETTING_FROOMSTART_MAYHEM;
-
-        if (startRegular || startItemRain || startMayhem) {
-            Pulsar::System::sInstance->context &= ~(1 << PULSAR_CHARRESTRICTHEAVY);
-            Pulsar::System::sInstance->context &= ~(1 << PULSAR_CHARRESTRICTMEDIUM);
-            Pulsar::System::sInstance->context &= ~(1 << PULSAR_CHARRESTRICTLIGHT);
-            Pulsar::System::sInstance->context &= ~(1 << PULSAR_KARTRESTRICT);
-            Pulsar::System::sInstance->context &= ~(1 << PULSAR_BIKERESTRICT);
-        }
-
-
         destPacket->hostSystemContext = (koSetting << PULSAR_MODE_KO)
       | (lapKoSetting) << PULSAR_MODE_LAPKO
       | (koFinal) << PULSAR_KOFINAL
       | (settings.GetSettingValue(Settings::SETTINGSTYPE_RULES, RULES_ALLOW_ULTRAS) ^ true) << PULSAR_ULTRAS
       | (settings.GetSettingValue(Settings::SETTINGSTYPE_RULES, RULES_ALLOW_MIIHEADS) ^ true) << PULSAR_MIIHEADS
       | (mayhemCodes) << PULSAR_MAYHEM
-      | (boxSpawnFast) << PULSAR_FASTBOX
-      | (boxSpawnInstant) << PULSAR_INSTANTBOX
-      | (boxSpawnDisabled) << PULSAR_DISABLEBOX
       | (charRestrictLight) << PULSAR_CHARRESTRICTLIGHT
       | (charRestrictMedium) << PULSAR_CHARRESTRICTMEDIUM
       | (charRestrictHeavy) << PULSAR_CHARRESTRICTHEAVY
@@ -114,7 +133,10 @@ static void BeforeROOMSend(RKNet::PacketHolder<PulROOM>* packetHolder, PulROOM* 
       | (cantBrakeDrift) << PULSAR_BDRIFTING
       | (cantFastFall) << PULSAR_FALLFAST
       | (cantAlwaysDrift) << PULSAR_NODRIFTANYWHERE
-      | (disableInvisWalls) << PULSAR_INVISWALLS;
+      | (disableInvisWalls) << PULSAR_INVISWALLS
+      | (startMKDS) << PULSAR_STARTMKDS
+      | (startItemRain) << PULSAR_STARTITEMRAIN
+      | (startMayhem) << PULSAR_STARTMAYHEM;
 
       destPacket->hostSystemContext2 = (fiftyCC) << PULSAR_50
       | (hundredCC) << PULSAR_100
@@ -125,12 +147,12 @@ static void BeforeROOMSend(RKNet::PacketHolder<PulROOM>* packetHolder, PulROOM* 
       | (bumperKart) << PULSAR_MODE_BUMPERKARTS
       | (itemModeUnknown) << PULSAR_MODE_UNKNOWN
       | (itemModeBattleRoyale) << PULSAR_BATTLEROYALE
-      | (worldwideRegular) << PULSAR_WWREGULAR
+      | (worldwideMKDS) << PULSAR_WWMKDS
       | (worldwideItemRain) << PULSAR_WWITEMRAIN
       | (worldwideMayhem) << PULSAR_WWMAYHEM
-      | (startRegular) << PULSAR_STARTREGULAR
-      | (startItemRain) << PULSAR_STARTITEMRAIN
-      | (startMayhem) << PULSAR_STARTMAYHEM
+      | (boxSpawnFast) << PULSAR_FASTBOX
+      | (boxSpawnInstant) << PULSAR_INSTANTBOX
+      | (boxSpawnDisabled) << PULSAR_DISABLEBOX
       | (settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_THUNDERCLOUD) << PULSAR_THUNDERCLOUD)
       | (settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_FLYINGBLOOP) << PULSAR_FLYINGBLOOP)
       | (settings.GetSettingValue(Settings::SETTINGSTYPE_RULES, RULES_RADIO_HOSTWINS) << PULSAR_HAW);
@@ -161,6 +183,7 @@ static void BeforeROOMSend(RKNet::PacketHolder<PulROOM>* packetHolder, PulROOM* 
         }
         destPacket->raceCount = raceCount;
         ConvertROOMPacketToData(*destPacket);
+        (void)ApplyHostContextLocally(destPacket->hostSystemContext);
     }
 }
 kmCall(0x8065b15c, BeforeROOMSend);
@@ -180,47 +203,10 @@ static void AfterROOMReception(const RKNet::PacketHolder<PulROOM>* packetHolder,
     //START msg sent by the host, size check should always be guaranteed in theory
     if(src.messageType == 1 && !isHost && packetHolder->packetSize == sizeof(PulROOM)) {
         ConvertROOMPacketToData(src);
-        const Settings::Mgr& settings = Settings::Mgr::Get();
 
-    bool isCharRestrictLight = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_CHARRESTRICT) == DKWSETTING_CHARRESTRICT_LIGHT;
-    bool isCharRestrictMedium = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_CHARRESTRICT) == DKWSETTING_CHARRESTRICT_MEDIUM;
-    bool isCharRestrictHeavy = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_CHARRESTRICT) == DKWSETTING_CHARRESTRICT_HEAVY;
-    bool isCharRestrictPrincess = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_CHARRESTRICT) == DKWSETTING_CHARRESTRICT_PRINCESS;
-    bool isKartRestrictKart = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_VEHICLERESTRICT) == DKWSETTING_VEHICLERESTRICT_KARTS;
-    bool isKartRestrictBike = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_VEHICLERESTRICT) == DKWSETTING_VEHICLERESTRICT_BIKES;
-    bool isStartRegular = settings.GetSettingValue(Settings::SETTINGSTYPE_WW, WW_FROOMSTART) == DKWSETTING_FROOMSTART_REGULAR;
-    bool isStartItemRain = settings.GetSettingValue(Settings::SETTINGSTYPE_WW, WW_FROOMSTART) == DKWSETTING_FROOMSTART_ITEMRAIN;
-    bool isStartMayhem = settings.GetSettingValue(Settings::SETTINGSTYPE_WW, WW_FROOMSTART) == DKWSETTING_FROOMSTART_MAYHEM;
-    u32 newContext = 0;
-    u32 newContext2 = 0;
-    Network::Mgr& netMgr = Pulsar::System::sInstance->netMgr;
-        newContext = netMgr.hostContext;
-        newContext2 = netMgr.hostContext2;
-        isCharRestrictLight = newContext & (1 << PULSAR_CHARRESTRICTLIGHT);
-        isCharRestrictMedium = newContext & (1 << PULSAR_CHARRESTRICTMEDIUM);
-        isCharRestrictHeavy = newContext & (1 << PULSAR_CHARRESTRICTHEAVY);
-        isKartRestrictKart = newContext & (1 << PULSAR_KARTRESTRICT);
-        isKartRestrictBike = newContext & (1 << PULSAR_BIKERESTRICT);
-        isStartRegular = newContext2 & (1 << PULSAR_STARTREGULAR);
-        isStartItemRain = newContext2 & (1 << PULSAR_STARTITEMRAIN);
-        isStartMayhem = newContext2 & (1 << PULSAR_STARTMAYHEM);
-    netMgr.hostContext = newContext;
-    netMgr.hostContext2 = newContext2;
+        // Get context from host packet (no need to read local settings - host values take precedence)
+        Network::Mgr& netMgr = Pulsar::System::sInstance->netMgr;
 
-    u32 context = (isCharRestrictLight << PULSAR_CHARRESTRICTLIGHT) | (isCharRestrictMedium << PULSAR_CHARRESTRICTMEDIUM) | (isCharRestrictHeavy << PULSAR_CHARRESTRICTHEAVY) | (isKartRestrictKart << PULSAR_KARTRESTRICT) | (isKartRestrictBike << PULSAR_BIKERESTRICT);
-    Pulsar::System::sInstance->context = context;
-
-    u32 context2 = (isStartRegular << PULSAR_STARTREGULAR) | (isStartItemRain << PULSAR_STARTITEMRAIN) | (isStartMayhem << PULSAR_STARTMAYHEM);
-    Pulsar::System::sInstance->context2 = context2;
-
-    if (isStartRegular || isStartItemRain || isStartMayhem) {
-            Pulsar::System::sInstance->context &= ~(1 << PULSAR_CHARRESTRICTHEAVY);
-            Pulsar::System::sInstance->context &= ~(1 << PULSAR_CHARRESTRICTMEDIUM);
-            Pulsar::System::sInstance->context &= ~(1 << PULSAR_CHARRESTRICTLIGHT);
-            Pulsar::System::sInstance->context &= ~(1 << PULSAR_KARTRESTRICT);
-            Pulsar::System::sInstance->context &= ~(1 << PULSAR_BIKERESTRICT);
-    }
-        
         //Also exit the settings page to prevent weird graphical artefacts
         Page* topPage = SectionMgr::sInstance->curSection->GetTopLayerPage();
         PageId topId = topPage->pageId;

@@ -6,20 +6,20 @@
 #include <MarioKartWii/KMP/KMPManager.hpp>
 
 namespace LECODE {
-//https://wiki.tockdom.com/wiki/LEX_(File_Format)
+// https://wiki.tockdom.com/wiki/LEX_(File_Format)
 struct LEXHeader {
     static const u32 goodMagic = 'LE-X';
     u32 magic;
-    u16 majorVersion; //0x4
+    u16 majorVersion;  // 0x4
     u16 minorVersion;
-    u32 size; //0x8
-    u32 offsetToFirstSection; //0xc
+    u32 size;  // 0x8
+    u32 offsetToFirstSection;  // 0xc
 };
 
 struct LEXSectionHeader {
     u32 magic;
     u32 dataSize;
-    //char data[];
+    // char data[];
 };
 
 struct SET1 : LEXSectionHeader {
@@ -38,9 +38,9 @@ struct CANN : public LEXSectionHeader {
 
 struct HIPT {
     struct List {
-        u8 contextCondition; //1 offline only, 2 online only, 3 both
-        s8 lap; //positive = the lap this applies to, negative = the lap starting from the top lap this applies to, so -1 = last lap, 99 = all laps
-        u8 cpFrom; //inclusive
+        u8 contextCondition;  // 1 offline only, 2 online only, 3 both
+        s8 lap;  // positive = the lap this applies to, negative = the lap starting from the top lap this applies to, so -1 = last lap, 99 = all laps
+        u8 cpFrom;  // inclusive
         u8 cpTo;
         bool showTracker;
     };
@@ -54,7 +54,8 @@ struct RITP {
 
 class LexMgr {
     inline void Reset();
-public:
+
+   public:
     static const KMPHeader* LoadLEXAndKMP(u32, const char* kmpString);
     LEXHeader* lex;
     SET1* set1;
@@ -63,5 +64,5 @@ public:
     Kart::Movement::CannonParams* cann;
 };
 
-}//namespace LECODE
+}  // namespace LECODE
 #endif

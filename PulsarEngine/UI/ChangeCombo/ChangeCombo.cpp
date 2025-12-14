@@ -19,6 +19,14 @@ namespace UI {
 
 kmWrite32(0x806508d4, 0x60000000); //Add VR screen outside of 1st race in frooms
 
+static ExpVR* GetActiveComboVRPage() {
+    Section* section = SectionMgr::sInstance->curSection;
+    if(section == nullptr) return nullptr;
+    ExpVR* vrPage = section->Get<ExpVR>();
+    if(vrPage == nullptr || vrPage->comboButtonState == 0) return nullptr;
+    return vrPage;
+}
+
 ExpVR::ExpVR() : comboButtonState(0) {
     const System* system = System::sInstance;
     this->onRandomComboClick.subject = this;
@@ -193,9 +201,51 @@ void ExpVR::ChangeCombo(PushButton& changeComboButton, u32 hudSlotId) {
 void ExpVR::OnSettingsButtonClick(PushButton& button, u32 hudSlotId) {
     this->areControlsHidden = true;
     SettingsPanel* settingsPanel = ExpSection::GetSection()->GetPulPage<SettingsPanel>();
-    settingsPanel->prevPageId = PAGE_NONE;
+    settingsPanel->prevPageId = PAGE_VR;
+    // Open Settings as a layer over VR and keep VR active underneath
     this->AddPageLayer(static_cast<PageId>(this->topSettingsPage), 0);
-    this->EndStateAnimated(0, button.GetAnimationFrameSize());
+}
+
+void ExpVR::AfterControlUpdate() {
+    VR::AfterControlUpdate();
+
+    const bool hidden = this->areControlsHidden;
+
+    this->okButton.isHidden = hidden;
+    this->ctrlMenuBackButton.isHidden = hidden;
+    this->ctrlMenuBottomMessage.isHidden = hidden;
+    for (int i = 0; i < 12; ++i) this->vrControls[i].isHidden = hidden;
+
+    if (hidden) {
+        this->randomComboButton.isHidden = true;
+        this->changeComboButton.isHidden = true;
+        this->settingsButton.isHidden = true;
+    } else {
+        const System* system = System::sInstance;
+        bool isKOd = false;
+        if(system->IsContext(PULSAR_MODE_KO) && system->koMgr->isSpectating) isKOd = true;
+        if(system->IsContext(PULSAR_MODE_OTT) && system->IsContext(PULSAR_CHANGECOMBO) == OTTSETTING_COMBO_ENABLED) isKOd = true;
+        if(System::sInstance->IsContext(PULSAR_MODE_OTT) && ((RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_VS_REGIONAL) || (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_JOINING_REGIONAL))) isKOd = true;
+
+        this->randomComboButton.isHidden = isKOd;
+        this->changeComboButton.isHidden = isKOd;
+        this->settingsButton.isHidden = false;
+
+        u32 lobbyPlayers = 0;
+        const RKNet::Controller* controller = RKNet::Controller::sInstance;
+        if (controller != nullptr) {
+            const RKNet::ControllerSub& sub = controller->subs[controller->currentSub];
+            lobbyPlayers = sub.playerCount;
+            if (lobbyPlayers > 12) lobbyPlayers = 12;
+        }
+        for (u32 i = lobbyPlayers; i < 12; ++i) this->vrControls[i].isHidden = true;
+    }
+}
+
+void ExpVR::OnResume() {
+    // Unhide VR when returning from Settings
+    if (this->areControlsHidden) this->areControlsHidden = false;
+    VR::OnResume();
 }
 
 void ExpVR::ExtOnButtonSelect(PushButton& button, u32 hudSlotId) {
@@ -395,6 +445,9 @@ void ExpMultiKartSelect::BeforeControlUpdate() {
         this->rouletteCounter--;
         this->controlsManipulatorManager.inaccessible = true;
     }
+    ExpVR* vrPage = GetActiveComboVRPage();
+    const bool isBumperKarts = System::sInstance->IsContext(PULSAR_MODE_BUMPERKARTS);
+    const PageId nextPage = (vrPage != nullptr && !isBumperKarts) ? PAGE_VR : PAGE_VOTE;
     for(int hudId = 0; hudId < SectionMgr::sInstance->sectionParams->localPlayerCount; ++hudId) {
         if(roulette == ExpVR::randomDuration) this->arrows[hudId].SelectInitial(this->rolledKartPos[hudId]);
         if(roulette > 8) {
@@ -406,14 +459,26 @@ void ExpMultiKartSelect::BeforeControlUpdate() {
         }
         else if(roulette == 0) {
             this->arrows[hudId].HandleClick(hudId, -1);
-            this->nextPageId = PAGE_VOTE;
+            this->nextPageId = nextPage;
+            Pages::SELECTStageMgr* selectStageMgr = SectionMgr::sInstance->curSection->Get<Pages::SELECTStageMgr>();
+            if(selectStageMgr != nullptr && !isBumperKarts) selectStageMgr->status = Pages::SELECTStageMgr::STATUS_VR_PAGE;
             this->EndStateAnimated(0, 0.0f);
+            if(vrPage != nullptr) vrPage->comboButtonState = 0;
         }
+    }
+
+    if(vrPage != nullptr && this->currentState == STATE_EXITING) {
+        this->nextPageId = nextPage;
+        Pages::SELECTStageMgr* selectStageMgr = SectionMgr::sInstance->curSection->Get<Pages::SELECTStageMgr>();
+        if(selectStageMgr != nullptr && !isBumperKarts) selectStageMgr->status = Pages::SELECTStageMgr::STATUS_VR_PAGE;
+        vrPage->comboButtonState = 0;
     }
 }
 
 void DriftSelectBeforeControlUpdate(Pages::DriftSelect* driftSelect) {
     ExpCharacterSelect* charSelect = SectionMgr::sInstance->curSection->Get<ExpCharacterSelect>();
+    ExpVR* vrPage = GetActiveComboVRPage();
+    const bool isBumperKarts = System::sInstance->IsContext(PULSAR_MODE_BUMPERKARTS);
     if(charSelect->rouletteCounter != -1 && driftSelect->currentState == 0x4) {
         driftSelect->controlsManipulatorManager.inaccessible = true;
         PushButton* autoButton = driftSelect->controlGroup.GetControl<PushButton>(1);
@@ -424,6 +489,15 @@ void DriftSelectBeforeControlUpdate(Pages::DriftSelect* driftSelect) {
         manualButton->HandleClick(0, -1);
         charSelect->rouletteCounter = -1;
     }
+
+    if(vrPage != nullptr && driftSelect->currentState == STATE_EXITING) {
+        if(!isBumperKarts) {
+            driftSelect->nextPageId = PAGE_VR;
+            Pages::SELECTStageMgr* selectStageMgr = SectionMgr::sInstance->curSection->Get<Pages::SELECTStageMgr>();
+            if(selectStageMgr != nullptr) selectStageMgr->status = Pages::SELECTStageMgr::STATUS_VR_PAGE;
+        }
+        vrPage->comboButtonState = 0;
+    }
 }
 kmWritePointer(0x808D9DF8, DriftSelectBeforeControlUpdate);
 
@@ -431,6 +505,9 @@ void MultiDriftSelectBeforeControlUpdate(Pages::MultiDriftSelect* multiDriftSele
 
     SectionMgr* sectionMgr = SectionMgr::sInstance;
     ExpCharacterSelect* charSelect = sectionMgr->curSection->Get<ExpCharacterSelect>();
+    ExpVR* vrPage = GetActiveComboVRPage();
+    const bool isBumperKarts = System::sInstance->IsContext(PULSAR_MODE_BUMPERKARTS);
+    const PageId nextPage = (vrPage != nullptr && !isBumperKarts) ? PAGE_VR : PAGE_VOTE;
     if(charSelect->rouletteCounter != -1 && multiDriftSelect->currentState == 0x4) {
         multiDriftSelect->controlsManipulatorManager.inaccessible = true;
         for(int i = 0; i < sectionMgr->sectionParams->localPlayerCount; ++i) {
@@ -442,6 +519,15 @@ void MultiDriftSelectBeforeControlUpdate(Pages::MultiDriftSelect* multiDriftSele
             manualButton->HandleClick(i, -1);
         }
         charSelect->rouletteCounter = -1;
+    }
+
+    if(vrPage != nullptr && multiDriftSelect->currentState == STATE_EXITING) {
+        if(!isBumperKarts) {
+            multiDriftSelect->nextPageId = nextPage;
+            Pages::SELECTStageMgr* selectStageMgr = SectionMgr::sInstance->curSection->Get<Pages::SELECTStageMgr>();
+            if(selectStageMgr != nullptr) selectStageMgr->status = Pages::SELECTStageMgr::STATUS_VR_PAGE;
+        }
+        vrPage->comboButtonState = 0;
     }
 }
 kmWritePointer(0x808D9C10, MultiDriftSelectBeforeControlUpdate);

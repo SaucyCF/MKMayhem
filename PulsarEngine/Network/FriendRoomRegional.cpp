@@ -15,7 +15,7 @@ namespace Network {
 static u8 REGIONID = 0x4D;
 
 static void SetRegionId(u8 regionId) {
-    if (Pulsar::System::sInstance->IsContext(PULSAR_STARTREGULAR)) REGIONID = 0x4D;
+    if (Pulsar::System::sInstance->IsContext(PULSAR_STARTMKDS)) REGIONID = 0x4D;
     else if (Pulsar::System::sInstance->IsContext(PULSAR_STARTITEMRAIN)) REGIONID = 0x4E;
     else if (Pulsar::System::sInstance->IsContext(PULSAR_STARTMAYHEM)) REGIONID = 0x4F;
     else REGIONID = regionId;
@@ -66,11 +66,6 @@ static bool ConvertFriendRoomStateToRegional() {
     raceSettings.modeFlags &= ~static_cast<u32>(2);
     raceSettings.gametype = GAMETYPE_DEFAULT;
 
-    SystemManager* sysMgr = SystemManager::sInstance;
-    if (sysMgr != nullptr) {
-        sysMgr->regionId = REGIONID;
-    }
-
     const u8 localPlayerCount = controller->subs[controller->currentSub].localPlayerCount;
     const u8 totalPlayerCount = controller->subs[controller->currentSub].playerCount;
 
@@ -91,7 +86,7 @@ static bool ConvertFriendRoomStateToRegional() {
         }
     }
 
-    controller->roomType = wasHost ? RKNet::ROOMTYPE_VS_REGIONAL : RKNet::ROOMTYPE_JOINING_REGIONAL;
+    controller->roomType = RKNet::ROOMTYPE_VS_REGIONAL;
     controller->localStatusData.regionId = REGIONID;
     controller->localStatusData.status = RKNet::FRIEND_STATUS_PUBLIC_VS;
     controller->localStatusData.playerCount = totalPlayerCount != 0 ? totalPlayerCount : localPlayerCount;
@@ -147,7 +142,7 @@ static void ApplyNextSection(SectionMgr* sectionMgr, SectionId nextSectionId, u3
 static void SetNextSectionRegionalHook(SectionMgr* sectionMgr, SectionId nextSectionId, u32 animDirection) {
     SetRegionId(REGIONID);
     bool isFroom = RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST;
-    if ((Pulsar::System::sInstance->IsContext(PULSAR_STARTREGULAR) || Pulsar::System::sInstance->IsContext(PULSAR_STARTITEMRAIN) ||
+    if ((Pulsar::System::sInstance->IsContext(PULSAR_STARTMKDS) || Pulsar::System::sInstance->IsContext(PULSAR_STARTITEMRAIN) ||
         Pulsar::System::sInstance->IsContext(PULSAR_STARTMAYHEM)) && isFroom) {
         static bool hasConverted = false;
 

@@ -85,10 +85,29 @@ u8 Mgr::BuildPlan(u8 playerCount, u8 koPerRace, u8 usualLapCount, u8* outPlan, u
     if (playerCount < 2) return 0;
 
     if (usualLapCount <= 1) {
-        if (outPlan != nullptr && capacity > 0) {
-            outPlan[0] = (playerCount > 1) ? static_cast<u8>(playerCount - 1) : 0;
+        // Force one-lap tracks to behave as two-lap KO: lap 1 cuts half, lap 2 clears everyone but the winner.
+        if (capacity == 0) return 0;
+
+        u8 remainingPlayers = playerCount;
+        u8 rounds = 0;
+
+        // Lap 1: eliminate half the lobby (at least one, never all).
+        u8 firstElims = static_cast<u8>(remainingPlayers / 2);
+        if (firstElims == 0 && remainingPlayers > 1) firstElims = 1;
+        if (firstElims >= remainingPlayers) firstElims = static_cast<u8>(remainingPlayers - 1);
+        if (outPlan != nullptr) outPlan[rounds] = firstElims;
+        remainingPlayers = static_cast<u8>(remainingPlayers - firstElims);
+        ++rounds;
+
+        // Lap 2: eliminate everyone else except the winner.
+        if (rounds < capacity && remainingPlayers > 1) {
+            u8 secondElims = static_cast<u8>(remainingPlayers - 1);
+            if (outPlan != nullptr) outPlan[rounds] = secondElims;
+            remainingPlayers = static_cast<u8>(remainingPlayers - secondElims);
+            ++rounds;
         }
-        return 1;
+
+        return rounds;
     }
 
     const bool twoLapTrack = (usualLapCount == 2);
@@ -217,8 +236,9 @@ void Mgr::TryResolveRound() {
 
     u8 requiredCrossings;
     if (usualLaps <= 1) {
-        requiredCrossings = 1;
+        // Wait until the surviving half (active - toEliminate) finishes the lap, then drop the rest.
         if (toEliminate >= this->activeCount) toEliminate = static_cast<u8>(this->activeCount - 1);
+        requiredCrossings = static_cast<u8>(this->activeCount - toEliminate);
     } else {
         requiredCrossings = static_cast<u8>(this->activeCount - toEliminate);
     }
@@ -242,12 +262,8 @@ void Mgr::ProcessElimination(u8 playerId, EliminationCause cause, bool fromNetwo
     this->ProcessEliminationInternal(playerId, cause, fromNetwork, suppressRoundAdvance);
 }
 
-u8 Mgr::GetBaseEliminationCountForCurrentRound(u8 usualLapCount) const {
+u8 Mgr::GetBaseEliminationCountForCurrentRound(u8) const {
     if (this->activeCount <= 1) return 0;
-
-    if (usualLapCount <= 1) {
-        return static_cast<u8>(this->activeCount - 1);
-    }
 
     const u8 idx = (this->roundIndex == 0) ? 0 : static_cast<u8>(this->roundIndex - 1);
     if (idx >= this->totalRounds) return 0;

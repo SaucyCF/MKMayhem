@@ -4,7 +4,7 @@
 #include <MarioKartWii/Objects/ObjectsMgr.hpp>
 #include <MarioKartWii/KMP/KMPManager.hpp>
 
-//Total copy of https://github.com/Gabriela-Orzechowska/LE-CODE-XPF/tree/main all credits goes to Gabriela
+// Total copy of https://github.com/Gabriela-Orzechowska/LE-CODE-XPF/tree/main all credits goes to Gabriela
 
 namespace LECODE {
 enum DEF_OBJ_MODE {
@@ -14,10 +14,11 @@ enum DEF_OBJ_MODE {
 };
 
 class XPFMgr {
-public:
+   public:
     XPFMgr() : randScenario(0) {}
     static void EvaluateXPFAndCreateObjs(ObjectsMgr* mgr, bool isMii);
-private:
+
+   private:
     void EvaluateConditions();
     GOBJ* GetDefinitionObject(u16 id);
     bool CalcDefinitionObjectCondition(GOBJ* gobj, bool neg);
@@ -25,6 +26,6 @@ private:
     bool CalcConditionBits(u16 val, u8 field);
     s32 randScenario;
 };
-}//namespace LECODE
+}  // namespace LECODE
 
 #endif

@@ -6,7 +6,7 @@
 namespace Pulsar {
 namespace Network {
 
-static const u32 HARD_CODED_ROOM_KEY = 0x00000000;
+static const u32 HARD_CODED_ROOM_KEY = 0x77771744;
 
 } // namespace Network
 } // namespace Pulsar

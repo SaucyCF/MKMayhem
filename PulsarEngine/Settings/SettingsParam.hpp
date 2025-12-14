@@ -10,7 +10,7 @@ namespace Settings {
 
 class Params {
 public:
-    static const int pulsarPageCount = 8;
+    static const int pulsarPageCount = 7;
     static const int userPageCount = 0;
     static const int pageCount = pulsarPageCount + userPageCount;
 
@@ -34,7 +34,6 @@ enum Type {
     SETTINGSTYPE_RULES2,
     SETTINGSTYPE_ITEM,
     SETTINGSTYPE_KO,
-    SETTINGSTYPE_WW,
     SETTINGSTYPE_OTT,
 };
 
@@ -53,7 +52,7 @@ enum MiscSettings {
     MISC_DEFLICKER = 3,
     MISC_BLUR = 4,
     MISC_RADIO_MUSIC = 5,
-    MISC_SCROLL_BOOT = 0 + 8
+    MISC_SCROLL_BOOT = 0 + 8,
 };
 
 enum Misc2Settings {
@@ -64,6 +63,7 @@ enum Misc2Settings {
     MISC_BRAKEDRIFT = 4,
     MISC_FALLFAST = 5,
     MISC_CUSTOMCC = 0 + 8,
+    WW_GAMEMODE = 1 + 8,
 };
 
 enum Misc3Settings {
@@ -111,11 +111,6 @@ enum KOSettings {
     KO_RACESPERKO = 1 + 8,
 };
 
-enum WWSettings {
-    WW_GAMEMODE = 0,
-    WW_FROOMSTART = 0 + 8,
-};
-
 enum OTTSettings {
     OTT_ONLINE = 0,
     OTT_OFFLINE = 1,
@@ -161,6 +156,13 @@ enum MenuSettingBoot {
     MENUSETTING_BOOT_L2,
     MENUSETTING_BOOT_L3,
     MENUSETTING_BOOT_L4
+};
+
+enum DKWSettingWWGamemode {
+    DKWSETTING_WWGAMEMODE_MKDS,
+    DKWSETTING_WWGAMEMODE_ITEMRAIN,
+    DKWSETTING_WWGAMEMODE_MAYHEM,
+    DKWSETTING_WWGAMEMODE_VANILLA,
 };
 
 //RACE SETTINGS
@@ -387,20 +389,6 @@ enum DKWSettingAllItems {
 enum DKWSettingTCToggle {
     DKWSETTING_TCTOGGLE_DISABLED,
     DKWSETTING_TCTOGGLE_ENABLED
-};
-
-//WORLDWIDE
-enum DKWSettingWWGamemode {
-    DKWSETTING_WWGAMEMODE_REGULAR,
-    DKWSETTING_WWGAMEMODE_ITEMRAIN,
-    DKWSETTING_WWGAMEMODE_MAYHEM,
-};
-
-enum DKWSettingFroomStart {
-    DKWSETTING_FROOMSTART_DISABLED,
-    DKWSETTING_FROOMSTART_REGULAR,
-    DKWSETTING_FROOMSTART_ITEMRAIN,
-    DKWSETTING_FROOMSTART_MAYHEM,
 };
 
 //UNUSED

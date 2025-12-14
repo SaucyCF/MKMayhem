@@ -18,7 +18,7 @@ static int MAX_ITEM_LIFETIME = 1200;
 static int DESPAWN_CHECK_INTERVAL = 2;
 
 static int GetSpawnInterval(u8 playerCount) {
-    return 6;
+    return 12;
 }
 
 static u32 GetRandom() {
@@ -44,18 +44,18 @@ static ItemObjId GetRandomItem() {
     
     static const ItemWeight weightsVS[] = {
         {OBJ_MUSHROOM, 45},
-        {OBJ_GREEN_SHELL, 260},
-        {OBJ_BANANA, 260},
-        {OBJ_RED_SHELL, 260},
+        {OBJ_GREEN_SHELL, 256},
+        {OBJ_BANANA, 256},
+        {OBJ_RED_SHELL, 256},
         {OBJ_FAKE_ITEM_BOX, 80},
         {OBJ_BOBOMB, 5},
         {OBJ_STAR, 20},
         {OBJ_BLUE_SHELL, 30},
-        {OBJ_GOLDEN_MUSHROOM, 5},
+        {OBJ_GOLDEN_MUSHROOM, 9},
         {OBJ_MEGA_MUSHROOM, 20},
         {OBJ_POW_BLOCK, 7},
-        {OBJ_BULLET_BILL, 4},
-        {OBJ_LIGHTNING, 4},
+        {OBJ_BULLET_BILL, 8},
+        {OBJ_LIGHTNING, 8},
     };
     static const ItemWeight weightsBattle[] = {
         {OBJ_MUSHROOM, 45},

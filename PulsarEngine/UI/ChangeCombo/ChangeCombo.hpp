@@ -29,6 +29,8 @@ public:
     static_assert(voteDuration % 4 == 0, "Vote Duration");
     ExpVR();
     void OnInit() override;
+    void AfterControlUpdate() override;
+    void OnResume() override;
     void BeforeControlUpdate() override;
     void OnButtonSelect(PushButton& button, u32 hudSlotId);
     s32 bumperKartCounter;

@@ -109,16 +109,70 @@ u32 CorrectModeButtonsBMG(const RKNet::ROOMPacket& packet) {
 }
 kmCall(0x805dcb74, CorrectModeButtonsBMG); */
 
+static void OnStartButtonFroomMsgActivate() {
+    register ExpFroomMessages* msg;
+    asm(mr msg, r31;);
+    msg->msgCount = 7;  // 4 normal + 3 worldwide options
+}
+kmCall(0x805dc480, OnStartButtonFroomMsgActivate);
+
+u32 CorrectModeButtonsBMG(const RKNet::ROOMPacket& packet) {
+    register u32 rowIdx;
+    asm(mr rowIdx, r24;);  // r24 contains the actual message index
+    register const ExpFroomMessages* messages;
+    asm(mr messages, r19;);
+    u32 bmgId;
+    bmgId = Pages::FriendRoomManager::GetMessageBmg(packet, 0);
+
+    switch (rowIdx) {
+        case 4:
+            return BMG_REGULAR_START_MESSAGE;
+        case 5:
+            return BMG_ITEMRAIN_START_MESSAGE;
+        case 6:
+            return BMG_MAYHEM_START_MESSAGE;
+    }
+
+    if (rowIdx == 0) {
+        const u32 isKO = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_KO, KO_ENABLED) != KOSETTING_DISABLED;
+
+        if (isKO) {
+            bmgId = BMG_PLAY_KO;
+        } else {
+            bmgId = BMG_PLAY_GP;
+        }
+    }
+    return bmgId;
+}
+kmCall(0x805dcb74, CorrectModeButtonsBMG);
+
+static void RemapAndStoreSentMessage() {
+    register u32 packet;
+    register u32 manager;
+    asm(mr packet, r30;);
+    asm(mr manager, r28;);
+
+    // Extract message from bits 8-23 (button ID shifted left by 8)
+    u32 message = (packet >> 8) & 0xFFFF;
+    if (message >= 4 && message <= 9) {
+        // Clear message bits and set to 0 (treat as VS mode locally)
+        packet = packet & 0xFF0000FF;
+    }
+
+    // Perform the original store: stw r30, 0x2c60(r28)
+    *(volatile u32*)((u8*)manager + 0x2c60) = packet;
+}
+kmCall(0x805dce38, RemapAndStoreSentMessage);
+
 void CorrectRoomStartButton(Pages::Globe::MessageWindow& control, u32 bmgId, Text::Info* info) {
     Network::SetGlobeMsgColor(control, -1);
     if (bmgId == BMG_PLAY_GP || bmgId == BMG_PLAY_TEAM_GP) {
         const u32 hostContext = System::sInstance->netMgr.hostContext;
-        const u32 hostContext2 = System::sInstance->netMgr.hostContext2;
         const bool isOTT = hostContext & (1 << PULSAR_MODE_OTT);
-        const bool isKO = hostContext & (1 << PULSAR_MODE_KO);
-        const bool isStartRegular = hostContext2 & (1 << PULSAR_STARTREGULAR);
-        const bool isStartItemRain = hostContext2 & (1 << PULSAR_STARTITEMRAIN);
-        const bool isStartMayhem = hostContext2 & (1 << PULSAR_STARTMAYHEM);
+        const bool isKO = hostContext & (1 << PULSAR_MODE_KO) || hostContext & (1 << PULSAR_MODE_LAPKO);
+        const bool isStartRegular = hostContext & (1 << PULSAR_STARTMKDS);
+        const bool isStartItemRain = hostContext & (1 << PULSAR_STARTITEMRAIN);
+        const bool isStartMayhem = hostContext & (1 << PULSAR_STARTMAYHEM);
         if (isOTT || isKO) {
             const bool isTeam = bmgId == BMG_PLAY_TEAM_GP;
             bmgId = (BMG_PLAY_OTT - 1) + isOTT + isKO * 2 + isTeam * 3;

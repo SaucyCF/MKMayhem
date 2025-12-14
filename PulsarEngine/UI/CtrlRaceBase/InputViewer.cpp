@@ -123,7 +123,7 @@ void CtrlRaceInputViewer::OnUpdate() {
 }
 
 u32 CtrlRaceInputViewer::Count() {
-    if(static_cast<Pulsar::DKWSettingInputDisplay>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::MISC_INPUTVIEWER)) == Pulsar::DKWSETTING_INPUTDISPLAY_ENABLED) {
+    if(static_cast<Pulsar::DKWSettingInputDisplay>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC), Pulsar::MISC_INPUTVIEWER)) == Pulsar::DKWSETTING_INPUTDISPLAY_ENABLED) {
         const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
         u32 localPlayerCount = scenario.localPlayerCount;
         const SectionId sectionId = SectionMgr::sInstance->curSection->sectionId;

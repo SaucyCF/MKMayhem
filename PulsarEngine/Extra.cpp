@@ -2,101 +2,19 @@
 
 namespace Codes {
 
-// Anti Online Item Delimiters [Ro]
-asmFunc GetItemDelimiterShock() {
-    ASM(
-        nofralloc;
-        loc_0x0 : mflr r12;
-        cmpwi r7, 0x1;
-        bne + validLightning;
-        addi r12, r12, 0x12C;
-        mtlr r12;
-        blr;
-        validLightning : mulli r29, r3, 0xF0;
-        blr;)
-}
-kmCall(0x807B7C34, GetItemDelimiterShock);
-
-asmFunc GetItemDelimiterBlooper() {
-    ASM(
-        nofralloc;
-        loc_0x0 : mflr r12;
-        cmpwi r7, 0x1;
-        bne + validBlooper;
-        addi r12, r12, 0x1A8;
-        mtlr r12;
-        blr;
-        validBlooper : addi r11, r1, 0x50;
-        blr;)
-}
-kmCall(0x807A81C0, GetItemDelimiterBlooper);
-
-asmFunc GetItemDelimiterPOW() {
-    ASM(
-        nofralloc;
-        loc_0x0 : mflr r12;
-        cmpwi r7, 0x1;
-        bne + validPOW;
-        addi r12, r12, 0x48;
-        mtlr r12;
-        blr;
-        validPOW : mr r30, r3;
-        blr;)
-}
-kmCall(0x807B1B44, GetItemDelimiterPOW);
-
-// Anti Mii Crash
-asmFunc AntiWiper() {
-    ASM(
-        nofralloc;
-        loc_0x0 : cmpwi r4, 0x6;
-        ble validMii;
-        lhz r12, 0xE(r30);
-        cmpwi r12, 0x0;
-        bne validMii;
-        li r31, 0x0;
-        li r4, 0x6;
-        validMii : mr r29, r4;
-        blr;)
-}
-kmCall(0x800CB6C0, AntiWiper);
-kmWrite32(0x80526660, 0x38000001);  // Credits to Ro for the last line.
-
-// Anti Item Collission Crash [Marioiscool246]
-extern "C" void __ptmf_test(void*);
-asmFunc AntiItemColCrash() {
-    ASM(
-        nofralloc;
-        loc_0x0 : stwu r1, -0xC(r1);
-        stw r31, 8(r1);
-        mflr r31;
-        addi r3, r29, 0x174;
-        bl __ptmf_test;
-        cmpwi r3, 0;
-        bne end;
-        addi r31, r31, 0x14;
-
-        end : mtlr r31;
-        lwz r31, 8(r1);
-        addi r1, r1, 0xC;
-        mr r3, r29;
-        blr;)
-}
-kmCall(0x807A1A54, AntiItemColCrash);
-
-// Item Spam Anti-Freeze [???]
-asmFunc ItemSpamAntiFreeze() {
-    ASM(
-        loc_0x0 : lbz r12, 0x1C(r27);
-        add r12, r30, r12;
-        cmpwi r12, 0xE0;
-        blt + loc_0x18;
-        li r0, 0;
-        stb r0, 0x19(r27);
-
-        loc_0x18 : lbz r0, 0x19(r27);)
-}
-kmCall(0x8065BBD4, ItemSpamAntiFreeze);
+//HUD Color [Spaghetti Noppers]
+kmWrite32(0x80895CC0, 0x00FF0000);
+kmWrite32(0x80895CC4, 0x000000FF);
+kmWrite32(0x80895CC8, 0x00FF0000);
+kmWrite32(0x80895CCC, 0x000000FF);
+kmWrite32(0x80895CD0, 0x00FF0000);
+kmWrite32(0x80895CD4, 0x00000046);
+kmWrite32(0x80895CD8, 0x00FF00FF);
+kmWrite32(0x80895CDC, 0x00FF00FF);
+kmWrite32(0x80895CE0, 0x00FF00FF);
+kmWrite32(0x80895CE4, 0x00FF00FF);
+kmWrite32(0x80895CE8, 0x00FF0000);
+kmWrite32(0x80895CEC, 0x00000046);
 
 //Mii Outfit C Anti-Crash
 kmWrite8(0x8089089D, 0x00000062);
@@ -124,17 +42,6 @@ kmWrite32(0x80654b00, 0x4E800020);
 // Force player to not be penalized [B_squo]
 kmWrite32(0x80549898, 0x38600000);
 kmWrite32(0x8054989c, 0x4E800020);
-
-// Fix star offroad glitch after cannon [Ro]
-asmFunc StarOffroadFix() {
-    ASM(
-        nofralloc;
-        andi.r11, r0, 0x80;
-        andis.r12, r0, 0x8000;
-        or.r0, r11, r12;
-        blr;)
-}
-kmCall(0x8057C3F8, StarOffroadFix);
 
 // Disable Camera Shaking from Bombs [ZPL]
 kmWrite32(0x805a906c, 0x4E800020);
@@ -198,6 +105,9 @@ kmWrite32(0x800ECAAC, 0x7C7E1B78);
 
 // Slot Specific Objects Work in All Slots (pylon01, sunDS, FireSnake and begoman_spike) [Ro]
 kmWrite32(0x8082A4F8, 0x3800000A);
+
+// Disable Data Save Reset for Region ID Change [Vega]
+kmWrite32(0x80544928, 0x7C601B78);
 
 //Anti Lag Start [Ro]
 extern "C" void sInstance__8Racedata(void*);
@@ -298,4 +208,111 @@ asmFunc ItemBoxCommon() {
    blr;)
 }
 kmCall(0x8081FDAC, ItemBoxCommon);
+
+// Anti Online Item Delimiters [Ro]
+asmFunc GetItemDelimiterShock() {
+    ASM(
+        nofralloc;
+        loc_0x0 : mflr r12;
+        cmpwi r7, 0x1;
+        bne + validLightning;
+        addi r12, r12, 0x12C;
+        mtlr r12;
+        blr;
+        validLightning : mulli r29, r3, 0xF0;
+        blr;)
+}
+kmCall(0x807B7C34, GetItemDelimiterShock);
+
+asmFunc GetItemDelimiterBlooper() {
+    ASM(
+        nofralloc;
+        loc_0x0 : mflr r12;
+        cmpwi r7, 0x1;
+        bne + validBlooper;
+        addi r12, r12, 0x1A8;
+        mtlr r12;
+        blr;
+        validBlooper : addi r11, r1, 0x50;
+        blr;)
+}
+kmCall(0x807A81C0, GetItemDelimiterBlooper);
+
+asmFunc GetItemDelimiterPOW() {
+    ASM(
+        nofralloc;
+        loc_0x0 : mflr r12;
+        cmpwi r7, 0x1;
+        bne + validPOW;
+        addi r12, r12, 0x48;
+        mtlr r12;
+        blr;
+        validPOW : mr r30, r3;
+        blr;)
+}
+kmCall(0x807B1B44, GetItemDelimiterPOW);
+
+// Anti Mii Crash
+asmFunc AntiWiper() {
+    ASM(
+        nofralloc;
+        loc_0x0 : cmpwi r4, 0x6;
+        ble validMii;
+        lhz r12, 0xE(r30);
+        cmpwi r12, 0x0;
+        bne validMii;
+        li r31, 0x0;
+        li r4, 0x6;
+        validMii : mr r29, r4;
+        blr;)
+}
+kmCall(0x800CB6C0, AntiWiper);
+kmWrite32(0x80526660, 0x38000001);  // Credits to Ro for the last line.
+
+// Anti Item Collission Crash [Marioiscool246]
+extern "C" void __ptmf_test(void*);
+asmFunc AntiItemColCrash() {
+    ASM(
+        nofralloc;
+        loc_0x0 : stwu r1, -0xC(r1);
+        stw r31, 8(r1);
+        mflr r31;
+        addi r3, r29, 0x174;
+        bl __ptmf_test;
+        cmpwi r3, 0;
+        bne end;
+        addi r31, r31, 0x14;
+
+        end : mtlr r31;
+        lwz r31, 8(r1);
+        addi r1, r1, 0xC;
+        mr r3, r29;
+        blr;)
+}
+kmCall(0x807A1A54, AntiItemColCrash);
+
+// Item Spam Anti-Freeze [???]
+asmFunc ItemSpamAntiFreeze() {
+    ASM(
+        loc_0x0 : lbz r12, 0x1C(r27);
+        add r12, r30, r12;
+        cmpwi r12, 0xE0;
+        blt + loc_0x18;
+        li r0, 0;
+        stb r0, 0x19(r27);
+
+        loc_0x18 : lbz r0, 0x19(r27);)
+}
+kmCall(0x8065BBD4, ItemSpamAntiFreeze);
+
+// Fix star offroad glitch after cannon [Ro]
+asmFunc StarOffroadFix() {
+    ASM(
+        nofralloc;
+        andi.r11, r0, 0x80;
+        andis.r12, r0, 0x8000;
+        or.r0, r11, r12;
+        blr;)
+}
+kmCall(0x8057C3F8, StarOffroadFix);
 } //namespace Codes

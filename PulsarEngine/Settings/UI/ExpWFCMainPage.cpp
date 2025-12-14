@@ -1,6 +1,7 @@
 #include <MarioKartWii/UI/Page/Other/GlobeSearch.hpp>
 #include <MarioKartWii/RKSYS/RKSYSMgr.hpp>
 #include <Settings/UI/ExpWFCMainPage.hpp>
+#include <AutoTrackSelect/ExpWFCMessages.hpp>
 #include <UI/UI.hpp>
 #include <PulsarSystem.hpp>
 
@@ -29,6 +30,13 @@ void ExpWFCMain::OnInit() {
     this->settingsButton.SetOnSelectHandler(this->onButtonSelectHandler);
 
     this->topSettingsPage = SettingsPanel::id;
+
+    SetRegionalButtonMessage(this->regionalButton);
+}
+
+void ExpWFCMain::OnActivate() {
+    WFCMainMenu::OnActivate();
+    SetRegionalButtonMessage(this->regionalButton);
 }
 
 void ExpWFCMain::OnSettingsButtonClick(PushButton& pushButton, u32 r5) {

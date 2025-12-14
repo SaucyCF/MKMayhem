@@ -15,7 +15,6 @@
 namespace DKW {
 
 void ItemBoxRespawn(Objects::Itembox* itembox) {
-    bool is200 = Racedata::sInstance->racesScenario.settings.engineClass == CC_100 && RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_VS_WW;
     bool isFastBox = Pulsar::DKWSETTING_ITEMBOX_DEFAULT;
     bool isInstantBox = Pulsar::DKWSETTING_ITEMBOX_DEFAULT;
     if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_NONE) {
@@ -330,52 +329,6 @@ kmRuntimeWrite32A(0x805793AC, 0x809C0000);
           kmRuntimeCallA(0x805793AC, MegaFOV);
   }
 }
-PageLoadHook MegaFOVPatch(EnhancedMegaFOV);
-
-kmRuntimeUse(0x80895CC0);
-kmRuntimeUse(0x80895CC4);
-kmRuntimeUse(0x80895CC8);
-kmRuntimeUse(0x80895CCC);
-kmRuntimeUse(0x80895CD0);
-kmRuntimeUse(0x80895CD4);
-kmRuntimeUse(0x80895CD8);
-kmRuntimeUse(0x80895CDC);
-kmRuntimeUse(0x80895CE0);
-kmRuntimeUse(0x80895CE4);
-kmRuntimeUse(0x80895CE8);
-kmRuntimeUse(0x80895CEC);
-static void HUDColor() {
-const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
-const GameMode mode = scenario.settings.gamemode;
-kmRuntimeWrite32A(0x80895CC0, 0x00FF0000);
-kmRuntimeWrite32A(0x80895CC4, 0x000000FF);
-kmRuntimeWrite32A(0x80895CC8, 0x00FF0000);
-kmRuntimeWrite32A(0x80895CCC, 0x000000FF);
-kmRuntimeWrite32A(0x80895CD0, 0x00FF0000);
-kmRuntimeWrite32A(0x80895CD4, 0x00000046);
-kmRuntimeWrite32A(0x80895CD8, 0x00FF0000);
-kmRuntimeWrite32A(0x80895CDC, 0x000000FF);
-kmRuntimeWrite32A(0x80895CE0, 0x00FF0000);
-kmRuntimeWrite32A(0x80895CE4, 0x000000FF);
-kmRuntimeWrite32A(0x80895CE8, 0x00FF0000);
-kmRuntimeWrite32A(0x80895CEC, 0x00000046);
-if ((mode == MODE_PRIVATE_VS || mode == MODE_VS_RACE) && System::sInstance->IsContext(Pulsar::PULSAR_MODE_LAPKO)) {
-      kmRuntimeWrite32A(0x80895CC0, 0x00FF00FD);
-      kmRuntimeWrite32A(0x80895CC4, 0x00FF00FD);
-      kmRuntimeWrite32A(0x80895CC8, 0x00FF00FD);
-      kmRuntimeWrite32A(0x80895CCC, 0x00FF00FD);
-      kmRuntimeWrite32A(0x80895CD0, 0x00FF00FD);
-      kmRuntimeWrite32A(0x80895CD4, 0x00FF0046);
-      kmRuntimeWrite32A(0x80895CD8, 0x00FF00FF);
-      kmRuntimeWrite32A(0x80895CDC, 0x00FF00FF);
-      kmRuntimeWrite32A(0x80895CE0, 0x00FF00FF);
-      kmRuntimeWrite32A(0x80895CE4, 0x00FF00FF);
-      kmRuntimeWrite32A(0x80895CE8, 0x00FF00FF);
-      kmRuntimeWrite32A(0x80895CEC, 0x00FF0046);
-  }
-}
-PageLoadHook HUDColorPatch(HUDColor);
-        
-
+PageLoadHook MegaFOVPatch(EnhancedMegaFOV);     
 
 } // namespace DKW

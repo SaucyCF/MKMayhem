@@ -95,6 +95,7 @@ enum BMG {
     BMG_GP_BLANK = 0xd36,
 
     BMG_CHOOSE_GHOST_DATA = 0xd4f,
+    BMG_REGIONAL_BUTTON = 0xfa1,
     BMG_PLAY_GP = 0x100e,
     BMG_PLAY_TEAM_GP = 0x100f,
     BMG_RATING = 0x106a, //vr/br value + "rating" under
@@ -208,6 +209,11 @@ enum BMG {
     BMG_REGULAR_START_MESSAGE = 0x6920,
     BMG_ITEMRAIN_START_MESSAGE = 0x6921,
     BMG_MAYHEM_START_MESSAGE = 0x6922,
+
+    // Worldwide Button Message
+    BMG_REGULAR_BUTTON = 0x6923,
+    BMG_ITEMRAIN_BUTTON = 0x6924,
+    BMG_MAYHEM_BUTTON = 0x6925,
     
 };
 

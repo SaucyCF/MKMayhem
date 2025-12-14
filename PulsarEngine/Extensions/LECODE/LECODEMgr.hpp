@@ -7,11 +7,10 @@
 
 namespace LECODE {
 class Mgr {
-public:
+   public:
     LexMgr lexMgr;
     XPFMgr xpfMgr;
 };
 
-
-}//namespace LECODE
+}  // namespace LECODE
 #endif
