@@ -4,8 +4,8 @@ namespace Pulsar {
 namespace SafeGuard {
 
 namespace {
-const u32 MAGIC = '6767';
-const u32 DEFAULT_CODE = 'AIMZ';
+const u32 MAGIC = 'MAGIC';
+const u32 DEFAULT_CODE = 'CODE';
 u32 sRequiredCode = DEFAULT_CODE;
 }
 
