@@ -117,6 +117,12 @@ static void OnStartButtonFroomMsgActivate() {
 kmCall(0x805dc480, OnStartButtonFroomMsgActivate);
 
 u32 CorrectModeButtonsBMG(const RKNet::ROOMPacket& packet) {
+    const u32 isKO = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_KO, KO_ENABLED) != KOSETTING_DISABLED;
+    const u32 isUnknownItems = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_UNKNOWNITEMS;
+    const u32 isItemRain = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_ITEMRAIN;
+    const u32 isBumperKarts = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_BUMPERKARTS;
+    const u32 isRiiBalanced = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_RIIBALANCED;
+    const u32 isMayhem = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_MAYHEM;
     register u32 rowIdx;
     asm(mr rowIdx, r24;);  // r24 contains the actual message index
     register const ExpFroomMessages* messages;
@@ -125,6 +131,23 @@ u32 CorrectModeButtonsBMG(const RKNet::ROOMPacket& packet) {
     bmgId = Pages::FriendRoomManager::GetMessageBmg(packet, 0);
 
     switch (rowIdx) {
+        case 0:
+        if (isKO) {
+            return BMG_PLAY_KO;
+        } if (isUnknownItems) {
+            return BMG_PLAY_UNKNOWNITEMS;
+        } if (isItemRain) {
+            return BMG_PLAY_ITEMRAIN;
+        } if (isBumperKarts) {
+            return BMG_PLAY_BUMPERKARTS;
+        } if (isRiiBalanced) {
+            return BMG_PLAY_RIIBALANCED;
+        } if (isMayhem) {
+            return BMG_PLAY_MAYHEMMODE;
+        } else {
+            return BMG_PLAY_GP;
+        }
+
         case 4:
             return BMG_REGULAR_START_MESSAGE;
         case 5:
@@ -135,9 +158,24 @@ u32 CorrectModeButtonsBMG(const RKNet::ROOMPacket& packet) {
 
     if (rowIdx == 0) {
         const u32 isKO = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_KO, KO_ENABLED) != KOSETTING_DISABLED;
+        const u32 isUnknownItems = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_UNKNOWNITEMS;
+        const u32 isItemRain = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_ITEMRAIN;
+        const u32 isBumperKarts = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_BUMPERKARTS;
+        const u32 isRiiBalanced = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_RIIBALANCED;
+        const u32 isMayhem = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_MAYHEM;
 
         if (isKO) {
             bmgId = BMG_PLAY_KO;
+        } if (isUnknownItems) {
+            bmgId = BMG_PLAY_UNKNOWNITEMS;
+        } if (isItemRain) {
+            bmgId = BMG_PLAY_ITEMRAIN;
+        } if (isBumperKarts) {
+            bmgId = BMG_PLAY_BUMPERKARTS;
+        } if (isRiiBalanced) {
+            bmgId = BMG_PLAY_RIIBALANCED;
+        } if (isMayhem) {
+            bmgId = BMG_PLAY_MAYHEMMODE;
         } else {
             bmgId = BMG_PLAY_GP;
         }
@@ -168,24 +206,36 @@ void CorrectRoomStartButton(Pages::Globe::MessageWindow& control, u32 bmgId, Tex
     Network::SetGlobeMsgColor(control, -1);
     if (bmgId == BMG_PLAY_GP || bmgId == BMG_PLAY_TEAM_GP) {
         const u32 hostContext = System::sInstance->netMgr.hostContext;
+        const u32 hostContext2 = System::sInstance->netMgr.hostContext2;
         const bool isOTT = hostContext & (1 << PULSAR_MODE_OTT);
         const bool isKO = hostContext & (1 << PULSAR_MODE_KO) || hostContext & (1 << PULSAR_MODE_LAPKO);
         const bool isStartRegular = hostContext & (1 << PULSAR_STARTMKDS);
         const bool isStartItemRain = hostContext & (1 << PULSAR_STARTITEMRAIN);
         const bool isStartMayhem = hostContext & (1 << PULSAR_STARTMAYHEM);
+        const bool isUnknownItems = hostContext2 & (1 << PULSAR_MODE_UNKNOWN);
+        const bool isItemRain = hostContext2 & (1 << PULSAR_MODE_ITEMRAIN);
+        const bool isBumperKarts = hostContext2 & (1 << PULSAR_MODE_BUMPERKARTS);
+        const bool isRiibalanced = hostContext2 & (1 << PULSAR_MODE_RIIBALANCED);
+        const bool isMayhemMode = hostContext2 & (1 << PULSAR_MODE_MAYHEM);
         if (isOTT || isKO) {
             const bool isTeam = bmgId == BMG_PLAY_TEAM_GP;
             bmgId = (BMG_PLAY_OTT - 1) + isOTT + isKO * 2 + isTeam * 3;
-        }
-
-        if (isStartRegular) {
+        } else if (isStartRegular) {
             bmgId = BMG_REGULAR_START_MESSAGE;
-        }
-        else if (isStartItemRain) {
+        } else if (isStartItemRain) {
             bmgId = BMG_ITEMRAIN_START_MESSAGE;
-        }
-        else if (isStartMayhem) {
+        } else if (isStartMayhem) {
             bmgId = BMG_MAYHEM_START_MESSAGE;
+        } else if (isUnknownItems) {
+            bmgId = BMG_PLAY_UNKNOWNITEMS;
+        } else if (isItemRain) {
+            bmgId= BMG_PLAY_ITEMRAIN;
+        } else if (isBumperKarts) {
+            bmgId = BMG_PLAY_BUMPERKARTS;
+        } else if (isRiibalanced) {
+            bmgId = BMG_PLAY_RIIBALANCED;
+        } else if (isMayhemMode) {
+            bmgId = BMG_PLAY_MAYHEMMODE;
         }
     }
     control.SetMessage(bmgId, info);

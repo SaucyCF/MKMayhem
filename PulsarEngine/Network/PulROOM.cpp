@@ -100,6 +100,7 @@ static void BeforeROOMSend(RKNet::PacketHolder<PulROOM>* packetHolder, PulROOM* 
         const u8 mayhemCodes = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_MAYHEM_CODES) == DKWSETTING_MAYHEM_ENABLED;
         const u8 itemModeUnknown = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_UNKNOWNITEMS;
         const u8 itemModeRain = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_ITEMRAIN;
+        const u8 itemModeMayhem = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_MAYHEM;
         const u8 itemModeBattleRoyale = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_BATTLEROYALE;
         const u8 bumperKart = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_BUMPERKARTS;
         const u8 riiBalanced = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_RIIBALANCED;
@@ -143,6 +144,7 @@ static void BeforeROOMSend(RKNet::PacketHolder<PulROOM>* packetHolder, PulROOM* 
       | (fourCC) << PULSAR_400
       | (ninetyCC) << PULSAR_99999
       | (itemModeRain) << PULSAR_MODE_ITEMRAIN
+      | (itemModeMayhem) << PULSAR_MODE_MAYHEM
       | (riiBalanced) << PULSAR_MODE_RIIBALANCED
       | (bumperKart) << PULSAR_MODE_BUMPERKARTS
       | (itemModeUnknown) << PULSAR_MODE_UNKNOWN

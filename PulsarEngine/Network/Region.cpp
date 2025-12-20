@@ -13,13 +13,7 @@ namespace Network {
 static void PatchRegionNumber() {
 const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
 const GameMode mode = scenario.settings.gamemode;
-    if (!System::sInstance->IsContext(Pulsar::PULSAR_MODE_ITEMRAIN) && !System::sInstance->IsContext(Pulsar::PULSAR_MODE_MAYHEM) && mode == MODE_PUBLIC_VS) {
-        System::sInstance->netMgr.region = 0x4D;
-    } else if (System::sInstance->IsContext(Pulsar::PULSAR_MODE_ITEMRAIN) && mode == MODE_PUBLIC_VS) {
-        System::sInstance->netMgr.region = 0x4E;
-    } else if (System::sInstance->IsContext(Pulsar::PULSAR_MODE_MAYHEM) && mode == MODE_PUBLIC_VS) {
-        System::sInstance->netMgr.region = 0x4F;
-    } else if (static_cast<Pulsar::DKWSettingWWGamemode>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::WW_GAMEMODE)) == Pulsar::DKWSETTING_WWGAMEMODE_MKDS) {
+    if (static_cast<Pulsar::DKWSettingWWGamemode>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::WW_GAMEMODE)) == Pulsar::DKWSETTING_WWGAMEMODE_MKDS) {
         System::sInstance->netMgr.region = 0x4D;
     } else if (static_cast<Pulsar::DKWSettingWWGamemode>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::WW_GAMEMODE)) == Pulsar::DKWSETTING_WWGAMEMODE_ITEMRAIN) {
         System::sInstance->netMgr.region = 0x4E;

@@ -12,7 +12,7 @@ namespace Pulsar {
 namespace Race {
 
 
-static const u8 AREA_TYPE_GRAVITY = 0x0b; // AREA type for configurable gravity
+static const u8 AREA_TYPE_GRAVITY = 0x1A; // AREA type for configurable gravity
 
 // Forward declaration
 static void CheckAndFlipUpsideDownKart(u8 playerId);
