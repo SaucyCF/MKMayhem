@@ -56,3 +56,14 @@ BuildTesting.bat
 *.vsidx
 PulsarPackCreator/Executable/Pulsar Pack Creator.dll.config
 *.v2
+
+# Anticheat
+PulsarEngine/Security/*
+PulsarEngine/SafeGuard.cpp
+PulsarEngine/RoomKey.hpp
+GameSource/anticheat.txt
+
+#Random Stuff
+scripts/*
+*.py
+*.log
