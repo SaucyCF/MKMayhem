@@ -3,7 +3,9 @@
 #include <MarioKartWii/UI/Page/Menu/CourseSelect.hpp>
 #include <MarioKartWii/UI/Page/Other/Votes.hpp>
 #include <MarioKartWii/GlobalFunctions.hpp>
+#include <MarioKartWii/RKNet/RKNetController.hpp>
 #include <SlotExpansion/CupsConfig.hpp>
+#include <PulsarSystem.hpp>
 
 namespace Pulsar {
 
@@ -37,6 +39,14 @@ kmCall(0x80840858, UpdateSlotWrapper);
 void SetVotedTrack(Pages::Vote* vote) { //cast because we actually want to transmit a pulsarId
     CupsConfig* config = CupsConfig::sInstance;
     PulsarId id = config->GetSelected();
+
+    // HAW: force non-host players to vote random (0xFF)
+    const System* system = System::sInstance;
+    RKNet::Controller* controller = RKNet::Controller::sInstance;
+    if (system->IsContext(PULSAR_HAW) && controller->roomType == RKNet::ROOMTYPE_FROOM_NONHOST) {
+        id = static_cast<PulsarId>(0xFF); // random vote
+    }
+
     vote->SetVotedCourseId(static_cast<CourseId>(id));
 }
 kmCall(0x8084099c, SetVotedTrack);

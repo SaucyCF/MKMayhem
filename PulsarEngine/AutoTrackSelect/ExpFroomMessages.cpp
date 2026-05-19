@@ -3,6 +3,7 @@
 #include <SlotExpansion/CupsConfig.hpp>
 #include <SlotExpansion/UI/ExpansionUIMisc.hpp>
 #include <Gamemodes/OnlineTT/OTTRegional.hpp>
+#include <MarioKartWii/UI/Ctrl/Menu/CtrlMenuText.hpp>
 
 namespace Pulsar {
 namespace UI {
@@ -112,7 +113,7 @@ kmCall(0x805dcb74, CorrectModeButtonsBMG); */
 static void OnStartButtonFroomMsgActivate() {
     register ExpFroomMessages* msg;
     asm(mr msg, r31;);
-    msg->msgCount = 7;  // 4 normal + 3 worldwide options
+    msg->msgCount = 5;  // 4 normal + 1 worldwide options
 }
 kmCall(0x805dc480, OnStartButtonFroomMsgActivate);
 
@@ -121,7 +122,6 @@ u32 CorrectModeButtonsBMG(const RKNet::ROOMPacket& packet) {
     const u32 isUnknownItems = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_UNKNOWNITEMS;
     const u32 isItemRain = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_ITEMRAIN;
     const u32 isBumperKarts = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_BUMPERKARTS;
-    const u32 isRiiBalanced = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_RIIBALANCED;
     const u32 isMayhem = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_MAYHEM;
     register u32 rowIdx;
     asm(mr rowIdx, r24;);  // r24 contains the actual message index
@@ -140,8 +140,6 @@ u32 CorrectModeButtonsBMG(const RKNet::ROOMPacket& packet) {
             return BMG_PLAY_ITEMRAIN;
         } if (isBumperKarts) {
             return BMG_PLAY_BUMPERKARTS;
-        } if (isRiiBalanced) {
-            return BMG_PLAY_RIIBALANCED;
         } if (isMayhem) {
             return BMG_PLAY_MAYHEMMODE;
         } else {
@@ -150,10 +148,6 @@ u32 CorrectModeButtonsBMG(const RKNet::ROOMPacket& packet) {
 
         case 4:
             return BMG_REGULAR_START_MESSAGE;
-        case 5:
-            return BMG_ITEMRAIN_START_MESSAGE;
-        case 6:
-            return BMG_MAYHEM_START_MESSAGE;
     }
 
     if (rowIdx == 0) {
@@ -161,7 +155,6 @@ u32 CorrectModeButtonsBMG(const RKNet::ROOMPacket& packet) {
         const u32 isUnknownItems = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_UNKNOWNITEMS;
         const u32 isItemRain = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_ITEMRAIN;
         const u32 isBumperKarts = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_BUMPERKARTS;
-        const u32 isRiiBalanced = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_RIIBALANCED;
         const u32 isMayhem = Settings::Mgr::Get().GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_MAYHEM;
 
         if (isKO) {
@@ -172,8 +165,6 @@ u32 CorrectModeButtonsBMG(const RKNet::ROOMPacket& packet) {
             bmgId = BMG_PLAY_ITEMRAIN;
         } if (isBumperKarts) {
             bmgId = BMG_PLAY_BUMPERKARTS;
-        } if (isRiiBalanced) {
-            bmgId = BMG_PLAY_RIIBALANCED;
         } if (isMayhem) {
             bmgId = BMG_PLAY_MAYHEMMODE;
         } else {
@@ -210,30 +201,21 @@ void CorrectRoomStartButton(Pages::Globe::MessageWindow& control, u32 bmgId, Tex
         const bool isOTT = hostContext & (1 << PULSAR_MODE_OTT);
         const bool isKO = hostContext & (1 << PULSAR_MODE_KO) || hostContext & (1 << PULSAR_MODE_LAPKO);
         const bool isStartRegular = hostContext & (1 << PULSAR_STARTMKDS);
-        const bool isStartItemRain = hostContext & (1 << PULSAR_STARTITEMRAIN);
-        const bool isStartMayhem = hostContext & (1 << PULSAR_STARTMAYHEM);
         const bool isUnknownItems = hostContext2 & (1 << PULSAR_MODE_UNKNOWN);
         const bool isItemRain = hostContext2 & (1 << PULSAR_MODE_ITEMRAIN);
         const bool isBumperKarts = hostContext2 & (1 << PULSAR_MODE_BUMPERKARTS);
-        const bool isRiibalanced = hostContext2 & (1 << PULSAR_MODE_RIIBALANCED);
         const bool isMayhemMode = hostContext2 & (1 << PULSAR_MODE_MAYHEM);
         if (isOTT || isKO) {
             const bool isTeam = bmgId == BMG_PLAY_TEAM_GP;
             bmgId = (BMG_PLAY_OTT - 1) + isOTT + isKO * 2 + isTeam * 3;
         } else if (isStartRegular) {
             bmgId = BMG_REGULAR_START_MESSAGE;
-        } else if (isStartItemRain) {
-            bmgId = BMG_ITEMRAIN_START_MESSAGE;
-        } else if (isStartMayhem) {
-            bmgId = BMG_MAYHEM_START_MESSAGE;
         } else if (isUnknownItems) {
             bmgId = BMG_PLAY_UNKNOWNITEMS;
         } else if (isItemRain) {
             bmgId= BMG_PLAY_ITEMRAIN;
         } else if (isBumperKarts) {
             bmgId = BMG_PLAY_BUMPERKARTS;
-        } else if (isRiibalanced) {
-            bmgId = BMG_PLAY_RIIBALANCED;
         } else if (isMayhemMode) {
             bmgId = BMG_PLAY_MAYHEMMODE;
         }
@@ -242,5 +224,23 @@ void CorrectRoomStartButton(Pages::Globe::MessageWindow& control, u32 bmgId, Tex
 }
 kmCall(0x805e4df4, CorrectRoomStartButton);
 
+static void CorrectCCMessage(CtrlMenuInstructionText& control, u32 bmgId, Text::Info* info) {
+    const System* system = System::sInstance;
+    if (bmgId == BMG_FROOM_200CC) {
+        if (system->IsContext(PULSAR_50)) {
+            bmgId = BMG_FROOM_50CC;
+        } else if (system->IsContext(PULSAR_100)) {
+            bmgId = BMG_FROOM_100CC;
+        } else if (system->IsContext(PULSAR_400)) {
+            bmgId = BMG_FROOM_400CC;
+        } else if (system->IsContext(PULSAR_99999)) {
+            bmgId = BMG_FROOM_99999CC;
+        }
+    }
+    control.SetMessage(bmgId, info);
+}
+kmCall(0x8064aaac, CorrectCCMessage);
+
 }//namespace UI
 }//namespace Pulsar
+

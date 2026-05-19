@@ -25,7 +25,7 @@ void CtrlRaceInputViewer::Init() {
         this->SetPaneVisibility(name, state == DpadState_Off);
         this->m_dpadPanes[i] = pane;
         
-        this->HudSlotColorEnable(name, true);
+        //this->HudSlotColorEnable(name, false);
     }
     
     for (int i = 0; i < (int)AccelState_Count; ++i) {
@@ -41,7 +41,7 @@ void CtrlRaceInputViewer::Init() {
         }
         this->m_accelPanes[i] = pane;
         
-        this->HudSlotColorEnable(name, true);
+        //this->HudSlotColorEnable(name, false);
     }
     
     for (int i = 0; i < (int)Trigger_Count; ++i) {
@@ -60,15 +60,15 @@ void CtrlRaceInputViewer::Init() {
             }
             this->m_triggerPanes[i][j] = pane;
             
-            this->HudSlotColorEnable(name, true);
+            //this->HudSlotColorEnable(name, false);
         }
     }
     
     this->m_stickPane = this->layout.GetPaneByName("Stick");
     this->m_stickOrigin = this->m_stickPane->trans;
     this->m_playerId = this->GetPlayerId();
-    this->HudSlotColorEnable("Stick", false);
-    this->HudSlotColorEnable("StickBackdrop", false);
+    //this->HudSlotColorEnable("Stick", false);
+    //this->HudSlotColorEnable("StickBackdrop", false);
 
     LayoutUIControl::Init();
 }

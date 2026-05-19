@@ -11,19 +11,9 @@ namespace Network {
 
 // Region Patch (Leseratte)
 static void PatchRegionNumber() {
-const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
-const GameMode mode = scenario.settings.gamemode;
-    if (static_cast<Pulsar::DKWSettingWWGamemode>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::WW_GAMEMODE)) == Pulsar::DKWSETTING_WWGAMEMODE_MKDS) {
-        System::sInstance->netMgr.region = 0x4D;
-    } else if (static_cast<Pulsar::DKWSettingWWGamemode>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::WW_GAMEMODE)) == Pulsar::DKWSETTING_WWGAMEMODE_ITEMRAIN) {
-        System::sInstance->netMgr.region = 0x4E;
-    } else if (static_cast<Pulsar::DKWSettingWWGamemode>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::WW_GAMEMODE)) == Pulsar::DKWSETTING_WWGAMEMODE_MAYHEM) {
-        System::sInstance->netMgr.region = 0x4F;
-    } else {
-        System::sInstance->netMgr.region = 0x4D;
-    }
+    System::sInstance->netMgr.region = 0x4D;
 }
-static PageLoadHook RegionNumberPatch(PatchRegionNumber);
+PageLoadHook RegionNumberPatch(PatchRegionNumber);
 
 static void PatchLoginRegion() {
     WWFC_CUSTOM_REGION = System::sInstance->netMgr.region;

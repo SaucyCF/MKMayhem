@@ -8,6 +8,7 @@
 #include <Gamemodes/KO/KOMgr.hpp>
 #include <Gamemodes/KO/KOHost.hpp>
 #include <Gamemodes/LapKO/LapKOMgr.hpp>
+#include <Gamemodes/Countdown/CountdownMgr.hpp>
 #include <Gamemodes/OnlineTT/OnlineTT.hpp>
 #include <Settings/Settings.hpp>
 #include <Config.hpp>
@@ -43,7 +44,7 @@ BootHook CreateSystem(System::CreateSystem, 0);
 System::System() :
     heap(RKSystem::mInstance.EGGSystem), taskThread(EGG::TaskThread::Create(8, 0, 0x4000, this->heap)),
     //Modes
-    koMgr(nullptr), lapKoMgr(nullptr), ottHideNames(false) {
+    koMgr(nullptr), lapKoMgr(nullptr), countdownMgr(nullptr), ottHideNames(false) {
 }
 
 void System::Init(const ConfigFile& conf) {
@@ -82,7 +83,7 @@ void System::Init(const ConfigFile& conf) {
     }
 
     //Track blocking 
-    u32 trackBlocking = 16; //this->info.GetTrackBlocking();
+    u32 trackBlocking = 8; //this->info.GetTrackBlocking();
     this->netMgr.lastTracks = new PulsarId[trackBlocking];
     for(int i = 0; i < trackBlocking; ++i) this->netMgr.lastTracks[i] = PULSARID_NONE;
     const BMGHeader* const confBMG = &conf.GetSection<PulBMG>().header;
@@ -144,6 +145,7 @@ void System::UpdateContext() {
     bool isOTT = false;
     bool isMiiHeads = settings.GetSettingValue(Settings::SETTINGSTYPE_MISC3, MISC_RADIO_MII);
     bool isLapBasedKO = settings.GetSettingValue(Settings::SETTINGSTYPE_KO, KO_ENABLED) == KOSETTING_LAP_ENABLED && mode != MODE_TIME_TRIAL && mode != MODE_PUBLIC_VS;
+    bool isSuperPowers = settings.GetSettingValue(Settings::SETTINGSTYPE_KO, KO_SUPERPOWER) == KOSETTING_SUPERPOWER_ENABLED;
 
 
     bool is200 = racedataSettings.engineClass == CC_100 && this->info.Has200cc();
@@ -159,37 +161,32 @@ void System::UpdateContext() {
 
     bool isKOFinal = settings.GetSettingValue(Settings::SETTINGSTYPE_KO, KO_FINAL) == KOSETTING_FINAL_ALWAYS;
 
-    bool isMayhemCodes = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_MAYHEM_CODES) == DKWSETTING_MAYHEM_ENABLED;
+    bool isMayhemCodes = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_MAYHEM_CODES) == DKWSETTING_MAYHEM_MKDS;
+    bool isMayhemWorld = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_MAYHEM_CODES) == DKWSETTING_MAYHEM_WORLD;
+    bool isMayhemMK8U = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_MAYHEM_CODES) == DKWSETTING_MAYHEM_MK8U;
     bool isDisableInvisWalls = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_INVIS_WALLS) == DKWSETTING_INVISWALLS_DISABLED;
-    bool isRiiBalanced = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_RIIBALANCED;
+    bool isBooFullInvis = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_BOO_VISIBILITY) == DKWSETTING_BOO_VISIBILITY_FULL_INVIS;
     bool isBumperKart = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_BUMPERKARTS;
     bool isItemModeUnknown = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_UNKNOWNITEMS;
     bool isItemModeRain = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_ITEMRAIN;
     bool isItemModeMayhem = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_MAYHEM;
-    bool isItemModeBattleRoyale = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_BATTLEROYALE;
-    bool isCharRestrictLight = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_CHARRESTRICT) == DKWSETTING_CHARRESTRICT_LIGHT;
-    bool isCharRestrictMedium = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_CHARRESTRICT) == DKWSETTING_CHARRESTRICT_MEDIUM;
-    bool isCharRestrictHeavy = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_CHARRESTRICT) == DKWSETTING_CHARRESTRICT_HEAVY;
-    bool isKartRestrictKart = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_VEHICLERESTRICT) == DKWSETTING_VEHICLERESTRICT_KARTS;
-    bool isKartRestrictBike = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_VEHICLERESTRICT) == DKWSETTING_VEHICLERESTRICT_BIKES;
+    bool isCountdownMode = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_COUNTDOWN;
     bool isTransmissionVanilla = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_SCROLL_FORCETRANSMISSION) == DKWSETTING_FORCE_TRANSMISSION_VANILLA;
     bool isTransmissionInsideAll = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_SCROLL_FORCETRANSMISSION) == DKWSETTING_FORCE_TRANSMISSION_INSIDEALL;
     bool isTransmissionOutsideAll = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_SCROLL_FORCETRANSMISSION) == DKWSETTING_FORCE_TRANSMISSION_OUTSIDEALL;
+    bool isBoxSpawnFast = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_ITEMBOXSPAWN) == DKWSETTING_ITEMBOX_FASTSPAWN;
+    bool isBoxSpawnInstant = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_ITEMBOXSPAWN) == DKWSETTING_ITEMBOX_INSTANTSPAWN;
+    bool isBoxSpawnDisabled = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_ITEMBOXSPAWN) == DKWSETTING_ITEMBOX_DISABLED;
+    bool isBoxCountDouble = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_ITEMBOXCOUNT) == DKWSETTING_ITEMBOXCOUNT_DOUBLE;
 
-    bool isBoxSpawnFast = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_ITEMBOXSPAWN) == DKWSETTING_ITEMBOX_FASTSPAWN;
-    bool isBoxSpawnInstant = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_ITEMBOXSPAWN) == DKWSETTING_ITEMBOX_INSTANTSPAWN;
-    bool isBoxSpawnDisabled = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_ITEMBOXSPAWN) == DKWSETTING_ITEMBOX_DISABLED;
-    bool isTCToggle = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_TCTOGGLE) == DKWSETTING_TCTOGGLE_ENABLED;
-    bool isAllItems = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_ALLITEMS) == DKWSETTING_ALLITEMS_ENABLED;
-    bool isThunderCloud = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_THUNDERCLOUD);
-    bool isFlyingBlooper = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_FLYINGBLOOP);
+    bool isBooItem = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEMS, ITEMS_BOO) == DKWSETTING_ITEM_ENABLED;
+    bool isFeatherItem = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEMS, ITEMS_FEATHER) == DKWSETTING_ITEM_ENABLED;
+    bool isTripleFibItem = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEMS, ITEMS_TRIPLE_FIB) == DKWSETTING_ITEM_ENABLED;
+    bool isShroomStarItem = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEMS, ITEMS_SHROOM_STAR) == DKWSETTING_ITEM_ENABLED;
+    bool isShellMushroomItem = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEMS, ITEMS_GREEN_SHELL_MUSHROOM) == DKWSETTING_ITEM_ENABLED;
+    bool isBobombMushroomItem = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEMS, ITEMS_BOB_OMB_MUSHROOM) == DKWSETTING_ITEM_ENABLED;
 
-    bool isWorldwideMKDS = settings.GetSettingValue(Settings::SETTINGSTYPE_MISC2, WW_GAMEMODE) == DKWSETTING_WWGAMEMODE_MKDS;
-    bool isWorldwideItemRain = settings.GetSettingValue(Settings::SETTINGSTYPE_MISC2, WW_GAMEMODE) == DKWSETTING_WWGAMEMODE_ITEMRAIN;
-    bool isWorldwideMayhem = settings.GetSettingValue(Settings::SETTINGSTYPE_MISC2, WW_GAMEMODE) == DKWSETTING_WWGAMEMODE_MAYHEM;
     bool isStartMKDS = false;
-    bool isStartItemRain = false;
-    bool isStartMayhem = false;
 
     bool isFeather = this->info.HasFeather();
     bool isUMTs = this->info.HasUMTs();
@@ -211,20 +208,16 @@ void System::UpdateContext() {
                 isKOFinal = newContext & (1 << PULSAR_KOFINAL);
                 isKO = newContext & (1 << PULSAR_MODE_KO);
                 isLapBasedKO = newContext & (1 << PULSAR_MODE_LAPKO);
+                isSuperPowers = newContext & (1 << PULSAR_SUPERPOWERS);
                 isMayhemCodes = newContext & (1 << PULSAR_MAYHEM);
+                isMayhemWorld = newContext2 & (1 << PULSAR_MAYHEM_WORLD);
+                isMayhemMK8U = newContext2 & (1 << PULSAR_MAYHEM_MK8U);
                 isBoxSpawnFast = newContext2 & (1 << PULSAR_FASTBOX);
                 isBoxSpawnInstant = newContext2 & (1 << PULSAR_INSTANTBOX);
                 isBoxSpawnDisabled = newContext2 & (1 << PULSAR_DISABLEBOX);
-                isTCToggle = newContext & (1 << PULSAR_TCTOGGLE);
-                isItemModeBattleRoyale = newContext2 & (1 << PULSAR_BATTLEROYALE);
+                isBoxCountDouble = newContext & (1 << PULSAR_DOUBLE_ITEMBOX);
                 isItemModeMayhem = newContext2 & (1 << PULSAR_MODE_MAYHEM);
-                isRiiBalanced = newContext2 & (1 << PULSAR_MODE_RIIBALANCED);
                 isBumperKart = newContext2 & (1 << PULSAR_MODE_BUMPERKARTS);
-                isCharRestrictLight = newContext & (1 << PULSAR_CHARRESTRICTLIGHT);
-                isCharRestrictMedium = newContext & (1 << PULSAR_CHARRESTRICTMEDIUM);
-                isCharRestrictHeavy = newContext & (1 << PULSAR_CHARRESTRICTHEAVY);
-                isKartRestrictKart = newContext & (1 << PULSAR_KARTRESTRICT);
-                isKartRestrictBike = newContext & (1 << PULSAR_BIKERESTRICT);
                 isItemModeUnknown = newContext2 & (1 << PULSAR_MODE_UNKNOWN);
                 isItemModeRain = newContext2 & (1 << PULSAR_MODE_ITEMRAIN);
                 isUltras = newContext & (1 << PULSAR_ULTRAS);
@@ -234,9 +227,6 @@ void System::UpdateContext() {
                 is99999 = newContext2 & (1 << PULSAR_99999);
                 isHAW = newContext & (1 << PULSAR_HAW);
                 isMiiHeads = newContext & (1 << PULSAR_MIIHEADS);
-                isThunderCloud = newContext & (1 << PULSAR_THUNDERCLOUD);
-                isFlyingBlooper = newContext & (1 << PULSAR_FLYINGBLOOP);
-                isAllItems = newContext & (1 << PULSAR_ALLITEMS);
                 isTransmissionVanilla = newContext & (1 << PULSAR_TRANSMISSIONVANILLA);
                 isTransmissionInsideAll = newContext & (1 << PULSAR_TRANSMISSIONINSIDEALL);
                 isTransmissionOutsideAll = newContext & (1 << PULSAR_TRANSMISSIONOUTSIDEALL);
@@ -244,12 +234,15 @@ void System::UpdateContext() {
                 isCantFastFall = newContext & (1 << PULSAR_FALLFAST);
                 isCantAlwaysDrift = newContext & (1 << PULSAR_NODRIFTANYWHERE);
                 isDisableInvisWalls = newContext & (1 << PULSAR_INVISWALLS);
-                isWorldwideMKDS = newContext2 & (1 << PULSAR_WWMKDS);
-                isWorldwideItemRain = newContext2 & (1 << PULSAR_WWITEMRAIN);
-                isWorldwideMayhem = newContext2 & (1 << PULSAR_WWMAYHEM);
+                isBooFullInvis = newContext & (1 << PULSAR_BOO_FULL_INVIS);
                 isStartMKDS = newContext & (1 << PULSAR_STARTMKDS);
-                isStartItemRain = newContext & (1 << PULSAR_STARTITEMRAIN);
-                isStartMayhem = newContext & (1 << PULSAR_STARTMAYHEM);
+                isBooItem = newContext2 & (1 << PULSAR_BOO);
+                isFeatherItem = newContext2 & (1 << PULSAR_FEATHER);
+                isTripleFibItem = newContext2 & (1 << PULSAR_TRIPLEFIB);
+                isShroomStarItem = newContext2 & (1 << PULSAR_SHROOMSTAR);
+                isShellMushroomItem = newContext2 & (1 << PULSAR_SHELLMUSHROOM);
+                isBobombMushroomItem = newContext2 & (1 << PULSAR_BOBOMBMUSHROOM);
+                isCountdownMode = newContext2 & (1 << PULSAR_MODE_COUNTDOWN);
                 break;
             default: isCT = false;
         }
@@ -258,7 +251,7 @@ void System::UpdateContext() {
     this->netMgr.hostContext2 = newContext2;
 
     u32 preserved = this->context & (1 << PULSAR_MAYHEM);
-    u32 preserved2 = this->context2 & ((1 << PULSAR_WWMKDS) | (1 << PULSAR_WWITEMRAIN) | (1 << PULSAR_WWMAYHEM) | (1 << PULSAR_MODE_ITEMRAIN) | (1 << PULSAR_MODE_MAYHEM));
+    u32 preserved2 = this->context2 & ((1 << PULSAR_MODE_ITEMRAIN) | (1 << PULSAR_MODE_MAYHEM));
 
     // When entering a friend room (host/nonhost), clear any region-preserved bits
     if (controller->roomType == RKNet::ROOMTYPE_FROOM_HOST || controller->roomType == RKNet::ROOMTYPE_FROOM_NONHOST || controller->roomType == RKNet::ROOMTYPE_NONE) {
@@ -269,35 +262,21 @@ void System::UpdateContext() {
     u32 context = (isCT << PULSAR_CT) | (isHAW << PULSAR_HAW) | (isMiiHeads << PULSAR_MIIHEADS);
     u32 context2 = 0;
     if(isCT) { //contexts that should only exist when CTs are on
-        context |= (isFeather << PULSAR_FEATHER) | (isUMTs << PULSAR_UMTS) | (isMegaTC << PULSAR_MEGATC) | (isKO << PULSAR_MODE_KO) | (isLapBasedKO << PULSAR_MODE_LAPKO) | (isUltras << PULSAR_ULTRAS) | (isCharRestrictLight << PULSAR_CHARRESTRICTLIGHT) | (isCharRestrictMedium << PULSAR_CHARRESTRICTMEDIUM) | (isCharRestrictHeavy << PULSAR_CHARRESTRICTHEAVY) | (isKartRestrictKart << PULSAR_KARTRESTRICT) | (isKartRestrictBike << PULSAR_BIKERESTRICT) | (isKOFinal << PULSAR_KOFINAL) | (isThunderCloud << PULSAR_THUNDERCLOUD) | (isFlyingBlooper << PULSAR_FLYINGBLOOP) | (isTransmissionVanilla << PULSAR_TRANSMISSIONVANILLA) | (isTransmissionInsideAll << PULSAR_TRANSMISSIONINSIDEALL) | (isTransmissionOutsideAll << PULSAR_TRANSMISSIONOUTSIDEALL) | (isCantBrakeDrift << PULSAR_BDRIFTING) | (isCantFastFall << PULSAR_FALLFAST) | (isCantAlwaysDrift << PULSAR_NODRIFTANYWHERE) | (isDisableInvisWalls << PULSAR_INVISWALLS) | (isAllItems << PULSAR_ALLITEMS) | (isMayhemCodes << PULSAR_MAYHEM) | (isTCToggle << PULSAR_TCTOGGLE) | (isStartMKDS << PULSAR_STARTMKDS) | (isStartItemRain << PULSAR_STARTITEMRAIN) | (isStartMayhem << PULSAR_STARTMAYHEM);
+        context |= (isUMTs << PULSAR_UMTS) | (isMegaTC << PULSAR_MEGATC) | (isKO << PULSAR_MODE_KO) | (isLapBasedKO << PULSAR_MODE_LAPKO) | (isSuperPowers << PULSAR_SUPERPOWERS) | (isUltras << PULSAR_ULTRAS) | (isKOFinal << PULSAR_KOFINAL) | (isTransmissionVanilla << PULSAR_TRANSMISSIONVANILLA) | (isTransmissionInsideAll << PULSAR_TRANSMISSIONINSIDEALL) | (isTransmissionOutsideAll << PULSAR_TRANSMISSIONOUTSIDEALL) | (isCantBrakeDrift << PULSAR_BDRIFTING) | (isCantFastFall << PULSAR_FALLFAST) | (isCantAlwaysDrift << PULSAR_NODRIFTANYWHERE) | (isDisableInvisWalls << PULSAR_INVISWALLS) | (isMayhemCodes << PULSAR_MAYHEM) | (isStartMKDS << PULSAR_STARTMKDS) | (isBoxCountDouble << PULSAR_DOUBLE_ITEMBOX) | (isBooFullInvis << PULSAR_BOO_FULL_INVIS);
 
-        context2 |= (is200 << PULSAR_200) | (is50 << PULSAR_50) | (is100 << PULSAR_100) | (is400 << PULSAR_400) |(is99999 << PULSAR_99999) | (isBumperKart << PULSAR_MODE_BUMPERKARTS) | (isRiiBalanced << PULSAR_MODE_RIIBALANCED) | (isItemModeUnknown << PULSAR_MODE_UNKNOWN) | (isItemModeRain << PULSAR_MODE_ITEMRAIN) | (isItemModeMayhem << PULSAR_MODE_MAYHEM) | (isItemModeBattleRoyale << PULSAR_BATTLEROYALE) | (isWorldwideMKDS << PULSAR_WWMKDS) | (isWorldwideItemRain << PULSAR_WWITEMRAIN) | (isWorldwideMayhem << PULSAR_WWMAYHEM) | (isBoxSpawnFast << PULSAR_FASTBOX) | (isBoxSpawnInstant << PULSAR_INSTANTBOX) | (isBoxSpawnDisabled << PULSAR_DISABLEBOX);
+        context2 |= (isMayhemWorld << PULSAR_MAYHEM_WORLD) | (isMayhemMK8U << PULSAR_MAYHEM_MK8U) | (is200 << PULSAR_200) | (is50 << PULSAR_50) | (is100 << PULSAR_100) | (is400 << PULSAR_400) |(is99999 << PULSAR_99999) | (isBumperKart << PULSAR_MODE_BUMPERKARTS) | (isItemModeUnknown << PULSAR_MODE_UNKNOWN) | (isItemModeRain << PULSAR_MODE_ITEMRAIN) | (isItemModeMayhem << PULSAR_MODE_MAYHEM) | (isBoxSpawnFast << PULSAR_FASTBOX) | (isBoxSpawnInstant << PULSAR_INSTANTBOX) | (isBoxSpawnDisabled << PULSAR_DISABLEBOX) | (isBooItem << PULSAR_BOO) | (isFeatherItem << PULSAR_FEATHER) | (isTripleFibItem << PULSAR_TRIPLEFIB) | (isShroomStarItem << PULSAR_SHROOMSTAR) | (isShellMushroomItem << PULSAR_SHELLMUSHROOM) | (isBobombMushroomItem << PULSAR_BOBOMBMUSHROOM) | (isCountdownMode << PULSAR_MODE_COUNTDOWN);
     }
     this->context = context | preserved;
     this->context2 = context2 | preserved2;
 
-    //Set contexts based on region for regionals
-    const u32 region = this->netMgr.region;
+    //Set contexts based on region for regionals - using unified region 0x4D
+    //Random mode selection is done in OnSceneEnter before each race
     if (isRegionalRoom) {
-        switch (region) {
-            case 0x4D:  // MKDS Worldwide
-                this->context |= (1 << PULSAR_MAYHEM);
-                sInstance->context2 &= ~(1 << PULSAR_MODE_ITEMRAIN);
-                sInstance->context2 &= ~(1 << PULSAR_MODE_MAYHEM);
-                break;
-
-            case 0x4E:  // Item Rain Worldwide
-                this->context |= (1 << PULSAR_MAYHEM);
-                this->context2 |= (1 << PULSAR_MODE_ITEMRAIN);
-                sInstance->context2 &= ~(1 << PULSAR_MODE_MAYHEM);
-                break;
-
-            case 0x4F:  // M4YH3M MODE Worldwide
-                this->context |= (1 << PULSAR_MAYHEM);
-                this->context2 |= (1 << PULSAR_MODE_MAYHEM);
-                sInstance->context2 &= ~(1 << PULSAR_MODE_ITEMRAIN);
-                break;
-        }
+        //Clear all mode flags - they will be set randomly in OnSceneEnter
+        this->context &= ~(1 << PULSAR_MAYHEM);
+        this->context2 &= ~(1 << PULSAR_MAYHEM_WORLD);
+        this->context2 &= ~(1 << PULSAR_MODE_ITEMRAIN);
+        this->context2 &= ~(1 << PULSAR_MODE_MAYHEM);
     }
 
     //Create temp instances if needed:
@@ -319,6 +298,11 @@ void System::UpdateContext() {
         this->koMgr = nullptr;
     }
 
+    if((!isCountdownMode || sceneId == SCENE_ID_GLOBE) && this->countdownMgr != nullptr) {
+        delete this->countdownMgr;
+        this->countdownMgr = nullptr;
+    }
+
     if (isLapBasedKO) {
         if (this->lapKoMgr == nullptr) {
             this->lapKoMgr = new (this->heap) LapKO::Mgr;
@@ -338,6 +322,51 @@ static Pulsar::Settings::Hook UpdateContext(System::UpdateContextWrapper);
 s32 System::OnSceneEnter(Random& random) {
     System* self = System::sInstance;
     self->UpdateContext();
+    
+    //Synced mode selection for regional rooms before each race
+    const RKNet::Controller* controller = RKNet::Controller::sInstance;
+    bool isRegionalRoom = controller->roomType == RKNet::ROOMTYPE_VS_REGIONAL || 
+                          controller->roomType == RKNet::ROOMTYPE_JOINING_REGIONAL || 
+                          controller->roomType == RKNet::ROOMTYPE_BT_REGIONAL;
+    
+    if(isRegionalRoom && GameScene::GetCurrent()->id == SCENE_ID_RACE) {
+        //Clear all mode flags first
+        self->context &= ~(1 << PULSAR_MAYHEM);
+        self->context2 &= ~(1 << PULSAR_MAYHEM_WORLD);
+        self->context2 &= ~(1 << PULSAR_MODE_ITEMRAIN);
+        self->context2 &= ~(1 << PULSAR_MODE_MAYHEM);
+        
+        //Use the Pulsar winning track ID which is synced via SELECT packet
+        //CupsConfig::GetWinning() returns the track that ALL players agreed on
+        const CupsConfig* cupsConfig = CupsConfig::sInstance;
+        const u32 winningTrack = static_cast<u32>(cupsConfig->GetWinning());
+        const s32 raceNumber = SectionMgr::sInstance->sectionParams->onlineParams.currentRaceNumber;
+        
+        //Deterministic mode from synced data: (track * 7 + race) % 6
+        s32 modeChoice = ((winningTrack * 7) + raceNumber) % 6;
+        
+        switch(modeChoice) {
+            case 1:
+                self->context |= (1 << PULSAR_MAYHEM);
+                break;
+            case 2:
+                self->context2 |= (1 << PULSAR_MAYHEM_WORLD);
+                break;
+            case 3:
+                self->context2 |= (1 << PULSAR_MODE_ITEMRAIN);
+                break;
+            case 4:
+                self->context2 |= (1 << PULSAR_MODE_MAYHEM);
+                break;
+            case 5:
+                self->context2 |= (1 << PULSAR_MAYHEM_MK8U);
+                break;
+            default:
+                //case 0: No mode enabled (vanilla-ish experience)
+                break;
+        }
+    }
+    
     if(self->IsContext(PULSAR_MODE_OTT)) OTT::AddGhostToVS();
     if(self->IsContext(PULSAR_HAW) && self->IsContext(PULSAR_MODE_KO) && GameScene::GetCurrent()->id == SCENE_ID_RACE && SectionMgr::sInstance->sectionParams->onlineParams.currentRaceNumber > 0) {
         KO::HAWChangeData();
@@ -371,6 +400,12 @@ kmWrite32(0x80549974, 0x38600001);
 
 //Skip ESRB page
 kmRegionWrite32(0x80604094, 0x4800001c, 'E');
+
+// Mayhem Pack ID
+kmWrite32(0x800017D0, 0x01);
+
+// Mayhem Internal Version
+kmWrite32(0x800017D4, 2);
 
 const char System::pulsarString[] = "/Pulsar";
 const char System::CommonAssets[] = "/CommonAssets.szs";

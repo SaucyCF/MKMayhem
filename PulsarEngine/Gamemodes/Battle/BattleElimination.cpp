@@ -129,7 +129,7 @@ static void SetVanishOnElim(u8 playerIdx) {
     }
     TickEliminationDisplayInternal();
 }
-static RaceFrameHook BattleElimVanishHook(SetVanishOnElim);
+RaceFrameHook BattleElimVanishHook(SetVanishOnElim);
 
 u16 GetEliminationDisplayTimer() {
     return sEliminationDisplay.timer;
@@ -169,7 +169,7 @@ static void ApplySpectatorToEliminatedPlayersOnly(LapKO::Mgr* lapKOMgr) {
         }
     }
 }
-static RaceFrameHook BattleElimSpectateHook(ApplySpectatorToEliminatedPlayersOnly);
+RaceFrameHook BattleElimSpectateHook(ApplySpectatorToEliminatedPlayersOnly);
 
 static void SetTimerToZeroWhenAllPlayersEliminated() {
     Raceinfo* raceinfo = Raceinfo::sInstance;

@@ -6,18 +6,73 @@
 #include <PulsarSystem.hpp>
 #include <Network/Network.hpp>
 #include <Network/PacketExpansion.hpp>
+#include <Gamemodes/Countdown/CountdownMgr.hpp>
 
 namespace Pulsar {
 namespace Network {
+
+// Helper to check if we're in a friend room (where LapKO data should be sent)
+static bool IsFriendRoom() {
+    const RKNet::Controller* controller = RKNet::Controller::sInstance;
+    if (!controller) return false;
+    return (controller->roomType == RKNet::ROOMTYPE_FROOM_HOST ||
+            controller->roomType == RKNet::ROOMTYPE_FROOM_NONHOST);
+}
 
 // Fixes for spectating
 void BeforeRH1Send(RKNet::PacketHolder<PulRH1>& packetHolder, PulRH1* packet, u32 len) {
     packetHolder.Copy(packet, len);
 
-    if (System::sInstance->IsContext(PULSAR_CT)) {  // CHECK if this only exists in races
-        packetHolder.packetSize += sizeof(Network::PulRH1) - sizeof(RKNet::RACEHEADER1Packet);  // this has been changed by copy so it's safe to do this
+    const System* system = System::sInstance;
+
+    // Determine target packet size based on room type and LapKO mode
+    // LapKO fields are only sent in friend rooms when PULSAR_MODE_LAPKO is enabled
+    const bool inFriendRoom = IsFriendRoom();
+    const bool lapKoEnabled = inFriendRoom && system->IsContext(PULSAR_MODE_LAPKO);
+    const u32 targetSize = lapKoEnabled ? PulRH1SizeFull : PulRH1SizeBase;
+
+    if (system->IsContext(PULSAR_CT)) {
+        packetHolder.packetSize = targetSize;
         packetHolder.packet->pulsarTrackId = static_cast<u16>(CupsConfig::sInstance->GetWinning());
         packetHolder.packet->variantIdx = CupsConfig::sInstance->GetCurVariantIdx();
+    }
+
+    // Clear KO Stats fields if KO mode is not enabled
+    if (!system->IsContext(PULSAR_MODE_KO)) {
+        packetHolder.packet->timeInDanger = 0;
+        packetHolder.packet->almostKOdCounter = 0;
+        packetHolder.packet->finalPercentageSum = 0;
+    }
+
+    // Clear LapKO fields if LapKO mode is not enabled (they won't be sent anyway due to packet size)
+    if (!lapKoEnabled) {
+        packetHolder.packet->lapKoSeq = 0;
+        packetHolder.packet->lapKoRoundIndex = 0;
+        packetHolder.packet->lapKoActiveCount = 0;
+        packetHolder.packet->lapKoElimCount = 0;
+        memset(packetHolder.packet->lapKoElims, 0xFF, sizeof(packetHolder.packet->lapKoElims));
+    }
+
+    // Initialize item rain fields to no-spawn default if item rain is not active
+    if (!system->IsContext(PULSAR_MODE_ITEMRAIN) && !system->IsContext(PULSAR_MODE_MAYHEM)) {
+        packetHolder.packet->itemRainSeq = 0;
+        packetHolder.packet->itemRainItemId = 0xFF;
+        packetHolder.packet->itemRainTargetPlayer = 0;
+        packetHolder.packet->itemRainHostPlayerId = 0;
+        packetHolder.packet->itemRainPosX = 0;
+        packetHolder.packet->itemRainPosY = 0;
+        packetHolder.packet->itemRainPosZ = 0;
+    }
+
+    // Countdown — pack each local player's score+ticks. When Countdown isn't active, the packet ships zeros and receivers ignore.
+    packetHolder.packet->countdownScore[0] = 0;
+    packetHolder.packet->countdownScore[1] = 0;
+    packetHolder.packet->countdownTicks[0] = 0;
+    packetHolder.packet->countdownTicks[1] = 0;
+    if (system->IsContext(PULSAR_MODE_COUNTDOWN) && system->countdownMgr != nullptr) {
+        system->countdownMgr->PackForNetwork(
+            packetHolder.packet->countdownScore,
+            packetHolder.packet->countdownTicks);
     }
 }
 kmCall(0x80655458, BeforeRH1Send);
@@ -25,18 +80,32 @@ kmCall(0x806550e4, BeforeRH1Send);
 
 static void AfterRH1Reception(register u8* aidArrDest, const RKNet::PacketHolder<PulRH1>& holder, u32 len) {
     register RKNet::RH1Data* data;
+    register u8 senderAid;
     asm(subi data, aidArrDest, 0x20;);  // offset of the array in data
+    asm(mr senderAid, r29;);  // r29 contains the current AID being processed in the loop
 
     const PulRH1* packet = holder.packet;
     const u32 packetSize = holder.packetSize;
     CourseId track;
     u8 variantIdx = 0;
-    if (packetSize == sizeof(PulRH1))
+    // Accept both base and full Pulsar packet sizes
+    if (packetSize >= PulRH1SizeBase)
         track = static_cast<CourseId>(packet->pulsarTrackId);
     else
         track = static_cast<CourseId>(packet->trackId);
     data->trackId = track;
     memcpy(aidArrDest, &packet->aidsBelongingToPlayerIds[0], len);
+
+    // Countdown — unpack remote sender's score+ticks into our local view of
+    // their players. Only consume when the packet is sized to include the
+    // Countdown fields (PulRH1SizeBase or larger).
+    const System* system = System::sInstance;
+    if (packetSize >= PulRH1SizeBase
+            && system != nullptr
+            && system->IsContext(PULSAR_MODE_COUNTDOWN)
+            && system->countdownMgr != nullptr) {
+        system->countdownMgr->UnpackFromNetwork(senderAid, packet->countdownScore, packet->countdownTicks);
+    }
 }
 kmCall(0x806652d0, AfterRH1Reception);
 

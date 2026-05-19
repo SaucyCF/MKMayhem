@@ -21,30 +21,6 @@ static void ConvertROOMPacketToData(const PulROOM& packet) {
     system->netMgr.racesPerGP = packet.raceCount;
 }
 
-static bool ApplyHostContextLocally(u32 hostContext) {
-    System* system = System::sInstance;
-    
-    const bool isCharRestrictLight = hostContext & (1 << PULSAR_CHARRESTRICTLIGHT);
-    const bool isCharRestrictMedium = hostContext & (1 << PULSAR_CHARRESTRICTMEDIUM);
-    const bool isCharRestrictHeavy = hostContext & (1 << PULSAR_CHARRESTRICTHEAVY);
-    const bool isKartRestrictKart = hostContext & (1 << PULSAR_KARTRESTRICT);
-    const bool isKartRestrictBike = hostContext & (1 << PULSAR_BIKERESTRICT);
-    const bool isStartMKDS = hostContext & (1 << PULSAR_STARTMKDS);
-    const bool isStartItemRain = hostContext & (1 << PULSAR_STARTITEMRAIN);
-    const bool isStartMayhem = hostContext & (1 << PULSAR_STARTMAYHEM);
-
-    u32 context = (isCharRestrictLight << PULSAR_CHARRESTRICTLIGHT) | (isCharRestrictMedium << PULSAR_CHARRESTRICTMEDIUM) | (isCharRestrictHeavy << PULSAR_CHARRESTRICTHEAVY) | (isKartRestrictKart << PULSAR_KARTRESTRICT) | (isKartRestrictBike << PULSAR_BIKERESTRICT) | (isStartMKDS << PULSAR_STARTMKDS) | (isStartItemRain << PULSAR_STARTITEMRAIN) | (isStartMayhem << PULSAR_STARTMAYHEM);
-    Pulsar::System::sInstance->context = context;
-
-    if (isStartMKDS || isStartItemRain || isStartMayhem) {
-            Pulsar::System::sInstance->context &= ~(1 << PULSAR_CHARRESTRICTHEAVY);
-            Pulsar::System::sInstance->context &= ~(1 << PULSAR_CHARRESTRICTMEDIUM);
-            Pulsar::System::sInstance->context &= ~(1 << PULSAR_CHARRESTRICTLIGHT);
-            Pulsar::System::sInstance->context &= ~(1 << PULSAR_KARTRESTRICT);
-            Pulsar::System::sInstance->context &= ~(1 << PULSAR_BIKERESTRICT);
-    }
-}
-
 static void BeforeROOMSend(RKNet::PacketHolder<PulROOM>* packetHolder, PulROOM* src, u32 len) {
     packetHolder->Copy(src, len); //default
 
@@ -74,14 +50,9 @@ static void BeforeROOMSend(RKNet::PacketHolder<PulROOM>* packetHolder, PulROOM* 
 
         u8 koSetting = settings.GetSettingValue(Settings::SETTINGSTYPE_KO, KO_ENABLED) == KOSETTING_ENABLED;
         u8 lapKoSetting = settings.GetSettingValue(Settings::SETTINGSTYPE_KO, KO_ENABLED) == KOSETTING_LAP_ENABLED && isNotPublic && !isBattle && !isTimeTrial;
+        const u8 superPowers = settings.GetSettingValue(Settings::SETTINGSTYPE_KO, KO_SUPERPOWER) == KOSETTING_SUPERPOWER_ENABLED;
         const u8 koFinal = settings.GetSettingValue(Settings::SETTINGSTYPE_KO, KO_FINAL) == KOSETTING_FINAL_ALWAYS;
-
-        const u8 worldwideMKDS = settings.GetSettingValue(Settings::SETTINGSTYPE_MISC2, WW_GAMEMODE) == DKWSETTING_WWGAMEMODE_MKDS;
-        const u8 worldwideItemRain = settings.GetSettingValue(Settings::SETTINGSTYPE_MISC2, WW_GAMEMODE) == DKWSETTING_WWGAMEMODE_ITEMRAIN;
-        const u8 worldwideMayhem = settings.GetSettingValue(Settings::SETTINGSTYPE_MISC2, WW_GAMEMODE) == DKWSETTING_WWGAMEMODE_MAYHEM;
         const u8 startMKDS = (originalMessage == 4);
-        const u8 startItemRain = (originalMessage == 5);
-        const u8 startMayhem = (originalMessage == 6);
 
         const u8 fiftyCC = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES, RULES_RADIO_CC) == HOSTSETTING_CC_50;
         const u8 hundredCC = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES, RULES_RADIO_CC) == HOSTSETTING_CC_REAL100;
@@ -92,72 +63,69 @@ static void BeforeROOMSend(RKNet::PacketHolder<PulROOM>* packetHolder, PulROOM* 
         const u8 cantFastFall = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES, RULES_ALLOW_FALLFAST) == DKWSETTING_150_FALLFASTOFF;
         const u8 cantAlwaysDrift = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES, RULES_ALLOW_ALWAYSDRIFT) == DKWSETTING_ALLOW_DANYWHEREOFF;
 
-        u8 charRestrictLight = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_CHARRESTRICT) == DKWSETTING_CHARRESTRICT_LIGHT;
-        u8 charRestrictMedium = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_CHARRESTRICT) == DKWSETTING_CHARRESTRICT_MEDIUM;
-        u8 charRestrictHeavy = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_CHARRESTRICT) == DKWSETTING_CHARRESTRICT_HEAVY;
-        u8 kartRestrict = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_VEHICLERESTRICT) == DKWSETTING_VEHICLERESTRICT_KARTS;
-        u8 bikeRestrict = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_VEHICLERESTRICT) == DKWSETTING_VEHICLERESTRICT_BIKES;
-        const u8 mayhemCodes = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_MAYHEM_CODES) == DKWSETTING_MAYHEM_ENABLED;
+        const u8 mayhemCodes = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_MAYHEM_CODES) == DKWSETTING_MAYHEM_MKDS;
+        const u8 mayhemWorld = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_MAYHEM_CODES) == DKWSETTING_MAYHEM_WORLD;
+        const u8 mayhemMK8U = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_MAYHEM_CODES) == DKWSETTING_MAYHEM_MK8U;
         const u8 itemModeUnknown = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_UNKNOWNITEMS;
         const u8 itemModeRain = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_ITEMRAIN;
         const u8 itemModeMayhem = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_MAYHEM;
-        const u8 itemModeBattleRoyale = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_BATTLEROYALE;
         const u8 bumperKart = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_BUMPERKARTS;
-        const u8 riiBalanced = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_RIIBALANCED;
+        const u8 modeCountdown = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_GAMEMODE) == DKWSETTING_GAMEMODE_COUNTDOWN;
         const u8 disableInvisWalls = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_INVIS_WALLS) == DKWSETTING_INVISWALLS_DISABLED;
+        const u8 booFullInvis = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_BOO_VISIBILITY) == DKWSETTING_BOO_VISIBILITY_FULL_INVIS;
         const u8 transmissionVanilla = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_SCROLL_FORCETRANSMISSION) == DKWSETTING_FORCE_TRANSMISSION_VANILLA;
         const u8 transmissionInsideAll = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_SCROLL_FORCETRANSMISSION) == DKWSETTING_FORCE_TRANSMISSION_INSIDEALL;
         const u8 transmissionOutsideAll = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_SCROLL_FORCETRANSMISSION) == DKWSETTING_FORCE_TRANSMISSION_OUTSIDEALL;
+        const u8 boxSpawnFast = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_ITEMBOXSPAWN) == DKWSETTING_ITEMBOX_FASTSPAWN;
+        const u8 boxSpawnInstant = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_ITEMBOXSPAWN) == DKWSETTING_ITEMBOX_INSTANTSPAWN;
+        const u8 boxSpawnDisabled = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_ITEMBOXSPAWN) == DKWSETTING_ITEMBOX_DISABLED;
+        const u8 boxCountDouble = settings.GetSettingValue(Settings::SETTINGSTYPE_RULES2, RULES_ITEMBOXCOUNT) == DKWSETTING_ITEMBOXCOUNT_DOUBLE;
 
-        const u8 boxSpawnFast = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_ITEMBOXSPAWN) == DKWSETTING_ITEMBOX_FASTSPAWN;
-        const u8 boxSpawnInstant = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_ITEMBOXSPAWN) == DKWSETTING_ITEMBOX_INSTANTSPAWN;
-        const u8 boxSpawnDisabled = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_ITEMBOXSPAWN) == DKWSETTING_ITEMBOX_DISABLED;
-        const u8 tcToggle = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_TCTOGGLE) == DKWSETTING_TCTOGGLE_ENABLED;
-        const u8 allItems = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_ALLITEMS) == DKWSETTING_ALLITEMS_ENABLED;
+        const u8 itemBoo = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEMS, ITEMS_BOO) == DKWSETTING_ITEM_ENABLED;
+        const u8 itemFeather = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEMS, ITEMS_FEATHER) == DKWSETTING_ITEM_ENABLED;
+        const u8 itemTripleFib = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEMS, ITEMS_TRIPLE_FIB) == DKWSETTING_ITEM_ENABLED;
+        const u8 itemShroomStar = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEMS, ITEMS_SHROOM_STAR) == DKWSETTING_ITEM_ENABLED;
+        const u8 itemShellMushroom = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEMS, ITEMS_GREEN_SHELL_MUSHROOM) == DKWSETTING_ITEM_ENABLED;
+        const u8 itemBobombMushroom = settings.GetSettingValue(Settings::SETTINGSTYPE_ITEMS, ITEMS_BOB_OMB_MUSHROOM) == DKWSETTING_ITEM_ENABLED;
 
         destPacket->hostSystemContext = (koSetting << PULSAR_MODE_KO)
       | (lapKoSetting) << PULSAR_MODE_LAPKO
-      | (koFinal) << PULSAR_KOFINAL
+      | (superPowers) << PULSAR_SUPERPOWERS
       | (settings.GetSettingValue(Settings::SETTINGSTYPE_RULES, RULES_ALLOW_ULTRAS) ^ true) << PULSAR_ULTRAS
       | (settings.GetSettingValue(Settings::SETTINGSTYPE_RULES, RULES_ALLOW_MIIHEADS) ^ true) << PULSAR_MIIHEADS
       | (mayhemCodes) << PULSAR_MAYHEM
-      | (charRestrictLight) << PULSAR_CHARRESTRICTLIGHT
-      | (charRestrictMedium) << PULSAR_CHARRESTRICTMEDIUM
-      | (charRestrictHeavy) << PULSAR_CHARRESTRICTHEAVY
-      | (kartRestrict) << PULSAR_KARTRESTRICT
-      | (bikeRestrict) << PULSAR_BIKERESTRICT
-      | (tcToggle) << PULSAR_TCTOGGLE
-      | (allItems) << PULSAR_ALLITEMS
       | (transmissionVanilla) << PULSAR_TRANSMISSIONVANILLA
       | (transmissionInsideAll) << PULSAR_TRANSMISSIONINSIDEALL
       | (transmissionOutsideAll) << PULSAR_TRANSMISSIONOUTSIDEALL
+      | (boxCountDouble) << PULSAR_DOUBLE_ITEMBOX
       | (cantBrakeDrift) << PULSAR_BDRIFTING
       | (cantFastFall) << PULSAR_FALLFAST
       | (cantAlwaysDrift) << PULSAR_NODRIFTANYWHERE
       | (disableInvisWalls) << PULSAR_INVISWALLS
+      | (booFullInvis) << PULSAR_BOO_FULL_INVIS
       | (startMKDS) << PULSAR_STARTMKDS
-      | (startItemRain) << PULSAR_STARTITEMRAIN
-      | (startMayhem) << PULSAR_STARTMAYHEM;
+      | (settings.GetSettingValue(Settings::SETTINGSTYPE_RULES, RULES_RADIO_HOSTWINS) << PULSAR_HAW);
 
-      destPacket->hostSystemContext2 = (fiftyCC) << PULSAR_50
+      destPacket->hostSystemContext2 = (mayhemWorld << PULSAR_MAYHEM_WORLD)
+      | (mayhemMK8U << PULSAR_MAYHEM_MK8U)
+      | (fiftyCC) << PULSAR_50
       | (hundredCC) << PULSAR_100
       | (fourCC) << PULSAR_400
       | (ninetyCC) << PULSAR_99999
       | (itemModeRain) << PULSAR_MODE_ITEMRAIN
       | (itemModeMayhem) << PULSAR_MODE_MAYHEM
-      | (riiBalanced) << PULSAR_MODE_RIIBALANCED
       | (bumperKart) << PULSAR_MODE_BUMPERKARTS
       | (itemModeUnknown) << PULSAR_MODE_UNKNOWN
-      | (itemModeBattleRoyale) << PULSAR_BATTLEROYALE
-      | (worldwideMKDS) << PULSAR_WWMKDS
-      | (worldwideItemRain) << PULSAR_WWITEMRAIN
-      | (worldwideMayhem) << PULSAR_WWMAYHEM
       | (boxSpawnFast) << PULSAR_FASTBOX
       | (boxSpawnInstant) << PULSAR_INSTANTBOX
       | (boxSpawnDisabled) << PULSAR_DISABLEBOX
-      | (settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_THUNDERCLOUD) << PULSAR_THUNDERCLOUD)
-      | (settings.GetSettingValue(Settings::SETTINGSTYPE_ITEM, ITEM_FLYINGBLOOP) << PULSAR_FLYINGBLOOP)
-      | (settings.GetSettingValue(Settings::SETTINGSTYPE_RULES, RULES_RADIO_HOSTWINS) << PULSAR_HAW);
+      | (itemBoo) << PULSAR_BOO
+      | (itemFeather) << PULSAR_FEATHER
+      | (itemTripleFib) << PULSAR_TRIPLEFIB
+      | (itemShroomStar) << PULSAR_SHROOMSTAR
+      | (itemShellMushroom) << PULSAR_SHELLMUSHROOM
+      | (itemBobombMushroom) << PULSAR_BOBOMBMUSHROOM
+      | (modeCountdown) << PULSAR_MODE_COUNTDOWN;
   
         u8 raceCount;
         if (koSetting == KOSETTING_ENABLED) raceCount = 0xFE;
@@ -185,7 +153,6 @@ static void BeforeROOMSend(RKNet::PacketHolder<PulROOM>* packetHolder, PulROOM* 
         }
         destPacket->raceCount = raceCount;
         ConvertROOMPacketToData(*destPacket);
-        (void)ApplyHostContextLocally(destPacket->hostSystemContext);
     }
 }
 kmCall(0x8065b15c, BeforeROOMSend);

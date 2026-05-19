@@ -16,8 +16,6 @@ static u8 REGIONID = 0x4D;
 
 static void SetRegionId(u8 regionId) {
     if (Pulsar::System::sInstance->IsContext(PULSAR_STARTMKDS)) REGIONID = 0x4D;
-    else if (Pulsar::System::sInstance->IsContext(PULSAR_STARTITEMRAIN)) REGIONID = 0x4E;
-    else if (Pulsar::System::sInstance->IsContext(PULSAR_STARTMAYHEM)) REGIONID = 0x4F;
     else REGIONID = regionId;
 }
 static PageLoadHook setRegionIdHook(SetRegionId);
@@ -142,8 +140,7 @@ static void ApplyNextSection(SectionMgr* sectionMgr, SectionId nextSectionId, u3
 static void SetNextSectionRegionalHook(SectionMgr* sectionMgr, SectionId nextSectionId, u32 animDirection) {
     SetRegionId(REGIONID);
     bool isFroom = RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST;
-    if ((Pulsar::System::sInstance->IsContext(PULSAR_STARTMKDS) || Pulsar::System::sInstance->IsContext(PULSAR_STARTITEMRAIN) ||
-        Pulsar::System::sInstance->IsContext(PULSAR_STARTMAYHEM)) && isFroom) {
+    if (Pulsar::System::sInstance->IsContext(PULSAR_STARTMKDS) && isFroom) {
         static bool hasConverted = false;
 
         SectionId desiredSection = nextSectionId;

@@ -32,15 +32,15 @@ class ItemSlotData {
     struct Probabilities {
         u32 rowCount;  // almost always raw's columnsCount since this is inverted
         u16* probabilities;  // obviously multiplied by 2 as usual
-        // array of size [COLUMNSCOUNT][19], ie inverted relative to the raw bin, probabilities[3][4] would be the probability that 4th place gets a Mushroom
+        // array of size [COLUMNSCOUNT][23], ie inverted relative to the raw bin, probabilities[3][4] would be the probability that 4th place gets a Mushroom
+        // Expanded from [COLUMNSCOUNT][19] to [COLUMNSCOUNT][23] for item slot expansion
     };  // Total size 0x8
 
     struct RouletteItems {  // visual only
         RouletteItems();  // 807bb374, no dtor
         u32 itemCount;
-        ItemId items[19];
+        ItemId items[24]; // Expanded from [19] to [24] for item slot expansion
     };
-    // size_assert(RouletteItems, 0x50);
 
     static ItemSlotData* sInstance();  // 809c3670
     static ItemSlotData* CreateInstance();  // 807ba77c

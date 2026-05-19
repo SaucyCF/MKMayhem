@@ -22,7 +22,9 @@ enum UseType {
 };
 
 struct Behavior {
-    static Behavior behaviourTable[19];  // 809c36a0, index item id, see http://wiki.tockdom.com/wiki/List_of_Identifiers#Items
+    static Behavior behaviourTable[19];  // 809c36a0, original 19 entries (0x00-0x12)
+    // Expanded to 23 entries via expandedBehaviourTable in ItemSlotExpansion.cpp (mod BSS)
+    // The original table CANNOT be extended in-place — runtime memory after it is occupied.
     u8 unknkown_0x0;
     u8 unknkown_0x1;
     u8 padding[2];  // Ignored when copying to array

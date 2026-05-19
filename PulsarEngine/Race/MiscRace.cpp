@@ -8,6 +8,9 @@
 #include <Settings/SettingsParam.hpp>
 #include <MarioKartWii/Archive/ArchiveMgr.hpp>
 #include <PulsarSystem.hpp>
+#include <Gamemodes/KO/KOMgr.hpp>
+#include <Gamemodes/KO/KOUnderdog.hpp>
+#include <Gamemodes/KO/KOSuperRarePower.hpp>
 #include <DKW.hpp>
 
 namespace Pulsar {
@@ -29,23 +32,50 @@ static void SetStartingItem(Item::PlayerInventory& inventory, ItemId id, bool is
     asm(mr playerId, r29;);
     if (Racedata::sInstance->racesScenario.players[playerId].playerType == PLAYER_CPU) return;
     const System* system = System::sInstance;
+    
+    // Check for Super Rare Power first (99 Stars - highest priority)
+    if (system->IsContext(PULSAR_MODE_KO) && Pulsar::KO::Mgr::AreSuperpowersEnabled()) {
+        if (KO::HasSuperRarePower(playerId)) {
+            id = STAR;
+            inventory.SetItem(id, isItemForcedDueToCapacity);
+            inventory.currentItemCount = 5;  // 5 stars!
+            return;
+        }
+    }
+    
+    // Check for Underdog Bonus (Mega Mushroom for lowest GP points player)
+    if (system->IsContext(PULSAR_MODE_KO) && Pulsar::KO::Mgr::AreSuperpowersEnabled()) {
+        if (KO::HasUnderdogBonus(playerId)) {
+            id = MEGA_MUSHROOM;
+            inventory.SetItem(id, isItemForcedDueToCapacity);
+            return;
+        }
+        
+        // Regular superpower milestone bonus (single mushroom)
+        const KO::Mgr* koMgr = system->koMgr;
+        if (koMgr != nullptr && koMgr->HasSuperpowerStage(playerId)) {
+            id = MUSHROOM; // single mushroom for superpower milestone
+            inventory.SetItem(id, isItemForcedDueToCapacity);
+            return;
+        }
+    }
     const bool isTT = DriverMgr::isTT;
     if (isTT || system->IsContext(PULSAR_MODE_OTT)) {
-        bool isFeather;
-        if (isTT) {
-            const TTMode mode = system->ttMode;
-            isFeather = (mode == TTMODE_150_FEATHER || mode == TTMODE_200_FEATHER);
-        }
-        else isFeather = system->IsContext(PULSAR_FEATHER);
-        if (isFeather && RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_VS_REGIONAL && RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_JOINING_REGIONAL) {
-            id = BLOOPER;
-            inventory.SetItem(id, isItemForcedDueToCapacity);
-            if (isFeather) inventory.currentItemCount = 3;
-        }
-        else{
+        //bool isFeather;
+        //if (isTT) {
+        //    const TTMode mode = system->ttMode;
+        //    isFeather = (mode == TTMODE_150_FEATHER || mode == TTMODE_200_FEATHER);
+        //}
+        //else isFeather = system->IsContext(PULSAR_FEATHER);
+        //if (isFeather && RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_VS_REGIONAL && RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_JOINING_REGIONAL) {
+        //    id = BLOOPER;
+        //    inventory.SetItem(id, isItemForcedDueToCapacity);
+        //    if (isFeather) inventory.currentItemCount = 3;
+        //}
+        //else{
             id = TRIPLE_MUSHROOM;
             inventory.SetItem(id, isItemForcedDueToCapacity);
-        }
+        //}
     }
 }
 kmCall(0x80799808, SetStartingItem);
@@ -101,11 +131,11 @@ static void BattleGlitchEnable() {
 }
 RaceFrameHook BattleGlitch(BattleGlitchEnable);
 
-kmWrite32(0x8085C914, 0x38000000); //times at the end of races in VS
-static void DisplayTimesInsteadOfNames(CtrlRaceResult& result, u8 id) {
-    result.FillFinishTime(id);
-}
-kmCall(0x8085d460, DisplayTimesInsteadOfNames); //for WWs
+//kmWrite32(0x8085C914, 0x38000000); //times at the end of races in VS
+//static void DisplayTimesInsteadOfNames(CtrlRaceResult& result, u8 id) {
+//    result.FillFinishTime(id);
+//}
+//kmCall(0x8085d460, DisplayTimesInsteadOfNames); //for WWs
 
 //don't hide position tracker (MrBean35000vr)
 kmWrite32(0x807F4DB8, 0x38000001);
@@ -162,34 +192,52 @@ const char* ChangeItemWindowPane(ItemId id, u32 itemCount) {
     const RacedataScenario& scenario = Racedata::sInstance->racesScenario;
     const GameMode mode = scenario.settings.gamemode;
     const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
-    const bool feather = System::sInstance->IsContext(PULSAR_FLYINGBLOOP) == Pulsar::DKWSETTING_FLYINGBLOOP_FEATHER;
-    const bool featherTT150 = mode == TTMODE_150_FEATHER;
-    const bool featherTT200 = mode == TTMODE_200_FEATHER;
-    const bool megaTC = System::sInstance->IsContext(PULSAR_THUNDERCLOUD) == Pulsar::DKWSETTING_THUNDERCLOUD_MEGA;
-    const bool randomTC = System::sInstance->IsContext(PULSAR_MODE_MAYHEM) == Pulsar::DKWSETTING_GAMEMODE_MAYHEM;
+    const bool booTT150 = mode == TTMODE_150_FEATHER;
+    const bool booTT200 = mode == TTMODE_200_FEATHER;
+    const bool megaTC = System::sInstance->IsContext(PULSAR_CT);
     const char* paneName;
     if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST || gameMode == MODE_GRAND_PRIX || gameMode == MODE_VS_RACE || gameMode == MODE_BATTLE) {
         UnknownItems = System::sInstance->IsContext(Pulsar::PULSAR_MODE_UNKNOWN) ? Pulsar::DKWSETTING_GAMEMODE_UNKNOWNITEMS : Pulsar::DKWSETTING_GAMEMODE_REGULAR;
     }
 
-    if (System::sInstance->IsContext(PULSAR_BATTLEROYALE)) {
-        if (itemCount == 2) paneName = "potatoTC";
-        else if (itemCount == 3) paneName = "potatoTC";
-        else paneName = "potatoTC";
-    }
-
-    else if (UnknownItems == Pulsar::DKWSETTING_GAMEMODE_UNKNOWNITEMS) {
+    if (UnknownItems == Pulsar::DKWSETTING_GAMEMODE_UNKNOWNITEMS) {
         if (itemCount == 2) paneName = "unknown";
         else if (itemCount == 3) paneName = "unknown";
         else paneName = "unknown";
     }
 
-    else if (id == BLOOPER && feather || id == BLOOPER && featherTT150 || id == BLOOPER && featherTT200) {
-        if (itemCount == 2) paneName = "feather_2";
-        else if (itemCount == 3) paneName = "feather_3";
-        else paneName = "feather";
+    else if (id == BOO) {
+        paneName = "boo";
     }
-    else if (id == THUNDER_CLOUD && randomTC) paneName = "randomTC";
+
+    else if (id == FEATHER) {
+        paneName = "feather";
+    }
+
+    else if (id == TRIPLE_FIB) {
+        paneName = "triple_fib";
+    }
+
+    else if (id == SHROOM_STAR) {
+        paneName = "shroom_star";
+    }
+
+    else if (id == GREEN_SHELL_MUSHROOM) {
+        paneName = "shell_shroom";
+    }
+
+    else if (id == BOBOMB_MUSHROOM) {
+        paneName = "bomb_shroom";
+    }
+
+    else if (id == STAR) {
+        if (itemCount == 2) paneName = "star_2";
+        else if (itemCount == 3) paneName = "star_3";
+        else if (itemCount == 4) paneName = "star_4";
+        else if (itemCount == 5) paneName = "star_5";
+        else paneName = "star";
+    }
+
     else if (id == THUNDER_CLOUD && megaTC) paneName = "megaTC";
     else paneName = GetItemIconPaneName(id, itemCount);
     return paneName;
@@ -200,5 +248,6 @@ kmCall(0x807ef3e0, ChangeItemWindowPane);
 kmCall(0x807ef444, ChangeItemWindowPane);
 
 kmWrite24(0x808A9FF3, 'PUL');
+
 }//namespace Race
 }//namespace Pulsar

@@ -12,6 +12,7 @@
 #include <Gamemodes/KO/KORaceEndPage.hpp>
 #include <Debug/Debug.hpp>
 #include <Gamemodes/LapKO/LapKOMgr.hpp>
+#include <MarioKartWii/Race/RaceData.hpp>
 #include <UI/UI.hpp>
 
 
@@ -48,12 +49,14 @@ static void LaunchRiivolutionButton(SectionMgr* sectionMgr) {
 }
 kmCall(0x80553a60, LaunchRiivolutionButton);
 
-// Top left message when a race is about to start in a froom
+// Top left message when a race is about to start in a froom or regional
 static void FixStartMessageFroom(CtrlRaceWifiStartMessage* startMsg, u32 bmgId, Text::Info* info) {
     const SectionMgr* sectionMgr = SectionMgr::sInstance;
     const SectionId id = sectionMgr->curSection->sectionId;
+    const System* system = System::sInstance;
+    
+    // Check for Friend Room sections
     if (id == SECTION_P1_WIFI_FRIEND_VS || id == SECTION_P1_WIFI_FRIEND_TEAMVS || id == SECTION_P2_WIFI_FRIEND_VS || id == SECTION_P2_WIFI_FRIEND_TEAMVS) {
-        const System* system = System::sInstance;
         const u32 raceNumber = sectionMgr->sectionParams->onlineParams.currentRaceNumber + 1;
         bmgId = BMG_GP_RACE;
         if (system->IsContext(PULSAR_MODE_KO)) {
@@ -82,9 +85,31 @@ static void FixStartMessageFroom(CtrlRaceWifiStartMessage* startMsg, u32 bmgId, 
             else
                 koCount = playerCount - 1;  // check if the setting is on, if it is, leave 2 players, otherwise, leave 1 player/the ko count is the complement
             bmgId = BMG_KO_ELIM_START_NONE + koCount;
+        } else if (system->IsContext(PULSAR_50)) {
+            bmgId = BMG_GP_50CC;
+        } else if (system->IsContext(PULSAR_100)) {
+            bmgId = BMG_GP_100CC;
+        } else if (system->IsContext(PULSAR_400)) {
+            bmgId = BMG_GP_400CC;
+        } else if (system->IsContext(PULSAR_99999)) {
+            bmgId = BMG_GP_99999CC;
         }
         info->intToPass[0] = raceNumber;
         info->intToPass[1] = system->netMgr.racesPerGP + 1;
+    }
+
+    else if (id == SECTION_P1_WIFI_VS || id == SECTION_P2_WIFI_VS) {
+        if (system->IsContext(PULSAR_MODE_ITEMRAIN)) {
+            bmgId = BMG_VS_ITEMRAIN;
+        } else if (system->IsContext(PULSAR_MODE_MAYHEM)) {
+            bmgId = BMG_VS_MAYHEMMODE;
+        } else if (system->IsContext(PULSAR_MAYHEM)) {
+            bmgId = BMG_VS_MKDS;
+        } else if (system->IsContext(PULSAR_MAYHEM_WORLD)) {
+            bmgId = BMG_VS_WORLD;
+        } else {
+            bmgId = BMG_VS_150CC;
+        }
     }
     startMsg->SetMessage(bmgId, info);
 }
@@ -103,7 +128,7 @@ static void CustomRoomDenyText(Pages::MessageBoxTransparent* msgBox, u32 bmgId, 
 }
 kmCall(0x805dd90c, CustomRoomDenyText);
 
-/*SectionParams& FavouriteCombo(SectionParams& params) {
+SectionParams& FavouriteCombo(SectionParams& params) {
     const RKSYS::Mgr* rksysMgr = RKSYS::Mgr::sInstance;
     s32 curLicense = rksysMgr->curLicenseId;
     if (curLicense >= 0) {
@@ -135,7 +160,7 @@ kmCall(0x805dd90c, CustomRoomDenyText);
 
     return params;
 }
-kmBranch(0x805e4228, FavouriteCombo); */
+kmBranch(0x805e4228, FavouriteCombo);
 
 u8 ModifyCheckRankings() {
     register Pages::RaceMenu* ttEnd;

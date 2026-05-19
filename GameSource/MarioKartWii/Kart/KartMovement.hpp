@@ -142,6 +142,7 @@ class Movement : public Link {
     void TryStartJumpPad();  // 8057fd18
     void ApplyLightning();  // 80580438
     void ApplyLightningEffect(int frames, int unk0, int unk1);  // 80580778
+    void calcPow();  // 805810a8
     void UpdateScale();  // 8058160c
     void ActivateTc();  // 80581a28
     void DeactivateTc();  // 80581a40

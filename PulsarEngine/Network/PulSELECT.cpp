@@ -187,12 +187,10 @@ static void DecideCC(ExpSELECTHandler& handler) {
         if (roomType == RKNet::ROOMTYPE_VS_REGIONAL
             || roomType == RKNet::ROOMTYPE_FROOM_HOST && ccSetting == HOSTSETTING_CC_NORMAL) {
             Random random;
-            const u32 result = random.NextLimited(100); //25
-            System* system = System::sInstance;
-            u32 prob100 = system->GetInfo().GetProb100(); //100
-            u32 prob150 = system->GetInfo().GetProb150(); //00
-            if (result < 100 - (prob100 + prob150)) ccClass = 3;
-            else if (result < 100 - prob100) ccClass = 2;
+            const u32 result = random.NextLimited(100);
+            // 95% chance for 150cc, 5% chance for 100cc
+            if (result < 95) ccClass = 2; // 150cc
+            // else ccClass remains 1 (100cc) - 5% chance
         }
         else if (ccSetting == HOSTSETTING_CC_150) ccClass = 2;
         else if (ccSetting == HOSTSETTING_CC_50 || ccSetting == HOSTSETTING_CC_REAL100 || ccSetting == HOSTSETTING_CC_400 || ccSetting == HOSTSETTING_CC_99999 || ccSetting == HOSTSETTING_CC_100) ccClass = 1;

@@ -26,11 +26,11 @@
 namespace Pulsar {
 
 namespace OTT {
-void CondCollisions(Kart::Collision& collision, const Kart::Player& other) {
-    if(System::sInstance->IsContext(PULSAR_MODE_OTT)) return;
-    collision.CheckKartCollision(other);
-}
-kmCall(0x80596dc8, CondCollisions);
+//void CondCollisions(Kart::Collision& collision, const Kart::Player& other) {
+//    if(System::sInstance->IsContext(PULSAR_MODE_OTT)) return;
+//    collision.CheckKartCollision(other);
+//}
+//kmCall(0x80596dc8, CondCollisions);
 
 void CondSlipstream(Kart::Movement& movement) {
     if(System::sInstance->IsContext(PULSAR_MODE_OTT)) return;
@@ -151,11 +151,11 @@ void CondOpacity() {
 }
 RaceLoadHook opacity(CondOpacity);
 
-static void EnableOpacityFunctionality(EGG::ScnRenderer& renderer, u32 enabledEffectsFlag) {
-    if(System::sInstance->IsContext(PULSAR_MODE_OTT)) enabledEffectsFlag |= 1;
-    renderer.CreatePath(enabledEffectsFlag, nullptr);
-}
-kmCall(0x805b15e0, EnableOpacityFunctionality);
+//static void EnableOpacityFunctionality(EGG::ScnRenderer& renderer, u32 enabledEffectsFlag) {
+//    if(System::sInstance->IsContext(PULSAR_MODE_OTT)) enabledEffectsFlag |= 1;
+//    renderer.CreatePath(enabledEffectsFlag, nullptr);
+//}
+//kmCall(0x805b15e0, EnableOpacityFunctionality);
 
 static UnkType PreventBurnOuts(Kart::Status& status, s32 startBoostIdx) {
     if(startBoostIdx == -1 && System::sInstance->IsContext(PULSAR_MODE_OTT)) {

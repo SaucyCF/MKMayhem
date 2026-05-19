@@ -22,18 +22,14 @@ static void RandomizeCombo();
 class ExpVR : public Pages::VR {
 public:
     static const int randomDuration = 60; //1s
-    static const int bumperKartDuration = 300; //5s
     static const int voteDuration = 1620; //30s
     static_assert(randomDuration % 4 == 0, "Random Combo Duration");
-    static_assert(bumperKartDuration % 4 == 0, "Time until Auto Pick");
     static_assert(voteDuration % 4 == 0, "Vote Duration");
     ExpVR();
     void OnInit() override;
     void AfterControlUpdate() override;
     void OnResume() override;
-    void BeforeControlUpdate() override;
     void OnButtonSelect(PushButton& button, u32 hudSlotId);
-    s32 bumperKartCounter;
     s32 rouletteCounter;
     CountDown countdown;
     CountDownTimerControl countdownControl;

@@ -68,14 +68,4 @@ System::WeightClass System::GetWeightClass(const CharacterId id){
             return MIIS;
     }
 }
-
-void SHA256(const void* data, unsigned long len, unsigned char* out) {
-        SHA256Context ctx;
-        SHA256Init(&ctx);
-        SHA256Update(&ctx, data, len);
-        u8* digest = SHA256Final(&ctx);
-        for (int i = 0; i < SHA256_DIGEST_SIZE; ++i) {
-            out[i] = digest[i];
-        }
-    }
 } // namespace DKW

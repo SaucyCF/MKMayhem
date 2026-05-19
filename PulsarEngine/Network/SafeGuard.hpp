@@ -6,6 +6,7 @@
 namespace Pulsar {
 namespace SafeGuard {
 
+void Init();
 void SetRequiredCode(u32 code);
 u32 GetRequiredCode();
 

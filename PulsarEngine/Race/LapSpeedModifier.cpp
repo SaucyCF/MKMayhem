@@ -34,6 +34,15 @@ u8 GetLapKOTargetCount(const System* system, const Racedata* racedata, u8 fallba
     return playerCount;
 }
 
+// Detect Countdown gamemode using the same offline-friendly path Pulsar's
+// CountdownMgr uses (settings read on the host, host-broadcast bit on guests).
+static bool IsCountdownEnabled(const System* system) {
+    if (system == nullptr) return false;
+    if (system->IsContext(PULSAR_MODE_COUNTDOWN)) return true;
+    if (RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_FROOM_NONHOST && RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_FROOM_HOST && RKNet::Controller::sInstance->roomType != RKNet::ROOMTYPE_NONE) return false;
+    return false;
+}
+
 kmRuntimeUse(0x808a9cc7);  // lap_number.brctr
 RaceinfoPlayer* LoadCustomLapCount(RaceinfoPlayer* player, u8 id) {
     kmRuntimeWrite16A(0x808a9cc7, 'la');
@@ -42,6 +51,7 @@ RaceinfoPlayer* LoadCustomLapCount(RaceinfoPlayer* player, u8 id) {
     u8 lapCount = KMP::Manager::sInstance->stgiSection->holdersArray[0]->raw->lapCount;
 
     const bool lapKoActive = IsLapKOEnabled(system);
+    const bool countdownActive = !lapKoActive && IsCountdownEnabled(system);
     if (lapKoActive) {
         // Base KO lap count (existing behaviour)
         const u8 basePlayers = GetLapKOTargetCount(system, racedata, 1);
@@ -63,12 +73,14 @@ RaceinfoPlayer* LoadCustomLapCount(RaceinfoPlayer* player, u8 id) {
         // BuildPlan handles 1-lap tracks and 2-lap pacing adjustments internally
         const u8 totalRounds = LapKO::Mgr::BuildPlan(basePlayers, koPerRace, usualTrackLaps, nullptr, LapKO::Mgr::MaxRounds);
         lapCount = (totalRounds == 0) ? 1 : totalRounds;
+    } else if (countdownActive) {
+        lapCount = 8;
     }
 
     if (racedata != nullptr) {
         racedata->racesScenario.settings.lapCount = lapCount;
-        if (lapKoActive) racedata->menusScenario.settings.lapCount = lapCount;
-        if (lapCount > 9) {
+        if (lapKoActive || countdownActive) racedata->menusScenario.settings.lapCount = lapCount;
+        if (lapCount > 9 && !countdownActive) {
             kmRuntimeWrite16A(0x808a9cc7, 'KO');  // KOp_number.brctr
         }
     }

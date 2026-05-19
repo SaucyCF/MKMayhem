@@ -48,7 +48,7 @@ void AddGhostToVS() {
         cupsConfig->GetTrackGhostFolder(folderPath, id);
 
         alignas(0x20) Ghosts::Leaderboard leaderboard(folderPath, id, false);
-        const TTMode ttMode = static_cast<TTMode>(racedata->menusScenario.settings.engineClass % 2 + 2 * system->IsContext(PULSAR_FEATHER)); //CC_150 (2) becomes 0 (TT_MODE_150), CC_100 (1) becomes 1 (TT_MODE_100)
+        const TTMode ttMode = static_cast<TTMode>(racedata->menusScenario.settings.engineClass); //% 2 + 2 * system->IsContext(PULSAR_FEATHER)); //CC_150 (2) becomes 0 (TT_MODE_150), CC_100 (1) becomes 1 (TT_MODE_100)
         const char* favGhost = leaderboard.GetFavGhost(ttMode);
         char initial = favGhost[0];
 

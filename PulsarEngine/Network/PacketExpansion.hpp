@@ -48,14 +48,35 @@ struct PulRH1 : public RKNet::RACEHEADER1Packet {
     u8 almostKOdCounter;
     u8 finalPercentageSum; //to be divided by racecount at the end of the GP
 
-    // LapKO
+    // Super Rare Power - synced from host to all players
+    u16 superRarePowerMask; // Bitmask of players who won super rare power this race
+
+    // Item Rain - host sends spawn data to all clients
+    u8  itemRainSeq;          // Sequence counter, incremented each spawn cycle by host
+    u8  itemRainItemId;       // ItemObjId to spawn (0xFF = no spawn this frame)
+    u8  itemRainTargetPlayer; // Target player index used for spawn
+    u8  itemRainHostPlayerId; // Host's local player ID (all items attributed to host)
+    u32 itemRainPosX;         // Spawn position X as raw IEEE754 bits (packed struct = misaligned, so avoid float)
+    u32 itemRainPosY;         // Spawn position Y as raw IEEE754 bits
+    u32 itemRainPosZ;         // Spawn position Z as raw IEEE754 bits
+    u16  itemRainEventField;  // Event bitfield to sync despawn/kill across consoles
+
+    // Countdown — sender broadcasts each of their local players' state per hudSlot index (0..1). Receivers map back via the AID->playerId table.
+    u8 countdownScore[2];
+    u32 countdownTicks[2];
+
+    // LapKO (MUST be last - these 16 bytes are conditionally excluded via PulRH1SizeBase)
     u8 lapKoSeq;
     u8 lapKoRoundIndex;
     u8 lapKoActiveCount;
     u8 lapKoElimCount;
     u8 lapKoElims[12];
-
 };
+
+// Size constants for conditional packet expansion (defined outside struct since sizeof requires complete type)
+static const u32 PulRH1SizeBase = sizeof(PulRH1) - 16;  // Size without LapKO fields (16 bytes)
+static const u32 PulRH1SizeFull = sizeof(PulRH1);  // Full size with LapKO fields
+
 struct PulRH2 : public      RKNet::RACEHEADER2Packet {};
 struct PulROOM : public     RKNet::ROOMPacket {
 
@@ -127,6 +148,20 @@ public:
 };
 
 u8 GetLastRecvSECTIONSize(u8 aid, u8 sectionIdx);
+ItemId GetNetworkPlayerItem(u8 playerId);
+int GetNetworkPlayerItemCount(u8 playerId);
+
+enum NetworkItemSlotState
+{
+    NET_ITEMSLOT_STATE_EMPTY,
+    NET_ITEMSLOT_STATE_REQUEST,
+    NET_ITEMSLOT_STATE_REQUEST_DONE,
+    NET_ITEMSLOT_STATE_STOPPED,
+    NET_ITEMSLOT_STATE_STOCK_3,
+    NET_ITEMSLOT_STATE_STOCK_2,
+    NET_ITEMSLOT_STATE_STOCK_1,
+    NET_ITEMSLOT_STATE_REQUEST_FAIL
+};
 
 }//namespace Network
 }//namespace Pulsar

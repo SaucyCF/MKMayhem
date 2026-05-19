@@ -225,8 +225,7 @@ void SettingsPanel::OnActivate() {
     if(isVotingSection) {
         if (this->sheetIdx == Settings::SETTINGSTYPE_KO || 
             this->sheetIdx == Settings::SETTINGSTYPE_RULES ||
-            this->sheetIdx == Settings::SETTINGSTYPE_RULES2 ||
-            this->sheetIdx == Settings::SETTINGSTYPE_ITEM) {
+            this->sheetIdx == Settings::SETTINGSTYPE_RULES2) {
             return;
         }
     }
@@ -357,8 +356,7 @@ void SettingsPanel::OnButtonClick(PushButton& button, u32 direction) {
     if(isVotingSection) {
         while (nextIdx == Settings::SETTINGSTYPE_KO || 
                nextIdx == Settings::SETTINGSTYPE_RULES ||
-               nextIdx == Settings::SETTINGSTYPE_RULES2 ||
-               nextIdx == Settings::SETTINGSTYPE_ITEM) {
+               nextIdx == Settings::SETTINGSTYPE_RULES2) {
             nextIdx = (nextIdx + direction + Settings::Params::pageCount) % Settings::Params::pageCount;
         }
     }

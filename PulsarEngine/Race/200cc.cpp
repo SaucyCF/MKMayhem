@@ -15,7 +15,7 @@ namespace Pulsar {
 namespace Race {
 
 static void CannonExitSpeed() {
-    const float ratio = System::sInstance->IsContext(PULSAR_200) || DKW::System::Is400cc() || DKW::System::Is99999cc() ? cannonExit : 1.0f;
+    const float ratio = System::sInstance->IsContext(PULSAR_200) || System::sInstance->IsContext(PULSAR_400) || System::sInstance->IsContext(PULSAR_99999) || DKW::System::Is400cc() || DKW::System::Is99999cc() ? cannonExit : 1.0f;
     register Kart::Movement* kartMovement;
     asm(mr kartMovement, r30;);
     kartMovement->engineSpeed = kartMovement->baseSpeed * ratio;
@@ -31,7 +31,7 @@ void EnableBrakeDrifting(Input::ControllerHolder& controllerHolder) {
        NoBrakeDrift = System::sInstance->IsContext(Pulsar::PULSAR_BDRIFTING) ? Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF : Pulsar::DKWSETTING_150_BRAKEDRIFT_ON;
 }
 
-    if(NoBrakeDrift == Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200)){}
+    if(NoBrakeDrift == Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF && !System::sInstance->IsContext(PULSAR_200) && !System::sInstance->IsContext(PULSAR_400) && !System::sInstance->IsContext(PULSAR_99999) && !DKW::System::Is400cc() && !DKW::System::Is99999cc() || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200)){}
     else if(static_cast<Pulsar::DKWSettingBrakeDrift>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::MISC_BRAKEDRIFT)) == Pulsar::DKWSETTING_BRAKEDRIFT_ENABLED || System::sInstance->IsContext(PULSAR_200) || DKW::System::Is400cc() || DKW::System::Is99999cc()) {
         const ControllerType controllerType = controllerHolder.curController->GetType();
         const u16 inputs = controllerHolder.inputStates[0].buttonRaw;
@@ -79,7 +79,7 @@ bool IsBrakeDrifting(const Kart::Status& status) {
     if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST) {
        NoBrakeDrift = System::sInstance->IsContext(Pulsar::PULSAR_BDRIFTING) ? Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF : Pulsar::DKWSETTING_150_BRAKEDRIFT_ON;
 }
-    if(NoBrakeDrift == Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200)){}
+    if(NoBrakeDrift == Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF && !System::sInstance->IsContext(PULSAR_200) && !System::sInstance->IsContext(PULSAR_400) && !System::sInstance->IsContext(PULSAR_99999) && !DKW::System::Is400cc() && !DKW::System::Is99999cc() || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200)){}
     else if(static_cast<Pulsar::DKWSettingBrakeDrift>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::MISC_BRAKEDRIFT)) == Pulsar::DKWSETTING_BRAKEDRIFT_ENABLED || System::sInstance->IsContext(PULSAR_200) || DKW::System::Is400cc() || DKW::System::Is99999cc()) {
         u32 bitfield0 = status.bitfield0;
         const Input::ControllerHolder& controllerHolder = status.link->GetControllerHolder();
@@ -130,7 +130,7 @@ static int BrakeEffectBikes(Effects::Player& effects) {
        NoBrakeDrift = System::sInstance->IsContext(Pulsar::PULSAR_BDRIFTING) ? Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF : Pulsar::DKWSETTING_150_BRAKEDRIFT_ON;
 }
     const Kart::Player* kartPlayer = effects.kartPlayer;
-    if(NoBrakeDrift == Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200)){}
+    if(NoBrakeDrift == Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF && !System::sInstance->IsContext(PULSAR_200) && !System::sInstance->IsContext(PULSAR_400) && !System::sInstance->IsContext(PULSAR_99999) && !DKW::System::Is400cc() && !DKW::System::Is99999cc() || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200)){}
     else if(static_cast<Pulsar::DKWSettingBrakeDrift>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::MISC_BRAKEDRIFT)) == Pulsar::DKWSETTING_BRAKEDRIFT_ENABLED || System::sInstance->IsContext(PULSAR_200) || DKW::System::Is400cc() || DKW::System::Is99999cc()) {
         if(IsBrakeDrifting(*kartPlayer->pointers.kartStatus)) effects.CreateAndUpdateEffectsByIdxVelocity(effects.bikeDriftEffects, 25, 26, 1);
         else effects.FollowFadeEffectsByIdxVelocity(effects.bikeDriftEffects, 25, 26, 1);
@@ -149,12 +149,15 @@ static int BrakeEffectKarts(Effects::Player& effects) {
        NoBrakeDrift = System::sInstance->IsContext(Pulsar::PULSAR_BDRIFTING) ? Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF : Pulsar::DKWSETTING_150_BRAKEDRIFT_ON;
 }
     Kart::Player* kartPlayer = effects.kartPlayer;
-    if(NoBrakeDrift == Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200)){}
+    if(NoBrakeDrift == Pulsar::DKWSETTING_150_BRAKEDRIFT_OFF && !System::sInstance->IsContext(PULSAR_200) && !System::sInstance->IsContext(PULSAR_400) && !System::sInstance->IsContext(PULSAR_99999) && !DKW::System::Is400cc() && !DKW::System::Is99999cc() || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200)){}
     else if(static_cast<Pulsar::DKWSettingBrakeDrift>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::MISC_BRAKEDRIFT)) == Pulsar::DKWSETTING_BRAKEDRIFT_ENABLED || System::sInstance->IsContext(PULSAR_200) || DKW::System::Is400cc() || DKW::System::Is99999cc()) {
         if(IsBrakeDrifting(*kartPlayer->pointers.kartStatus)) effects.CreateAndUpdateEffectsByIdxVelocity(effects.kartDriftEffects, 34, 36, 1);
         else effects.FollowFadeEffectsByIdxVelocity(effects.kartDriftEffects, 34, 36, 1);
     }
-    return kartPlayer->GetDriftState();
+    int driftState = kartPlayer->GetDriftState();
+    // Map driftState 4 (UMT) to 3 for spark effect code paths
+    if (driftState == 4) driftState = 3;
+    return driftState;
 }
 kmCall(0x8069804c, BrakeEffectKarts);
 
@@ -167,13 +170,20 @@ static void FastFallingBody(Kart::Status& status, Kart::Physics& physics) { //we
     if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST) {
        NoFallFast = System::sInstance->IsContext(Pulsar::PULSAR_FALLFAST) ? DKWSETTING_150_FALLFASTOFF : DKWSETTING_150_FALLFASTON;
 }
-    if(NoFallFast == Pulsar::DKWSETTING_150_FALLFASTOFF || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_PUBLIC_VS) {}
-    else if(static_cast<Pulsar::DKWSettingFallFast>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::MISC_FALLFAST)) == Pulsar::DKWSETTING_FALLFAST_ENABLED || System::sInstance->IsContext(PULSAR_200) || DKW::System::Is400cc()) {
+    if(NoFallFast == Pulsar::DKWSETTING_150_FALLFASTOFF && !System::sInstance->IsContext(PULSAR_200) && !System::sInstance->IsContext(PULSAR_400) && !System::sInstance->IsContext(PULSAR_99999) && !DKW::System::Is400cc() && !DKW::System::Is99999cc() || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_PUBLIC_VS && !System::sInstance->IsContext(PULSAR_200)) {
+    } else if(System::sInstance->IsContext(PULSAR_200) || System::sInstance->IsContext(PULSAR_400) || System::sInstance->IsContext(PULSAR_99999) || DKW::System::Is400cc() || DKW::System::Is99999cc()) {
         if((status.airtime >= 2) && (!status.bool_0x96 || (status.airtime > 19))) {
             Input::ControllerHolder& controllerHolder = status.link->GetControllerHolder();
             float input = controllerHolder.inputStates[0].stick.z <= 0.0f ? 0.0f :
                 (controllerHolder.inputStates[0].stick.z + controllerHolder.inputStates[0].stick.z);
-            physics.gravity -= input * fastFallingBodyGravity;
+            physics.gravity -= input * fastFallingBodyGravity200;
+        }
+    } else if(static_cast<Pulsar::DKWSettingFallFast>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::MISC_FALLFAST)) == Pulsar::DKWSETTING_FALLFAST_ENABLED) {
+        if((status.airtime >= 2) && (!status.bool_0x96 || (status.airtime > 19))) {
+            Input::ControllerHolder& controllerHolder = status.link->GetControllerHolder();
+            float input = controllerHolder.inputStates[0].stick.z <= 0.0f ? 0.0f :
+                (controllerHolder.inputStates[0].stick.z + controllerHolder.inputStates[0].stick.z);
+            physics.gravity -= input * fastFallingBodyGravity150;
         }
     }
     status.UpdateFromInput();
@@ -191,15 +201,24 @@ static Kart::WheelPhysicsHolder& FastFallingWheels(Kart::Sub& sub, u8 wheelIdx, 
        NoFallFast = System::sInstance->IsContext(Pulsar::PULSAR_FALLFAST) ? Pulsar::DKWSETTING_150_FALLFASTOFF : Pulsar::DKWSETTING_150_FALLFASTON;
 }
     float gravity = -1.3f;
-    if(NoFallFast == Pulsar::DKWSETTING_150_FALLFASTOFF || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_PUBLIC_VS){}
-    else if(static_cast<Pulsar::DKWSettingFallFast>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::MISC_FALLFAST)) == Pulsar::DKWSETTING_FALLFAST_ENABLED || System::sInstance->IsContext(PULSAR_200) || DKW::System::Is400cc()) {
+    if(NoFallFast == Pulsar::DKWSETTING_150_FALLFASTOFF && !System::sInstance->IsContext(PULSAR_200) && !System::sInstance->IsContext(PULSAR_400) && !System::sInstance->IsContext(PULSAR_99999) && !DKW::System::Is400cc() && !DKW::System::Is99999cc() || mode == MODE_TIME_TRIAL && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_GHOST_RACE && !System::sInstance->IsContext(PULSAR_200) || mode == MODE_PUBLIC_VS) {
+    } else if (System::sInstance->IsContext(PULSAR_200) || System::sInstance->IsContext(PULSAR_400) || System::sInstance->IsContext(PULSAR_99999) || DKW::System::Is400cc() || DKW::System::Is99999cc()) {
         Kart::Status* status = sub.kartStatus;
         if(status->airtime == 0) status->bool_0x96 = ((status->bitfield0 & 0x80) != 0) ? true : false;
         else if((status->airtime >= 2) && (!status->bool_0x96 || (status->airtime > 19))) {
             Input::ControllerHolder& controllerHolder = sub.GetControllerHolder();
             float input = controllerHolder.inputStates[0].stick.z <= 0.0f ? 0.0f
                 : (controllerHolder.inputStates[0].stick.z + controllerHolder.inputStates[0].stick.z);
-            gravity *= (input * fastFallingWheelGravity + 1.0f);
+            gravity *= (input * fastFallingWheelGravity200 + 1.0f);
+        }
+    } else if (static_cast<Pulsar::DKWSettingFallFast>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::MISC_FALLFAST)) == Pulsar::DKWSETTING_FALLFAST_ENABLED) {
+        Kart::Status* status = sub.kartStatus;
+        if(status->airtime == 0) status->bool_0x96 = ((status->bitfield0 & 0x80) != 0) ? true : false;
+        else if((status->airtime >= 2) && (!status->bool_0x96 || (status->airtime > 19))) {
+            Input::ControllerHolder& controllerHolder = sub.GetControllerHolder();
+            float input = controllerHolder.inputStates[0].stick.z <= 0.0f ? 0.0f
+                : (controllerHolder.inputStates[0].stick.z + controllerHolder.inputStates[0].stick.z);
+            gravity *= (input * fastFallingWheelGravity150 + 1.0f);
         }
     }
     gravityVector.y = gravity;

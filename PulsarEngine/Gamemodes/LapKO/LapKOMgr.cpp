@@ -85,29 +85,10 @@ u8 Mgr::BuildPlan(u8 playerCount, u8 koPerRace, u8 usualLapCount, u8* outPlan, u
     if (playerCount < 2) return 0;
 
     if (usualLapCount <= 1) {
-        // Force one-lap tracks to behave as two-lap KO: lap 1 cuts half, lap 2 clears everyone but the winner.
-        if (capacity == 0) return 0;
-
-        u8 remainingPlayers = playerCount;
-        u8 rounds = 0;
-
-        // Lap 1: eliminate half the lobby (at least one, never all).
-        u8 firstElims = static_cast<u8>(remainingPlayers / 2);
-        if (firstElims == 0 && remainingPlayers > 1) firstElims = 1;
-        if (firstElims >= remainingPlayers) firstElims = static_cast<u8>(remainingPlayers - 1);
-        if (outPlan != nullptr) outPlan[rounds] = firstElims;
-        remainingPlayers = static_cast<u8>(remainingPlayers - firstElims);
-        ++rounds;
-
-        // Lap 2: eliminate everyone else except the winner.
-        if (rounds < capacity && remainingPlayers > 1) {
-            u8 secondElims = static_cast<u8>(remainingPlayers - 1);
-            if (outPlan != nullptr) outPlan[rounds] = secondElims;
-            remainingPlayers = static_cast<u8>(remainingPlayers - secondElims);
-            ++rounds;
+        if (outPlan != nullptr && capacity > 0) {
+            outPlan[0] = (playerCount > 1) ? static_cast<u8>(playerCount - 1) : 0;
         }
-
-        return rounds;
+        return 1;
     }
 
     const bool twoLapTrack = (usualLapCount == 2);
@@ -231,14 +212,16 @@ void Mgr::OnPlayerDisconnected(u8 playerId) {
 void Mgr::TryResolveRound() {
     const u8 usualLaps = this->GetUsualTrackLapCount();
 
+    // Skip eliminations on the final lap
+    if (this->roundIndex >= this->totalRounds) return;
+
     u8 toEliminate = this->GetRemainingEliminationsForCurrentRound(usualLaps);
     if (toEliminate == 0) return;
 
     u8 requiredCrossings;
     if (usualLaps <= 1) {
-        // Wait until the surviving half (active - toEliminate) finishes the lap, then drop the rest.
+        requiredCrossings = 1;
         if (toEliminate >= this->activeCount) toEliminate = static_cast<u8>(this->activeCount - 1);
-        requiredCrossings = static_cast<u8>(this->activeCount - toEliminate);
     } else {
         requiredCrossings = static_cast<u8>(this->activeCount - toEliminate);
     }
@@ -262,8 +245,12 @@ void Mgr::ProcessElimination(u8 playerId, EliminationCause cause, bool fromNetwo
     this->ProcessEliminationInternal(playerId, cause, fromNetwork, suppressRoundAdvance);
 }
 
-u8 Mgr::GetBaseEliminationCountForCurrentRound(u8) const {
+u8 Mgr::GetBaseEliminationCountForCurrentRound(u8 usualLapCount) const {
     if (this->activeCount <= 1) return 0;
+
+    if (usualLapCount <= 1) {
+        return static_cast<u8>(this->activeCount - 1);
+    }
 
     const u8 idx = (this->roundIndex == 0) ? 0 : static_cast<u8>(this->roundIndex - 1);
     if (idx >= this->totalRounds) return 0;
@@ -671,8 +658,10 @@ void Mgr::UpdateSpectatorInputs(const Raceinfo& raceinfo) {
     bool advanceBackward = false;
 
     SectionMgr* sectionMgr = SectionMgr::sInstance;
+    if (sectionMgr == nullptr) return;
     for (u8 hudSlot = 0; hudSlot < 4; ++hudSlot) {
         Input::RealControllerHolder* holder = sectionMgr->pad.padInfos[hudSlot].controllerHolder;
+        if (holder == nullptr || holder->curController == nullptr) continue;
 
         const u16 current = holder->inputStates[0].buttonRaw;
         const u16 previous = holder->inputStates[1].buttonRaw;
@@ -757,7 +746,8 @@ void Mgr::HostDistributeEvents(RKNet::Controller& controller, const RKNet::Contr
         if (aid == sub.localAid) continue;
         if ((sub.availableAids & (1 << aid)) == 0) continue;
         RKNet::PacketHolder<Network::PulRH1>* holder = controller.GetSendPacketHolder<Network::PulRH1>(aid);
-        if (holder->packetSize < sizeof(Network::PulRH1)) holder->packetSize = sizeof(Network::PulRH1);
+        // LapKO only runs in friend rooms, so use full packet size
+        if (holder->packetSize < Network::PulRH1SizeFull) holder->packetSize = Network::PulRH1SizeFull;
         Network::PulRH1* packet = holder->packet;
 
         if (this->hasPendingEvent && this->IsFriendRoomOnline()) {
@@ -800,7 +790,8 @@ void Mgr::ClientConsumeHostEvents(RKNet::Controller& controller, const RKNet::Co
     RKNet::SplitRACEPointers* split = controller.splitReceivedRACEPackets[bufferIdx][this->hostAid];
 
     const RKNet::PacketHolder<Network::PulRH1>* holder = split->GetPacketHolder<Network::PulRH1>();
-    if (holder->packetSize != sizeof(Network::PulRH1)) return;
+    // LapKO data is only present in full-size packets (friend rooms)
+    if (holder->packetSize != Network::PulRH1SizeFull) return;
 
     const Network::PulRH1* packet = holder->packet;
     if (this->IsFriendRoomOnline() && packet->lapKoSeq != 0 && packet->lapKoElimCount != 0) {
@@ -893,6 +884,7 @@ void Mgr::InitializeSpectateView(const Raceinfo& raceinfo) {
 
 void Mgr::EnsureSpectateTargetIsActive(const Raceinfo& raceinfo) {
     const u8 current = this->spectateTargetPlayer;
+    if (Racedata::sInstance == nullptr) return;
     const RacedataScenario& scenario = Racedata::sInstance->menusScenario;
     const GameMode mode = scenario.settings.gamemode;
     if (current < 12 && this->active[current]) return;
@@ -914,6 +906,7 @@ void Mgr::EnsureSpectateTargetIsActive(const Raceinfo& raceinfo) {
 
 u8 Mgr::BuildActiveSpectateOrder(const Raceinfo& raceinfo, u8* outOrder) const {
     if (outOrder == nullptr) return 0;
+    if (Racedata::sInstance == nullptr || Pulsar::System::sInstance == nullptr) return 0;
     const RacedataScenario& scenario = Racedata::sInstance->menusScenario;
     const GameMode mode = scenario.settings.gamemode;
     const u8 playerCount = Pulsar::System::sInstance->nonTTGhostPlayersCount;
@@ -953,7 +946,7 @@ u8 Mgr::BuildActiveSpectateOrder(const Raceinfo& raceinfo, u8* outOrder) const {
         }
 
         bool already = false;
-        for (u8 i = 0; i < playerCount < count; ++i) {
+        for (u8 i = 0; i < count; ++i) {
             if (outOrder[i] == pid) {
                 already = true;
                 break;

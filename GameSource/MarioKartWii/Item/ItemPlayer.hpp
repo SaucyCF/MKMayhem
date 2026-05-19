@@ -49,8 +49,10 @@ class PlayerInventory {
     void Init(Player* itemPlayer);  // 807bc130
     void Update();  // 807bc6e8
     void SetItem(ItemId id, bool isItemForcedDueToCapacity);  // 807bc940
+    void SetItemWithCount(ItemId id, int count, bool isForcedDueToCapacity);  // 807bc908 leftover from MKDS, used by Boo to set stolen item with correct count
     void RemoveItems(u32 count);  // 807bc97c called by UseFunctions of player; if count would be 0 after removing count items, clears the inventory
     void ClearAll();  // 807bc9c0
+    void ClearAllAndDestroyDropItems();  // 807bc9f4 same as ClearAll but also despawns any items still in the drop process
     void LoseItemFromDmg();  // 807bc610
     void EjectItems();  // 807bc350 when items are lost due to dmg, they fly out
 

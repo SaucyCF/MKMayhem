@@ -13,6 +13,8 @@
 #include <MarioKartWii/Kart/KartManager.hpp>
 #include <Network/PacketExpansion.hpp>
 #include <Gamemodes/KO/KOMgr.hpp>
+#include <Gamemodes/KO/KOUnderdog.hpp>
+#include <Gamemodes/KO/KOSuperRarePower.hpp>
 #include <Gamemodes/LapKO/LapKOMgr.hpp>
 #include <Gamemodes/KO/KORaceEndPage.hpp>
 #include <Gamemodes/KO/KOWinnerPage.hpp>
@@ -27,15 +29,30 @@ static void EditLdb(CtrlRaceResult* result, u8 playerId) {
     if (system->IsContext(PULSAR_MODE_KO)) {
         const char* pane = "player_name";
         const Status koStatus = system->koMgr->GetPlayerStatus(playerId);
-        if (koStatus != NORMAL) {
+        const bool hasSuperpower = koStatus == NORMAL && system->koMgr->IsSuperpowerUnlocked(playerId);
+        const bool isNextUnderdog = koStatus == NORMAL && !hasSuperpower && WillBeUnderdogNextRace(playerId);
+        const bool justWonSuperRare = koStatus == NORMAL && JustWonSuperRarePower(playerId);
+        if (koStatus != NORMAL || hasSuperpower || isNextUnderdog || justWonSuperRare) {
             u32 bmgId;
             ut::Color color;
+            if (hasSuperpower) {
+                bmgId = UI::BMG_KO_SUPERPOWER;
+                color = 0x0000ffc0;
+            }
+            if (isNextUnderdog) {
+                bmgId = UI::BMG_KO_UNDERDOG;
+                color = 0x381460c0;
+            }
+            if (justWonSuperRare) {
+                bmgId = UI::BMG_KO_SUPERRAREPOWER;
+                color = 0x00ff00c0;
+            }
             if (koStatus == KOD) {
                 bmgId = UI::BMG_KO_OUT;
                 color = 0xff0000c0;
             }
             if (koStatus == DISCONNECTED) {
-                bmgId = UI::BMG_KO_TIE;
+                bmgId = UI::BMG_KO_DISCONNECTED;
                 color = 0xff0f00c0;
             }
             if (koStatus == TIE) {

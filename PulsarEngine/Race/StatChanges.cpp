@@ -13,7 +13,57 @@
 
 namespace Pulsar {
 // ALL CREDIT GOES TO ZPL https://github.com/Retro-Rewind-Team/Pulsar/commit/8f7205debd2569420a901142e3cc05815f7a9a36
-    
+
+//CharacterId NormalizeCharacterForStats(CharacterId characterId) {
+//    if (static_cast<int>(characterId) <= 0x17) {
+//        return characterId;
+//    }
+//
+//    int normalizedOffset = (static_cast<int>(characterId) - ROSALINA) / 6;
+//    if (normalizedOffset > 2) {
+//        normalizedOffset = 0;
+//    }
+//
+//    return static_cast<CharacterId>(ROSALINA + normalizedOffset);
+//}
+//
+//void RemoveCharacterStatBonuses(Kart::Stats* stats, CharacterId characterId) {
+//    const StatsParamFile::Entry* characterStats = Kart::GetDriverParamEntry(NormalizeCharacterForStats(characterId));
+//    if (characterStats == nullptr) {
+//        return;
+//    }
+//
+//    stats->weight -= characterStats->weight;
+//    stats->baseSpeed -= characterStats->baseSpeed;
+//    stats->handlingSpeedMultiplier -= characterStats->handlingSpeedMultiplier;
+//
+//    for (int i = 0; i < 4; ++i) {
+//        stats->standard_acceleration_as[i] -= characterStats->standard_acceleration_as[i];
+//    }
+//    for (int i = 0; i < 3; ++i) {
+//        stats->standard_acceleration_ts[i] -= characterStats->standard_acceleration_ts[i];
+//    }
+//    for (int i = 0; i < 2; ++i) {
+//        stats->drift_acceleration_as[i] -= characterStats->drift_acceleration_as[i];
+//    }
+//
+//    stats->drift_acceleration_ts[0] -= characterStats->drift_acceleration_ts[0];
+//    stats->manualHandling -= characterStats->manualHandling;
+//    stats->autoHandling -= characterStats->autoHandling;
+//    stats->handlingReactivity -= characterStats->handlingReactivity;
+//    stats->manualDrift -= characterStats->manualDrift;
+//    stats->automaticDrift -= characterStats->automaticDrift;
+//    stats->driftReactivity -= characterStats->driftReactivity;
+//    stats->targetAngle -= characterStats->targetAngle;
+//    stats->unknown_0x68 -= characterStats->unknown_0x68;
+//    stats->mt -= characterStats->mt;
+//
+//    for (int i = 0; i < 32; ++i) {
+//        stats->speedFactors[i] -= characterStats->speedFactors[i];
+//        stats->handlingFactors[i] -= characterStats->handlingFactors[i];
+//    }
+//}
+   
 Kart::Stats* ApplyStatChanges(KartId kartId, CharacterId characterId, KartType kartType) {
     union SpeedModConv {
         float speedMod;
@@ -21,6 +71,7 @@ Kart::Stats* ApplyStatChanges(KartId kartId, CharacterId characterId, KartType k
     };
 
     Kart::Stats* stats = Kart::ComputeStats(kartId, characterId);
+    //RemoveCharacterStatBonuses(stats, characterId);
     const GameMode gameMode = Racedata::sInstance->menusScenario.settings.gamemode;
     const RKNet::Controller* controller = RKNet::Controller::sInstance;
     const RKNet::RoomType roomType = RKNet::Controller::sInstance->roomType;
@@ -65,13 +116,11 @@ Kart::Stats* ApplyStatChanges(KartId kartId, CharacterId characterId, KartType k
     else if (DKW::System::Is99999cc() && gameMode == MODE_VS_RACE){
         factor = 15.64f;
     }
-    else if (DKW::System::Is400cc() && gameMode == MODE_BATTLE || DKW::System::Is400cc() && gameMode == MODE_PUBLIC_BATTLE || DKW::System::Is400cc() && gameMode == MODE_PRIVATE_BATTLE){
-        factor = 1.214;
-    }
     factor *= speedModConv.speedMod;
 
     bool isItemModeMayhem = Pulsar::DKWSETTING_GAMEMODE_REGULAR;
-    if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_NONE) {
+    bool isRegionalRoom = RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_VS_REGIONAL || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_JOINING_REGIONAL || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_BT_REGIONAL;
+    if (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_NONE || isRegionalRoom) {
         isItemModeMayhem = System::sInstance->IsContext(Pulsar::PULSAR_MODE_MAYHEM) ? Pulsar::DKWSETTING_GAMEMODE_MAYHEM : Pulsar::DKWSETTING_GAMEMODE_REGULAR;
     }
     if (isItemModeMayhem == Pulsar::DKWSETTING_GAMEMODE_MAYHEM) {
@@ -145,6 +194,17 @@ Kart::Stats* ApplyStatChanges(KartId kartId, CharacterId characterId, KartType k
                 stats->type = OUTSIDE_BIKE;
             }
         }
+        else if (System::sInstance->IsContext(Pulsar::PULSAR_MAYHEM_MK8U) && (roomType == RKNet::ROOMTYPE_FROOM_HOST || roomType == RKNet::ROOMTYPE_FROOM_NONHOST || roomType == RKNet::ROOMTYPE_NONE || isRegionalRoom)) {
+            if (stats->type == INSIDE_BIKE) {
+                stats->type = OUTSIDE_BIKE;
+                stats->targetAngle = 10.0f;
+            } else if (stats->type == KART) {
+                stats->type = KART;
+            } else if (stats->type == OUTSIDE_BIKE) {
+                stats->type = OUTSIDE_BIKE;
+                stats->targetAngle = 45.0f;
+            }
+        }
         else if (insideAll == Pulsar::DKWSETTING_FORCE_TRANSMISSION_INSIDEALL && (roomType == RKNet::ROOMTYPE_FROOM_HOST || roomType == RKNet::ROOMTYPE_FROOM_NONHOST)) {
             if (stats->type == INSIDE_BIKE) {
                 stats->type = INSIDE_BIKE;
@@ -175,6 +235,17 @@ Kart::Stats* ApplyStatChanges(KartId kartId, CharacterId characterId, KartType k
                 stats->type = KART;
             } else if (stats->type == OUTSIDE_BIKE) {
                 stats->type = OUTSIDE_BIKE;
+            }
+        }
+        else if (System::sInstance->IsContext(Pulsar::PULSAR_MAYHEM_WORLD) && (roomType == RKNet::ROOMTYPE_FROOM_HOST || roomType == RKNet::ROOMTYPE_FROOM_NONHOST || roomType == RKNet::ROOMTYPE_NONE || isRegionalRoom)) {
+            if (stats->type == INSIDE_BIKE) {
+                stats->type = OUTSIDE_BIKE;
+                stats->targetAngle = 50.0f;
+            } else if (stats->type == KART) {
+                stats->type = KART;
+            } else if (stats->type == OUTSIDE_BIKE) {
+                stats->type = OUTSIDE_BIKE;
+                stats->targetAngle = 50.0f;
             }
         }
         else if (transmission == Pulsar::DKWSETTING_TRANSMISSION_ALLINSIDE)
@@ -225,7 +296,7 @@ Kart::Stats* ApplyStatChanges(KartId kartId, CharacterId characterId, KartType k
     if (NoDriftAnywhere == Pulsar::DKWSETTING_ALLOW_DANYWHEREOFF || mode == MODE_TIME_TRIAL || mode == MODE_GHOST_RACE || mode == MODE_PUBLIC_VS) {
     Kart::minDriftSpeedRatio = 0.55f * (factor > 1.0f ? (1.0f / factor) : 1.0f);}
     else if (static_cast<Pulsar::DKWSettingDriftAnywhere>(Pulsar::Settings::Mgr::Get().GetSettingValue(static_cast<Pulsar::Settings::Type>(Pulsar::Settings::SETTINGSTYPE_MISC2), Pulsar::MISC_ALWAYSDRIFT)) == Pulsar::DKWSETTING_DANYWHERE_ENABLED) {
-    Kart::minDriftSpeedRatio = 0.001f * (factor > 1.0f ? (1.0f / factor) : 1.0f);}
+    Kart::minDriftSpeedRatio = 0.00f * (factor > 1.0f ? (1.0f / factor) : 1.0f);}
     Kart::unknown_70 = 70.0f * factor;
     Kart::regularBoostAccel = 3.0f * factor;
 

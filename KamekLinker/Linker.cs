@@ -80,7 +80,7 @@ namespace Kamek
 
         private Word _location;
 
-        private void ImportSections(string prefix)
+        private void ImportSections(string prefix, uint minAlign = 4)
         {            
             foreach (var elf in _modules)
             {
@@ -89,6 +89,16 @@ namespace Kamek
                                    where s.name.StartsWith(prefix)
                                    select s))
                 {
+                    // Use the larger of the ELF section's alignment and the caller's minimum
+                    // minAlign=8 for .rodata/.data to ensure PPC double (lfd/stfd) alignment
+                    uint align = Math.Max(minAlign, s.sh_addralign);
+                    if ((_location.Value % align) != 0)
+                    {
+                        long pad = align - (_location.Value % align);
+                        _binaryBlobs.Add(new byte[pad]);
+                        _location += pad;
+                    }
+
                     if (s.data != null)
                         _binaryBlobs.Add(s.data);
                     else
@@ -96,14 +106,6 @@ namespace Kamek
 
                     _sectionBases[s] = _location;
                     _location += s.sh_size;
-
-                    // Align to 4 bytes
-                    if ((_location.Value % 4) != 0)
-                    {
-                        long alignment = 4 - (_location.Value % 4);
-                        _binaryBlobs.Add(new byte[alignment]);
-                        _location += alignment;
-                    }
                 }
             }
         }
@@ -132,11 +134,11 @@ namespace Kamek
             _dtorEnd = _location;
 
             _rodataStart = _location;
-            ImportSections(".rodata");
+            ImportSections(".rodata", 8);
             _rodataEnd = _location;
 
             _dataStart = _location;
-            ImportSections(".data");
+            ImportSections(".data", 8);
             _dataEnd = _location;
 
             _outputEnd = _location;

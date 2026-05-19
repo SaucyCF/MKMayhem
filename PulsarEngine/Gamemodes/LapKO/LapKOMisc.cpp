@@ -1,4 +1,6 @@
 #include <Gamemodes/LapKO/LapKOMgr.hpp>
+#include <MarioKartWii/Item/ItemSlot.hpp>
+#include <MarioKartWii/Item/ItemManager.hpp>
 #include <runtimeWrite.hpp>
 
 namespace Pulsar {
@@ -15,22 +17,10 @@ static RaceFrameHook lapKoFrameHook(FrameUpdate);
 
 kmRuntimeUse(0x8053F3B8);  // Wifi Time Limit Expansion [Chadderz]
 kmRuntimeUse(0x8053F3BC);
-kmRuntimeUse(0x80521408);  // No Disconnect [Bully]
-kmRuntimeUse(0x8053EC94);
-kmRuntimeUse(0x8053EF6C);
-kmRuntimeUse(0x8053F0B4);
-kmRuntimeUse(0x8053F124);
 static void WifiEdits() {
     // Default is 5 minutes (300k Milliseconds)
     kmRuntimeWrite32A(0x8053F3B8, 0x3C600005);
     kmRuntimeWrite32A(0x8053F3BC, 0x388393E0);
-
-    // Default disconnect behavior
-    kmRuntimeWrite32A(0x80521408, 0x38030001);
-    kmRuntimeWrite32A(0x8053EC94, 0x38040001);
-    kmRuntimeWrite32A(0x8053EF6C, 0x38030001);
-    kmRuntimeWrite32A(0x8053F0B4, 0x38030001);
-    kmRuntimeWrite32A(0x8053F124, 0x38030001);
 
     System* system = System::sInstance;
     if (system == nullptr) return;
@@ -41,13 +31,6 @@ static void WifiEdits() {
     // 15 minutes if LapKO is enabled (900k Milliseconds)
     kmRuntimeWrite32A(0x8053F3B8, 0x3C60000D);
     kmRuntimeWrite32A(0x8053F3BC, 0x6064BBA0);
-
-    // Disable disconnects from being idle
-    kmRuntimeWrite32A(0x80521408, 0x38000000);
-    kmRuntimeWrite32A(0x8053EC94, 0x38000000);
-    kmRuntimeWrite32A(0x8053EF6C, 0x38000000);
-    kmRuntimeWrite32A(0x8053F0B4, 0x38000000);
-    kmRuntimeWrite32A(0x8053F124, 0x38000000);
 }
 static SectionLoadHook WifiEditsHook(WifiEdits);
 
@@ -79,7 +62,7 @@ static void camerIDHUDLocal() {
         kmRuntimeCallA(0x807EC8D4, cameraIDHUD);
     }
 }
-static PageLoadHook cameraIDHUDHook(camerIDHUDLocal);
+static SectionLoadHook cameraIDHUDHook(camerIDHUDLocal);
 
 extern "C" void ptr_playerBase(void*);
 asmFunc HideMapIcon() {
@@ -111,6 +94,89 @@ asmFunc HideNametag() {
         end : blr;)
 }
 kmCall(0x807F09A4, HideNametag);
+
+static ItemId DecideItemHook(Item::ItemSlotData* slotData, u16 setting, u8 position, bool isHuman, bool disableTripleShellsAndBananas, Item::Player* player) {
+    ItemId item = slotData->DecideItem(setting, position, isHuman, disableTripleShellsAndBananas, player);
+
+    System* system = System::sInstance;
+    if (system == nullptr || !system->IsContext(PULSAR_MODE_LAPKO)) return item;
+
+    if (item == BLUE_SHELL) {
+        LapKO::Mgr* lapKoMgr = system->lapKoMgr;
+        if (lapKoMgr->roundIndex >= lapKoMgr->totalRounds) {
+            return MEGA_MUSHROOM;
+        }
+
+        const Raceinfo* ri = Raceinfo::sInstance;
+        if (ri == nullptr) return item;
+
+        u8 playerCount = Item::Manager::sInstance->playerCount;
+        if (playerCount < 6) {
+            float threshold = 0.08f * (6 - playerCount);
+
+            u8 firstId = ri->playerIdInEachPosition[0];
+            u8 secondId = ri->playerIdInEachPosition[1];
+
+            if (firstId >= 12 || secondId >= 12) return item;
+
+            RaceinfoPlayer* first = ri->players[firstId];
+            RaceinfoPlayer* second = ri->players[secondId];
+
+            if (first == nullptr || second == nullptr) return item;
+
+            float diff = first->raceCompletion - second->raceCompletion;
+
+            if (diff < threshold) {
+                return MEGA_MUSHROOM;
+            }
+        }
+    }
+    return item;
+}
+kmCall(0x807ba160, DecideItemHook);
+
+extern "C" void LapCounterColorFixHelper(CtrlRaceBase* self) {
+    System* system = System::sInstance;
+    if (self == nullptr) return;
+    if (system == nullptr || !system->IsContext(PULSAR_MODE_LAPKO)) return;
+
+    const char* leftPane = nullptr;
+    if (self->layout.GetPaneByName("lap_lefft") != nullptr) {
+        leftPane = "lap_lefft";
+    } else if (self->layout.GetPaneByName("lap_left") != nullptr) {
+        leftPane = "lap_left";
+    }
+
+    const char* rightPane = nullptr;
+    if (self->layout.GetPaneByName("lap_riighter") != nullptr) {
+        rightPane = "lap_riighter";
+    } else if (self->layout.GetPaneByName("lap_right") != nullptr) {
+        rightPane = "lap_right";
+    }
+
+    if (leftPane != nullptr) self->HudSlotColorEnable(leftPane, true);
+    if (rightPane != nullptr) self->HudSlotColorEnable(rightPane, true);
+}
+
+asmFunc LapCounterColorFix() {
+    ASM(
+        nofralloc;
+        stwu sp, -0x10(sp);
+        mflr r0;
+        stw r0, 0x14(sp);
+
+        mr r3, r28;
+        bl LapCounterColorFixHelper;
+
+        lwz r0, 0x14(sp);
+        mtlr r0;
+        addi sp, sp, 0x10;
+
+        mr r3, r28;
+        blr;
+    )
+}
+kmCall(0x807EF7E8, LapCounterColorFix);
 
 }  // namespace LapKO
 }  // namespace Pulsar

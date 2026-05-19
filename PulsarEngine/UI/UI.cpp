@@ -294,15 +294,15 @@ static int GetMsgIdxByBmgId(const BMGHolder& bmg, s32 bmgId) {
 }
 
 static int GetMsgIdxById(const BMGHolder& normalHolder, s32 bmgId) {
-
-    int ret = GetMsgIdxByBmgId(System::sInstance->GetBMG(), bmgId);
+    
+    int ret = -1;
+    if (System::sInstance != nullptr) ret = GetMsgIdxByBmgId(System::sInstance->GetBMG(), bmgId);
     if(ret < 0) {
         isCustom = BMG_NORMAL;
         ret = GetMsgIdxByBmgId(normalHolder, bmgId);
     }
     else isCustom = CUSTOM_BMG;
     return ret;
-    //}
 }
 kmBranch(0x805f8c88, GetMsgIdxById);
 

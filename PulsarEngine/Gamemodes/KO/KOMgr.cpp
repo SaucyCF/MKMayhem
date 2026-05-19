@@ -2,6 +2,8 @@
 #include <MarioKartWii/UI/Page/Page.hpp>
 #include <MarioKartWii/Input/InputManager.hpp>
 #include <GameModes/KO/KOMgr.hpp>
+#include <Gamemodes/KO/KOUnderdog.hpp>
+#include <Gamemodes/KO/KOSuperRarePower.hpp>
 #include <Network/PacketExpansion.hpp>
 #include <Gamemodes/KO/KORaceEndPage.hpp>
 #include <Settings/SettingsParam.hpp>
@@ -9,13 +11,15 @@
 namespace Pulsar {
 namespace KO {
 
-Mgr::Mgr() : winnerPlayerId(0xFF), isSpectating(false), hasSwapped(false) /*, stillInCount(playerCount)*/ {
+Mgr::Mgr() : winnerPlayerId(0xFF), isSpectating(false), hasSwapped(false), isFreshKOSession(true), forceNoSuperpowersNextRace(false) /*, stillInCount(playerCount)*/ {
     const RKNet::Controller* controller = RKNet::Controller::sInstance;
     const RKNet::ControllerSub& sub = controller->subs[controller->currentSub];
     this->baseLocPlayerCount = sub.localPlayerCount;
     for(int aid = 0; aid < 12; ++aid) {
         this->status[aid][0] = NORMAL;
         this->status[aid][1] = NORMAL;
+        this->superpowerStage[aid] = 0;
+        this->superpowerUnlocked[aid] = false;
     }
     this->ResetRace();
 }
@@ -24,6 +28,12 @@ Mgr::~Mgr() {
     controller->subs[0].localPlayerCount = this->baseLocPlayerCount;
     controller->subs[1].localPlayerCount = this->baseLocPlayerCount;
     if(this->GetIsSwapped()) this->SwapControllersAndUI();
+    
+    // Clear underdog state when KO session ends
+    ClearUnderdogState();
+    
+    // Clear super rare power state when KO session ends
+    ClearSuperRarePowerState();
 }
 
 void Mgr::AddRaceStats() { //SHOULD ONLY BE CALLED AFTER PROCESSKOS
@@ -131,6 +141,37 @@ void Mgr::ProcessKOs(Pages::GPVSLeaderboardUpdate::Player* playerArr, size_t nit
     const u32 currentRaceNumber = sectionParams->onlineParams.currentRaceNumber + 1;
     bool hasTies = false;
 
+    // Apply the pre-rolled Super Rare Power results (rolled during race, synced to clients)
+    ApplyPreRolledSuperRarePower();
+
+    // Update superpower milestones and trigger flags for this results screen (only if superpowers enabled)
+    for (u8 idx = 0; idx < 12; ++idx) {
+        self->superpowerUnlocked[idx] = false;
+    }
+
+    if (Mgr::AreSuperpowersEnabled()) {
+        for (u8 playerId = 0; playerId < playerCount; ++playerId) {
+            const u16 curScore = scenario.players[playerId].score;
+            u8 newStage = curScore / 15;  // 15, 30, 45, 60 => stages 1-4
+            if (newStage > 4) newStage = 4;
+
+            // Compare against previousScore stage, not superpowerStage (which may have been updated during race)
+            const u16 prevScore = scenario.players[playerId].previousScore;
+            u8 prevStage = prevScore / 15;
+            if (prevStage > 4) prevStage = 4;
+
+            if (newStage > prevStage && newStage > 0) {
+                self->superpowerStage[playerId] = newStage;
+                self->superpowerUnlocked[playerId] = true;
+            }
+        }
+    } else {
+        // Clear stages when superpowers are disabled
+        for (u8 playerId = 0; playerId < 12; ++playerId) {
+            self->superpowerStage[playerId] = 0;
+        }
+    }
+
     // Handle disconnected players first
     u8 disconnectedKOs = 0;
     for (int playerId = 0; playerId < playerCount; ++playerId) {
@@ -171,6 +212,19 @@ void Mgr::ProcessKOs(Pages::GPVSLeaderboardUpdate::Player* playerArr, size_t nit
         // In finals or when only one player remains due to disconnects
         self->winnerPlayerId = raceinfo->playerIdInEachPosition[0];
         self->SetKOd(raceinfo->playerIdInEachPosition[1]);
+        
+        // Clear superpower state for multi-race KO finals only (points get reset, so superpowers don't carry over)
+        // Note: This is the final race, so clearing here is enough (no next race to worry about)
+        if (self->racesPerKO > 1) {
+            for (int idx = 0; idx < 12; ++idx) {
+                self->superpowerStage[idx] = 0;
+                self->superpowerUnlocked[idx] = false;
+            }
+        }
+        
+        // Clear underdog state for finals
+        ClearUnderdogState();
+        
         self->AddRaceStats();
         return;
     }
@@ -178,6 +232,28 @@ void Mgr::ProcessKOs(Pages::GPVSLeaderboardUpdate::Player* playerArr, size_t nit
     // Check if this is a KO race
     const bool isKoRace = currentRaceNumber % self->racesPerKO == 0;
     if (!isKoRace || koCount <= 0) {
+        // Not a KO race - but check if disconnects brought us to finals
+        // Count how many players are still in after disconnects
+        int stillInCount = 0;
+        for (int playerId = 0; playerId < playerCount; ++playerId) {
+            if (!self->IsKOdPlayerId(playerId) && !self->IsDisconnectedPlayerId(playerId)) {
+                ++stillInCount;
+            }
+        }
+        
+        // If only 2 players remain due to disconnects, set flag to clear superpowers for next race (finals)
+        if (stillInCount == 2 && self->racesPerKO > 1) {
+            self->forceNoSuperpowersNextRace = true;
+            for (int idx = 0; idx < 12; ++idx) {
+                self->superpowerStage[idx] = 0;
+                self->superpowerUnlocked[idx] = false;
+            }
+            ClearUnderdogState();
+        } else {
+            // Not going to finals - calculate underdog normally
+            CalculateNextRaceUnderdog(0);
+        }
+        
         self->AddRaceStats();
         return;
     }
@@ -229,13 +305,45 @@ void Mgr::ProcessKOs(Pages::GPVSLeaderboardUpdate::Player* playerArr, size_t nit
             }
         }
 
+        // Calculate underdog for next race BEFORE score reset
+        // Build bitmask of players who will be KO'd (already KO'd from ties, or will be from main loop)
+        if (!hasTies && isKoRace) {
+            u16 playersAboutToBeKOd = 0;
+            // Add players already KO'd from tie resolution (they're already marked as KOD)
+            for (u8 playerId = 0; playerId < playerCount && playerId < 12; ++playerId) {
+                if (self->IsKOdPlayerId(playerId)) {
+                    playersAboutToBeKOd |= (1 << playerId);
+                }
+            }
+            // Add players that will be KO'd in the main loop below
+            for (int idx = 0; idx < koCount; ++idx) {
+                u32 position = (playerCount - 1) - idx;
+                u8 playerId = playerArr[position].playerId;
+                playersAboutToBeKOd |= (1 << playerId);
+            }
+            CalculateNextRaceUnderdog(playersAboutToBeKOd);
+        }
+
         // Reset scores after KO round (if no ties and multi-race KO)
         if (!hasTies && isKoRace) {
             for (int idx = 0; idx < 12; ++idx) {
                 scenario.players[idx].score = 0;
                 scenario.players[idx].previousScore = 0;
+                self->superpowerStage[idx] = 0;
+                self->superpowerUnlocked[idx] = false;
             }
         }
+    }
+
+    // For single-race KO, calculate underdog before any KOs (scores are not reset)
+    if (self->racesPerKO == 1) {
+        u16 playersAboutToBeKOd = 0;
+        for (int idx = 0; idx < koCount; ++idx) {
+            u32 position = (playerCount - 1) - idx;
+            u8 playerId = raceinfo->playerIdInEachPosition[position];
+            playersAboutToBeKOd |= (1 << playerId);
+        }
+        CalculateNextRaceUnderdog(playersAboutToBeKOd);
     }
 
     // Eliminate players based on position or score
@@ -279,6 +387,18 @@ void Mgr::ProcessKOs(Pages::GPVSLeaderboardUpdate::Player* playerArr, size_t nit
     if (notKOdCount == 1) {
         self->winnerPlayerId = potentialWinner;
     }
+    
+    // If only 2 players remain (finals next), set flag to clear superpowers for multi-race KO only and underdog for next race
+    if (notKOdCount == 2) {
+        if (self->racesPerKO > 1) {
+            self->forceNoSuperpowersNextRace = true;
+            for (int idx = 0; idx < 12; ++idx) {
+                self->superpowerStage[idx] = 0;
+                self->superpowerUnlocked[idx] = false;
+            }
+        }
+        ClearUnderdogState();
+    }
 
     self->AddRaceStats();
 }
@@ -301,10 +421,40 @@ void Mgr::Update() {
             stats.isInDangerFrames[idx] = wouldBeOut;
         }
 
+        const RKNet::Controller* controller = RKNet::Controller::sInstance;
+        const RKNet::ControllerSub& sub = controller->subs[controller->currentSub];
+        const bool isHost = sub.localAid == sub.hostAid;
+
+        // Host pre-rolls Super Rare Power during the race and sends to all clients
+        if(isHost) {
+            // Pre-roll the dice (only happens once per race)
+            PreRollSuperRarePower();
+            
+            // Send the pre-rolled mask to all clients
+            const u16 preRolledMask = GetPreRolledSuperRarePowerMask();
+            for(int aid = 0; aid < 12; ++aid) {
+                if((1 << aid & sub.availableAids) == 0 || aid == sub.localAid) continue;
+                RKNet::PacketHolder<Network::PulRH1>* holder = controller->GetSendPacketHolder<Network::PulRH1>(aid);
+                Network::PulRH1* dest = holder->packet;
+                dest->superRarePowerMask = preRolledMask;
+            }
+        }
+        // Non-host clients receive the pre-rolled mask from host
+        else {
+            const u32 bufferIdx = controller->lastReceivedBufferUsed[sub.hostAid][RKNet::PACKET_RACEHEADER1];
+            RKNet::SplitRACEPointers* split = controller->splitReceivedRACEPackets[bufferIdx][sub.hostAid];
+            if(split != nullptr) {
+                const RKNet::PacketHolder<Network::PulRH1>* holder = split->GetPacketHolder<Network::PulRH1>();
+                if(holder->packetSize >= sizeof(Network::PulRH1)) {
+                    const Network::PulRH1* packet = holder->packet;
+                    // Apply the host's pre-rolled mask
+                    SetPreRolledSuperRarePowerMask(packet->superRarePowerMask);
+                }
+            }
+        }
+
         const u8 winnerPlayerId = self->winnerPlayerId;
         if(winnerPlayerId != 0xFF) { //if the if is taken, ProcessKOs and therefore AddRaceStats are guaranteed to have been called
-            const RKNet::Controller* controller = RKNet::Controller::sInstance;
-            const RKNet::ControllerSub& sub = controller->subs[controller->currentSub];
             if(controller->aidsBelongingToPlayerIds[winnerPlayerId] == sub.localAid) { //only send the data if needed 
                 for(int aid = 0; aid < 12; ++aid) {
                     if((1 << aid & sub.availableAids) == 0 || aid == sub.localAid) continue;
@@ -380,8 +530,14 @@ void Mgr::PatchAids(RKNet::ControllerSub& sub) const {
 
 u32 Mgr::GetAidAndSlotFromPlayerId(u8 playerId) const {
     const RKNet::Controller* controller = RKNet::Controller::sInstance;
+    if (controller == nullptr) return 0;  // Safety check
+    
     const RKNet::ControllerSub& sub = controller->subs[controller->currentSub];
     const u8 aid = controller->aidsBelongingToPlayerIds[playerId];
+    
+    // Safety check - aid could be 0xFF for disconnected players
+    if (aid >= 12) return 0;
+    
     const u8 localAid = sub.localAid;
     u8 slot = 0;
 

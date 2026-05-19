@@ -18,32 +18,32 @@ int UseItem(Kart::Collision *kartCollision, ItemId id){
 }
 
 int AllShocksCanLand(Kart::Collision *kartCollision){
-    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) return UseItem(kartCollision, LIGHTNING);
+    if (Pulsar::System::sInstance->IsContext(PULSAR_CT)) return UseItem(kartCollision, LIGHTNING);
     return -1;
 }
 
 int AllMegasCanLand(Kart::Collision *kartCollision){
-    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) return UseItem(kartCollision, MEGA_MUSHROOM);
+    if (Pulsar::System::sInstance->IsContext(PULSAR_CT)) return UseItem(kartCollision, MEGA_MUSHROOM);
     return -1;
 }
 
-int AllFeathersCanLand(Kart::Collision *kartCollision){
-    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) return UseItem(kartCollision, BLOOPER);
+int AllBloopersCanLand(Kart::Collision *kartCollision){
+    if (Pulsar::System::sInstance->IsContext(PULSAR_CT)) return UseItem(kartCollision, BLOOPER);
     return -1;
 }
 
 int AllPOWsCanLand(Kart::Collision *kartCollision){
-    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) return UseItem(kartCollision, POW_BLOCK);
+    if (Pulsar::System::sInstance->IsContext(PULSAR_CT)) return UseItem(kartCollision, POW_BLOCK);
     return -1;
 }
 
 int AllGoldensCanLand(Kart::Collision *kartCollision){
-    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) return UseItem(kartCollision, MUSHROOM);
+    if (Pulsar::System::sInstance->IsContext(PULSAR_CT)) return UseItem(kartCollision, MUSHROOM);
     return -1;
 }
 
 int AllBulletsCanLand(Kart::Collision *kartCollision){
-    if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) return UseItem(kartCollision, BULLET_BILL);
+    if (Pulsar::System::sInstance->IsContext(PULSAR_CT)) return UseItem(kartCollision, BULLET_BILL);
     return -1;
 }
 
@@ -54,12 +54,12 @@ const GameMode mode = scenario.settings.gamemode;
         for (int i = 0; i < 15; i++) {
                 Item::ObjProperties::objProperties[i].canFallOnTheGround = false;
             }
-    } else if (Pulsar::System::sInstance->IsContext(PULSAR_ALLITEMS) || Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) {
+    } else if (Pulsar::System::sInstance->IsContext(PULSAR_CT)) {
         if ((RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_HOST || RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_FROOM_NONHOST || 
             RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_NONE) || (RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_VS_REGIONAL ||
-            RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_JOINING_REGIONAL) && Pulsar::System::sInstance->IsContext(PULSAR_MODE_ITEMRAIN)) {
+            RKNet::Controller::sInstance->roomType == RKNet::ROOMTYPE_JOINING_REGIONAL)) {
             for (int i = 0; i < 15; i++) {
-                Item::ObjProperties::objProperties[i].canFallOnTheGround = true;
+                Item::ObjProperties::objProperties[i].canFallOnTheGround = (i == OBJ_THUNDER_CLOUD) ? false : true;
             }
         }
     }
@@ -68,6 +68,7 @@ kmBranch(0x80790af8, AllowDroppedItems);
 
 kmWritePointer(0x808b54b8, AllShocksCanLand);
 kmWritePointer(0x808b54d0, AllMegasCanLand);
+kmWritePointer(0x808b54e8, AllBloopersCanLand);
 kmWritePointer(0x808b54f4, AllPOWsCanLand);
 kmWritePointer(0x808b5500, AllGoldensCanLand);
 kmWritePointer(0x808b550c, AllBulletsCanLand);

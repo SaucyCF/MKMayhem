@@ -17,6 +17,7 @@ class Physics {
     void InitInertia(const Vec3& cuboid1, const Vec3& cuboid2);  // 805b4e84
     void CalcInvInertia();  // 805b4f34
     void Update(bool unknown, float one, float maxSpeed);  // 805b5170
+    void AddForce(const Vec3& force);  // 805b6388
     void ApplyWheelSuspension(const Vec3& unk0, const Vec3& normalAcceleration, const Vec3& unk1, bool unk2);  // 805b6150
 
     virtual ~Physics();  // 8059f678 vtable 808b7314

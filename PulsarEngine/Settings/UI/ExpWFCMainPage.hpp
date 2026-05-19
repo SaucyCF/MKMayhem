@@ -11,7 +11,6 @@ class ExpWFCMain : public Pages::WFCMainMenu {
 public:
     ExpWFCMain();
     void OnInit() override;
-    void OnActivate() override;
 private:
     void OnSettingsButtonClick(PushButton& PushButton, u32 r5);
     void ExtOnButtonSelect(PushButton& pushButton, u32 hudSlotId);
