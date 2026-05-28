@@ -1,6 +1,6 @@
 # Mario Kart Mayhem
 
-Will be listed at a later date.
+Please note that anything modified from the original Pulsar may have been coded by AI.
 
 ## Licensing
 
